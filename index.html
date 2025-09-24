@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#14b8a6">
     <title>HafalanQu</title>
-    <meta name="description" content="Jurnal Progres Hafalan Qur'an.">
+    <meta name="description" content="Jurnal Progres Hafalan Qur'an">
     
     <link rel="apple-touch-icon" href="https://placehold.co/192x192/14b8a6/FFFFFF?text=HQ">
 
@@ -181,7 +181,11 @@
     </style>
 </head>
 <body class="antialiased">
-
+    <script>
+      if (!window.location.hash) {
+        window.location.href += '#';
+      }
+    </script>
     <div id="app" class="hidden">
         <!-- Icon Menu View (Visible on load) -->
         <div id="icon-menu-view" class="flex flex-col items-center justify-center min-h-screen p-4">
@@ -2064,4 +2068,5 @@
     </script>
 </body>
 </html>
+
 
