@@ -433,7 +433,7 @@
                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                          <span>Unduh Template</span>
                      </button>
-                     <input type="file" id="import-file-input" class="hidden" accept=".csv">
+                     <input type="file" id="import-file-input" class="hidden" accept=".xlsx, xls">
                      <button type="button" id="import-btn" class="btn btn-primary w-full sm:w-auto">
                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                           <span>Impor File</span>
@@ -1211,75 +1211,67 @@ function downloadTemplate() {
         }
 
             function handleImport(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+            const file = event.target.files[0];
+            if (!file) return;
 
-                const importBtn = ui.import.importBtn;
-                setButtonLoading(importBtn, true);
+            const importBtn = ui.import.importBtn;
+            setButtonLoading(importBtn, true);
 
-                Papa.parse(file, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: async (results) => {
-                        if (results.errors.length) {
-                            console.error("Parsing errors:", results.errors);
-                            showToast("Gagal memproses file. Pastikan format CSV benar.", "error");
-                            setButtonLoading(importBtn, false);
-                            return;
-                        }
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-                        const data = results.data;
-                        if (!data.length || !data[0].hasOwnProperty('Nama') || !data[0].hasOwnProperty('Kelas')) {
-                            showToast("Format file tidak sesuai. Pastikan ada kolom 'Nama' dan 'Kelas'.", "error");
-                            setButtonLoading(importBtn, false);
-                            return;
-                        }
-
-                        let newStudentsCount = 0;
-                        let newClassesCount = 0;
-                        
-                        const classMap = new Map(window.appState.allClasses.map(c => [c.name.toLowerCase().trim(), c.id]));
-                        const existingStudentsMap = new Map(window.appState.allStudents.map(s => [`${s.name.toLowerCase().trim()}-${s.classId}`, true]));
-
-                        for (const row of data) {
-                            const studentName = row.Nama?.trim();
-                            const className = row.Kelas?.trim();
-
-                            if (!studentName || !className) continue;
-
-                            let classId = classMap.get(className.toLowerCase());
-
-                            if (!classId) {
-                                const newClass = { name: className, id: crypto.randomUUID() };
-                                await localDB.add('classes', newClass);
-                                window.appState.allClasses.push(newClass);
-                                classMap.set(className.toLowerCase(), newClass.id);
-                                classId = newClass.id;
-                                newClassesCount++;
-                            }
-                            
-                            const studentKey = `${studentName.toLowerCase()}-${classId}`;
-                            if (!existingStudentsMap.has(studentKey)) {
-                                const newStudent = { name: studentName, classId, id: crypto.randomUUID() };
-                                await localDB.add('students', newStudent);
-                                existingStudentsMap.set(studentKey, true);
-                                newStudentsCount++;
-                            }
-                        }
-
-                        ui.addStudentModal.classList.add('hidden'); 
-                        showToast(`${newStudentsCount} siswa baru dan ${newClassesCount} kelas baru berhasil diimpor.`, 'success');
-                        await refreshAllDataAndRender();
+                    if (!jsonData.length || !jsonData[0].hasOwnProperty('Nama') || !jsonData[0].hasOwnProperty('Kelas')) {
+                        showToast("Format template tidak sesuai. Pastikan ada kolom 'Nama' dan 'Kelas'.", "error");
                         setButtonLoading(importBtn, false);
-                        event.target.value = ''; // Reset file input
-                    },
-                    error: (error) => {
-                        console.error("PapaParse error:", error);
-                        showToast("Terjadi kesalahan saat membaca file.", "error");
-                        setButtonLoading(importBtn, false);
+                        return;
                     }
-                });
-            }
+
+                    let newStudentsCount = 0;
+                    let newClassesCount = 0;
+                    const classMap = new Map(window.appState.allClasses.map(c => [c.name.toLowerCase().trim(), c.id]));
+                    const existingStudentsMap = new Map(window.appState.allStudents.map(s => [`${s.name.toLowerCase().trim()}-${s.classId}`, true]));
+
+                    for (const row of jsonData) {
+                        const studentName = row.Nama?.toString().trim();
+                        const className = row.Kelas?.toString().trim();
+                        if (!studentName || !className) continue;
+                        let classId = classMap.get(className.toLowerCase());
+                        if (!classId) {
+                            const newClass = { name: className, id: crypto.randomUUID() };
+                            await localDB.add('classes', newClass);
+                            window.appState.allClasses.push(newClass);
+                            classMap.set(className.toLowerCase(), newClass.id);
+                            classId = newClass.id;
+                            newClassesCount++;
+                        }
+                        const studentKey = `${studentName.toLowerCase()}-${classId}`;
+                        if (!existingStudentsMap.has(studentKey)) {
+                            const newStudent = { name: studentName, classId, id: crypto.randomUUID() };
+                            await localDB.add('students', newStudent);
+                            existingStudentsMap.set(studentKey, true);
+                            newStudentsCount++;
+                        }
+                    }
+
+                    ui.addStudentModal.classList.add('hidden'); 
+                    showToast(`${newStudentsCount} siswa baru dan ${newClassesCount} kelas baru berhasil diimpor.`, 'success');
+                    await refreshAllDataAndRender();
+                } catch (error) {
+                    console.error("Import Error:", error);
+                    showToast("Terjadi kesalahan saat memproses file XLSX.", "error");
+                } finally {
+                    setButtonLoading(importBtn, false);
+                    event.target.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
             
             // --- RENDER FUNCTIONS ---
             async function refreshAllDataAndRender() {
