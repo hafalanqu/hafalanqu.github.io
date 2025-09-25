@@ -278,7 +278,7 @@
                     <!-- Student Progress List Card -->
                     <div class="card mt-8 p-4 sm:p-6">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                            <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Peringkat Siswa</h2>
+                            <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Pencapaian Siswa</h2>
                             <div class="w-full sm:w-auto">
                                 <label for="summary-rank-filter-class" class="sr-only">Filter Kelas</label>
                                 <select id="summary-rank-filter-class" class="form-select"></select>
@@ -630,7 +630,7 @@
                 if (pageId === 'ringkasan') {
                     headerActions.innerHTML = `<button id="export-data-btn" class="btn btn-primary w-full sm:w-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        <span>Ekspor Peringkat</span>
+                        <span>Ekspor Hasil Siswa</span>
                     </button>`;
                     document.getElementById('export-data-btn').addEventListener('click', window.exportAllData);
                 }
@@ -1541,7 +1541,7 @@ function downloadTemplate() {
                 ui.classList.innerHTML = '';
                 ui.studentFilterClass.innerHTML = '<option value="">Filter: Semua Kelas</option>';
                 ui.newStudentClass.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-                if(ui.summary.rankFilterClass) ui.summary.rankFilterClass.innerHTML = '<option value="">Peringkat: Semua Kelas</option>';
+                if(ui.summary.rankFilterClass) ui.summary.rankFilterClass.innerHTML = '<option value="">Hasil: Semua Kelas</option>';
 
                 const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
                 const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
@@ -2031,6 +2031,7 @@ function downloadTemplate() {
     </script>
 </body>
 </html>
+
 
 
 
