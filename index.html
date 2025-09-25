@@ -471,19 +471,6 @@
         </div>
     </div>
 
-    <!-- Storage Permission Modal -->
-    <div id="permission-modal" class="modal">
-        <div class="card w-full max-w-sm p-6 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto h-12 w-12 text-teal-500 mb-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            <h2 class="text-xl font-semibold mb-2">Izin Penyimpanan Lokal</h2>
-            <p id="permission-modal-text" class="text-slate-600 mb-6">Aplikasi ini perlu menyimpan data (kelas, siswa, dan progres hafalan) di perangkat Anda agar dapat berfungsi. Data Anda tidak akan dikirim ke mana pun.</p>
-            <div class="flex justify-center space-x-4">
-                <button id="permission-deny" class="btn btn-secondary">Tolak</button>
-                <button id="permission-allow" class="btn btn-primary">Izinkan</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Notification -->
     <div id="toast-notification" class="fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50">
         <p id="toast-message"></p>
@@ -606,9 +593,6 @@
                 addStudentModal: document.getElementById('add-student-modal'),
                 addStudentModalBtn: document.getElementById('add-student-modal-btn'),
                 cancelAddStudentBtn: document.getElementById('cancel-add-student'),
-                permissionModal: document.getElementById('permission-modal'),
-                permissionAllowBtn: document.getElementById('permission-allow'),
-                permissionDenyBtn: document.getElementById('permission-deny'),
             };
 
             // --- Navigation and History Management ---
@@ -704,52 +688,27 @@
             ui.addStudentModalBtn.addEventListener('click', () => ui.addStudentModal.classList.remove('hidden'));
             ui.cancelAddStudentBtn.addEventListener('click', () => ui.addStudentModal.classList.add('hidden'));
 
-            // --- Permission and Initialization Flow ---
-            const storagePermissionKey = 'hafalanqu_storage_permission';
-            if (localStorage.getItem(storagePermissionKey) === 'granted') {
-                ui.permissionModal.classList.add('hidden');
-                ui.app.classList.remove('hidden');
-                initializeAppLogic();
+            // --- Initialization Flow (Permission modal removed) ---
+            ui.app.classList.remove('hidden');
+            initializeAppLogic();
 
-                // Initial routing based on hash
-                const initialPage = window.location.hash.substring(1);
-                if (initialPage && document.getElementById(`${initialPage}-page`)) {
-                    try {
-                        history.replaceState({ page: initialPage }, '', `#${initialPage}`);
-                    } catch(e) {
-                        console.warn("History API replaceState failed:", e);
-                    }
-                    _showPageImpl(initialPage);
-                } else {
-                    try {
-                        history.replaceState({ page: null }, '', '#');
-                    } catch (e) {
-                        console.warn("History API replaceState failed:", e);
-                    }
-                    _showIconMenuImpl();
-                }
-            } else {
-                ui.permissionModal.classList.remove('hidden');
-            }
-
-            ui.permissionAllowBtn.addEventListener('click', () => {
-                localStorage.setItem(storagePermissionKey, 'granted');
-                ui.permissionModal.classList.add('hidden');
-                ui.app.classList.remove('hidden');
+            // Initial routing based on hash
+            const initialPage = window.location.hash.substring(1);
+            if (initialPage && document.getElementById(`${initialPage}-page`)) {
                 try {
-                    history.replaceState({ page: null }, '', '#'); // Set initial state
+                    history.replaceState({ page: initialPage }, '', `#${initialPage}`);
+                } catch(e) {
+                    console.warn("History API replaceState failed:", e);
+                }
+                _showPageImpl(initialPage);
+            } else {
+                try {
+                    history.replaceState({ page: null }, '', '#');
                 } catch (e) {
                     console.warn("History API replaceState failed:", e);
                 }
-                initializeAppLogic();
                 _showIconMenuImpl();
-            });
-
-            ui.permissionDenyBtn.addEventListener('click', () => {
-                document.getElementById('permission-modal-text').textContent = 'Aplikasi tidak dapat berfungsi tanpa izin penyimpanan. Muat ulang halaman untuk mencoba lagi.';
-                ui.permissionAllowBtn.classList.add('hidden');
-                ui.permissionDenyBtn.classList.add('hidden');
-            });
+            }
         });
 
         // --- Local Database (IndexedDB) Wrapper ---
