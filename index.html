@@ -6,6 +6,13 @@
     <meta name="theme-color" content="#14b8a6">
     <title>HafalanQu</title>
     <meta name="description" content="Jurnal Progres Hafalan Qur'an">
+    <script>
+      // Skrip ini berjalan sangat cepat sebelum halaman di-render
+      // untuk mencegah kedipan layar login.
+      if (sessionStorage.getItem('loggedInRole')) {
+        document.write('<style>#login-view { display: none; } #app { display: block; }<\/style>');
+      }
+    </script>
     
     <link rel="apple-touch-icon" href="https://placehold.co/192x192/14b8a6/FFFFFF?text=HQ">
 
@@ -674,14 +681,16 @@
                 addStudentModalBtn: document.getElementById('add-student-modal-btn'),
                 cancelAddStudentBtn: document.getElementById('cancel-add-student'),
             };
-
+            const loggedInRole = sessionStorage.getItem('loggedInRole');
+            if (loggedInRole) {
+                window.appState.loggedInRole = loggedInRole;
+                startApp(loggedInRole);
+            }
             function handleLogout() {
-                sessionStorage.removeItem('loggedInRole');
-                window.appState.loggedInRole = null;
-                ui.app.classList.add('hidden');
-                ui.loginView.classList.remove('hidden');
-                window.location.hash = '#';
-                document.querySelectorAll('.menu-link').forEach(link => link.classList.remove('hidden'));
+             // Hapus sesi dari browser
+            sessionStorage.removeItem('loggedInRole');
+            // Muat ulang halaman. Ini adalah cara paling bersih untuk reset.
+            window.location.reload();
             }
             
             function setupUIForRole(role) {
@@ -829,9 +838,9 @@
                 const password = ui.passwordInput.value;
                 let role = null;
 
-                if (username.toLowerCase() === 'guru' && password.toLowerCase() === 'guru') {
+                if (username === 'guru' && password === 'HafalanQu30juz') {
                     role = 'guru';
-                } else if (username.toLowerCase() === 'siswa' && password.toLowerCase() === 'siswa') {
+                } else if (username === 'siswa' && password === 'SiswaMulia30juz') {
                     role = 'siswa';
                 }
 
