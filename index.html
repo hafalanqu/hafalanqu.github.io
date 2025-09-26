@@ -2014,28 +2014,38 @@ function renderAll() {
                 return window.appState.pengaturan.lingkupHafalan;
             }
 
+            // ✅ KODE YANG SUDAH DIPERBAIKI
             async function saveMutqinScores(scores) {
                 try {
                     const snapshot = await db.collection('pengaturan').where('nama', '==', 'skorMutqin').get();
                     if (!snapshot.empty) {
                         const docId = snapshot.docs[0].id;
                         await db.collection('pengaturan').doc(docId).update({ scores });
+                        showToast("Perubahan skor berhasil disimpan."); // <-- TAMBAHKAN BARIS INI
                     } else {
-                        console.error("Dokumen 'skorMutqin' tidak ditemukan.");
+                        showToast("Gagal menyimpan: Dokumen pengaturan tidak ditemukan.", "error");
                     }
-                } catch (e) { console.error("Error saat menyimpan skor: ", e); }
+                } catch (e) { 
+                    console.error("Error saat menyimpan skor: ", e);
+                    showToast("Terjadi kesalahan saat menyimpan.", "error");
+                }
             }
 
+            // ✅ KODE YANG SUDAH DIPERBAIKI
             async function saveQuranScope(scope) {
                 try {
                     const snapshot = await db.collection('pengaturan').where('nama', '==', 'lingkupHafalan').get();
                     if (!snapshot.empty) {
                         const docId = snapshot.docs[0].id;
                         await db.collection('pengaturan').doc(docId).update({ scope });
+                        showToast("Perubahan lingkup berhasil disimpan."); // <-- TAMBAHKAN BARIS INI
                     } else {
-                        console.error("Dokumen 'lingkupHafalan' tidak ditemukan.");
+                        showToast("Gagal menyimpan: Dokumen pengaturan tidak ditemukan.", "error");
                     }
-                } catch(e) { console.error("Error saat menyimpan lingkup: ", e); }
+                } catch(e) { 
+                    console.error("Error saat menyimpan lingkup: ", e);
+                    showToast("Terjadi kesalahan saat menyimpan.", "error");
+                }
             }
 
             window.populateSettingsForms = function() {
