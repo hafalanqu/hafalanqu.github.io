@@ -366,6 +366,24 @@
                 <!-- ===== Pengaturan Page ===== -->
                 <div id="pengaturan-page" class="page hidden">
                     <div class="max-w-3xl mx-auto space-y-8">
+                        <!-- Pengaturan Lingkup Hafalan -->
+                        <div class="card p-6">
+                             <h2 class="text-xl font-semibold text-slate-800 mb-1">Pengaturan Lingkup Hafalan</h2>
+                            <p class="text-sm text-slate-500 mb-6">Pilih lingkup hafalan yang akan ditampilkan pada formulir entri setoran siswa di menu "Siswa".</p>
+                             <form id="quran-scope-form" class="space-y-4">
+                               <div class="grid grid-cols-1 items-center gap-4">
+                                    <label for="quran-scope-setting" class="font-medium text-slate-700 sr-only">Pilih Lingkup</label>
+                                    <select id="quran-scope-setting" class="form-select">
+                                        <option value="full">Al-Qur'an 30 Juz</option>
+                                        <option value="juz30">Juz 'Amma (Juz 30)</option>
+                                        <option value="pilihan">Surat Pilihan</option>
+                                    </select>
+                                </div>
+                                 <div class="flex justify-end pt-2">
+                                    <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                                </div>
+                            </form>
+                        </div>
                         <!-- Skor Mutqin Card -->
                         <div class="card p-6">
                             <h2 class="text-xl font-semibold text-slate-800 mb-1">Pengaturan Skor Mutqin</h2>
@@ -405,18 +423,20 @@
                         <h2 class="text-2xl font-bold text-teal-600 mb-4">Tentang HafalanQu</h2>
                         <div class="space-y-4 text-slate-600">
                             <p>
-                                <strong>HafalanQu</strong> adalah aplikasi sederhana yang dirancang untuk membantu para pengajar atau ustadz/ustadzah dalam mencatat dan memantau progres hafalan Al-Qur'an para siswanya (santri). 
+                                <strong>HafalanQu</strong> adalah aplikasi jurnal digital yang dirancang untuk membantu para pengajar Al-Qur'an dalam mencatat, mengelola, dan memantau progres hafalan para siswanya secara efisien.
                             </p>
                             <p>
-                                Aplikasi ini bekerja sepenuhnya secara offline, menyimpan semua data (seperti daftar kelas, nama siswa, dan riwayat setoran hafalan) dengan aman di penyimpanan lokal perangkat Anda. Data Anda tidak dikirim ke server mana pun, memastikan privasi dan aksesibilitas bahkan tanpa koneksi internet.
+                                Aplikasi ini beroperasi penuh secara <strong>online</strong>, menyimpan seluruh data (kelas, siswa, dan riwayat setoran) dengan aman. Privasi dan keamanan data Anda adalah prioritas utama kami, memastikan semua informasi terlindungi dengan baik.
                             </p>
                             <div>
-                                <h3 class="font-semibold text-lg text-slate-700 mb-2">Fungsi Utama:</h3>
+                                <h3 class="font-semibold text-lg text-slate-700 mb-2">Fitur Unggulan:</h3>
                                 <ul class="list-disc list-inside space-y-2">
-                                    <li><strong>Manajemen Kelas & Siswa:</strong> Membuat dan mengelola beberapa kelas atau kelompok hafalan serta menambahkan siswa.</li>
-                                    <li><strong>Pencatatan Setoran:</strong> Mencatat setoran hafalan baru (Ziyadah) dan pengulangan (Muraja'ah) untuk setiap siswa.</li>
-                                    <li><strong>Pelacakan Progres:</strong> Melihat ringkasan dan progres hafalan setiap siswa secara visual.</li>
-                                    <li><strong>Al-Qur'an Digital:</strong> Dilengkapi dengan mushaf digital 30 Juz untuk kemudahan referensi saat menyimak setoran.</li>
+                                    <li><strong>Manajemen Data:</strong> Kelola kelas dan siswa dengan mudah, termasuk fitur impor massal dari file Excel untuk mempercepat penambahan data.</li>
+                                    <li><strong>Pencatatan Setoran Harian:</strong> Catat setoran Ziyadah (hafalan baru) dan Muraja'ah (pengulangan) dengan cepat melalui formulir interaktif di bawah nama setiap siswa, lengkap dengan penilaian kualitas hafalan.</li>
+                                    <li><strong>Dasbor Pencapaian:</strong> Pantau ringkasan progres, skor Mutqin (kualitas hafalan) rata-rata, dan peringkat pencapaian siswa yang dapat difilter per kelas.</li>
+                                    <li><strong>Riwayat & Laporan:</strong> Lihat jejak rekam semua setoran siswa yang tersusun rapi dan ekspor laporan pencapaian dalam format <strong>Excel (.xlsx)</strong> untuk keperluan dokumentasi.</li>
+                                    <li><strong>Mushaf Digital Terintegrasi:</strong> Akses Al-Qur'an digital 30 juz langsung di dalam aplikasi untuk referensi cepat saat menyimak setoran.</li>
+                                     <li><strong>Pengaturan Fleksibel:</strong> Sesuaikan lingkup hafalan (30 Juz, Juz 'Amma, atau Surat Pilihan) dan atur sendiri skema penilaian skor Mutqin sesuai standar pengajaran Anda.</li>
                                 </ul>
                             </div>
                              <div class="pt-4 mt-4 border-t">
@@ -635,8 +655,8 @@
                     window.loadQuranDigital();
                 }
 
-                if (pageId === 'pengaturan' && typeof window.populateMutqinForm === 'function') {
-                    window.populateMutqinForm();
+                if (pageId === 'pengaturan' && typeof window.populateSettingsForms === 'function') {
+                    window.populateSettingsForms();
                 }
             }
 
@@ -972,6 +992,8 @@ function exportAllData() {
                 },
                 settings: {
                     mutqinForm: document.getElementById('mutqin-settings-form'),
+                    quranScopeForm: document.getElementById('quran-scope-form'),
+                    quranScopeSelect: document.getElementById('quran-scope-setting'),
                 }
             };
 
@@ -1648,6 +1670,19 @@ function exportAllData() {
 
                 ui.studentList.innerHTML = '';
                 
+                const quranScope = getQuranScope();
+                let surahsForForm;
+                const pilihanSurahNumbers = [18, 36, 55, 56, 67]; // Al-Kahfi, Yasin, Ar-Rahman, Al-Waqi'ah, Al-Mulk
+
+                if (quranScope === 'juz30') {
+                    surahsForForm = surahList.filter(s => s.no >= 78);
+                } else if (quranScope === 'pilihan') {
+                    surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
+                } else { // 'full'
+                    surahsForForm = surahList;
+                }
+                const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+
                 if (window.appState.allClasses.length === 0 && window.appState.allStudents.length > 0) {
                      ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
                      return;
@@ -1676,7 +1711,7 @@ function exportAllData() {
                             <form class="hafalan-form space-y-4">
                                 <input type="hidden" name="studentId" value="${student.id}">
                                 <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
-                                <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahList.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('')}</select></div>
+                                <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
                                     <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
@@ -1720,6 +1755,7 @@ function exportAllData() {
             }
 
             const MUTQIN_SCORES_KEY = 'hafalanqu_mutqin_scores';
+            const QURAN_SCOPE_KEY = 'hafalanqu_quran_scope';
             const DEFAULT_MUTQIN_SCORES = {
                 'sangat-lancar': 100,
                 'lancar': 90,
@@ -1737,13 +1773,27 @@ function exportAllData() {
                 localStorage.setItem(MUTQIN_SCORES_KEY, JSON.stringify(scores));
             }
 
-            window.populateMutqinForm = function() {
+            function getQuranScope() {
+                return localStorage.getItem(QURAN_SCOPE_KEY) || 'full'; // Default to 'full'
+            }
+            
+            function saveQuranScope(scope) {
+                localStorage.setItem(QURAN_SCOPE_KEY, scope);
+            }
+
+            window.populateSettingsForms = function() {
+                // Populate Mutqin Scores
                 const scores = getMutqinScores();
                 document.getElementById('score-sangat-lancar').value = scores['sangat-lancar'];
                 document.getElementById('score-lancar').value = scores['lancar'];
                 document.getElementById('score-cukup-lancar').value = scores['cukup-lancar'];
                 document.getElementById('score-tidak-lancar').value = scores['tidak-lancar'];
                 document.getElementById('score-sangat-tidak-lancar').value = scores['sangat-tidak-lancar'];
+
+                // Populate Quran Scope
+                if(ui.settings.quranScopeSelect) {
+                    ui.settings.quranScopeSelect.value = getQuranScope();
+                }
             }
             
             async function initApp() {
@@ -1987,6 +2037,17 @@ function exportAllData() {
                     showToast("Pengaturan skor berhasil disimpan.", "success");
                     refreshAllDataAndRender();
                 });
+
+                if (ui.settings.quranScopeForm) {
+                     ui.settings.quranScopeForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const newScope = ui.settings.quranScopeSelect.value;
+                        saveQuranScope(newScope);
+                        showToast("Pengaturan lingkup hafalan disimpan.", "success");
+                        // Re-render student list to apply changes immediately if user goes back
+                        renderStudentList();
+                    });
+                }
 
                 // --- Initial Data Load ---
                 try {
