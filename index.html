@@ -2006,47 +2006,36 @@ function renderAll() {
                 'sangat-tidak-lancar': 30
             };
 
-            // ✅ FUNGSI PENGATURAN BARU (GUNAKAN INI)
             function getMutqinScores() {
-                // Langsung ambil dari appState
                 return window.appState.pengaturan.skorMutqin;
             }
 
             function getQuranScope() {
-                // Langsung ambil dari appState
                 return window.appState.pengaturan.lingkupHafalan;
             }
 
             async function saveMutqinScores(scores) {
-                // Cari dokumen pengaturan skorMutqin di Firestore dan update
                 try {
                     const snapshot = await db.collection('pengaturan').where('nama', '==', 'skorMutqin').get();
                     if (!snapshot.empty) {
                         const docId = snapshot.docs[0].id;
                         await db.collection('pengaturan').doc(docId).update({ scores });
-                        showToast("Pengaturan skor berhasil disimpan.", "success");
                     } else {
-                        showToast("Gagal: dokumen 'skorMutqin' tidak ditemukan.", "error");
+                        console.error("Dokumen 'skorMutqin' tidak ditemukan.");
                     }
-                } catch (e) {
-                    showToast("Error saat menyimpan skor.", "error");
-                }
+                } catch (e) { console.error("Error saat menyimpan skor: ", e); }
             }
 
             async function saveQuranScope(scope) {
-                // Cari dokumen pengaturan lingkupHafalan di Firestore dan update
                 try {
                     const snapshot = await db.collection('pengaturan').where('nama', '==', 'lingkupHafalan').get();
                     if (!snapshot.empty) {
                         const docId = snapshot.docs[0].id;
                         await db.collection('pengaturan').doc(docId).update({ scope });
-                        showToast("Pengaturan lingkup hafalan disimpan.", "success");
                     } else {
-                        showToast("Gagal: dokumen 'lingkupHafalan' tidak ditemukan.", "error");
+                        console.error("Dokumen 'lingkupHafalan' tidak ditemukan.");
                     }
-                } catch(e) {
-                    showToast("Error saat menyimpan lingkup.", "error");
-                }
+                } catch(e) { console.error("Error saat menyimpan lingkup: ", e); }
             }
 
             window.populateSettingsForms = function() {
@@ -2294,7 +2283,6 @@ function renderAll() {
                         'sangat-tidak-lancar': parseInt(document.getElementById('score-sangat-tidak-lancar').value)
                     };
                     await saveMutqinScores(newScores);
-                    showToast("Pengaturan skor berhasil disimpan.", "success");
                 });
 
                 if (ui.settings.quranScopeForm) {
@@ -2302,7 +2290,6 @@ function renderAll() {
                         e.preventDefault();
                         const newScope = ui.settings.quranScopeSelect.value;
                         await saveQuranScope(newScope);
-                        showToast("Pengaturan lingkup hafalan disimpan.", "success");
                         // Re-render student list to apply changes immediately if user goes back
                     });
                 }
@@ -2332,48 +2319,24 @@ function renderAll() {
                         window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         renderAll(); // Render ulang setiap kali ada perubahan data hafalan
                     });
-                // ✅ FUNGSI PENGATURAN BARU (GUNAKAN INI)
-                function getMutqinScores() {
-                    // Langsung ambil dari appState
-                    return window.appState.pengaturan.skorMutqin;
-                }
-
-                function getQuranScope() {
-                    // Langsung ambil dari appState
-                    return window.appState.pengaturan.lingkupHafalan;
-                }
-
-                async function saveMutqinScores(scores) {
-                    // Cari dokumen pengaturan skorMutqin di Firestore dan update
-                    try {
-                        const snapshot = await db.collection('pengaturan').where('nama', '==', 'skorMutqin').get();
-                        if (!snapshot.empty) {
-                            const docId = snapshot.docs[0].id;
-                            await db.collection('pengaturan').doc(docId).update({ scores });
-                            showToast("Pengaturan skor berhasil disimpan.", "success");
-                        } else {
-                            showToast("Gagal: dokumen 'skorMutqin' tidak ditemukan.", "error");
+                    // ✅ TAMBAHKAN LISTENER INI
+                    db.collection('pengaturan').onSnapshot(snapshot => {
+                        snapshot.docs.forEach(doc => {
+                            const data = doc.data();
+                            if (data.nama === 'skorMutqin') {
+                                window.appState.pengaturan.skorMutqin = data.scores;
+                            } else if (data.nama === 'lingkupHafalan') {
+                                window.appState.pengaturan.lingkupHafalan = data.scope;
+                            }
+                        });
+                        // Panggil renderAll() agar UI diperbarui setelah pengaturan diterima
+                        renderAll(); 
+                        
+                        // Panggil populateSettingsForms lagi untuk memastikan form terisi data terbaru
+                        if (typeof window.populateSettingsForms === 'function') {
+                            window.populateSettingsForms();
                         }
-                    } catch (e) {
-                        showToast("Error saat menyimpan skor.", "error");
-                    }
-                }
-
-                async function saveQuranScope(scope) {
-                    // Cari dokumen pengaturan lingkupHafalan di Firestore dan update
-                    try {
-                        const snapshot = await db.collection('pengaturan').where('nama', '==', 'lingkupHafalan').get();
-                        if (!snapshot.empty) {
-                            const docId = snapshot.docs[0].id;
-                            await db.collection('pengaturan').doc(docId).update({ scope });
-                            showToast("Pengaturan lingkup hafalan disimpan.", "success");
-                        } else {
-                            showToast("Gagal: dokumen 'lingkupHafalan' tidak ditemukan.", "error");
-                        }
-                    } catch(e) {
-                        showToast("Error saat menyimpan lingkup.", "error");
-                    }
-                }
+                    });
                     document.getElementById('loader').classList.add('hidden');
                     showToast("Assalamu'alaikum!", "info");
 
