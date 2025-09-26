@@ -595,24 +595,21 @@
           );
         });
     </script>
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyB4zxl2TCsevr7KKfdpIQYE3VRyfr-rLOY",
-    authDomain: "hafalanqu-app.firebaseapp.com",
-    projectId: "hafalanqu-app",
-    storageBucket: "hafalanqu-app.firebasestorage.app",
-    messagingSenderId: "1032716870319",
-    appId: "1:1032716870319:web:30bd0e7353ae806f676a5a"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script>
+        const firebaseConfig = {
+        apiKey: "AIzaSyB4zxl2TCsevr7KKfdpIQYE3VRyfr-rLOY",
+        authDomain: "hafalanqu-app.firebaseapp.com",
+        projectId: "hafalanqu-app",
+        storageBucket: "hafalanqu-app.firebasestorage.app",
+        messagingSenderId: "1032716870319",
+        appId: "1:1032716870319:web:30bd0e7353ae806f676a5a"
+        };
+  // Inisialisasi Firebase
+  firebase.initializeApp(firebaseConfig);
+  // Buat koneksi ke Firestore Database
+  const db = firebase.firestore(); 
 </script>
     <script>
         // Global application state
@@ -1496,7 +1493,7 @@ function exportAllData() {
                         let classId = classMap.get(className.toLowerCase());
                         if (!classId) {
                             const newClass = { name: className};
-                            await localDB.add('classes', newClass);
+                            await onlinelDB.add('classes', newClass);
                             window.appState.allClasses.push(newClass);
                             classMap.set(className.toLowerCase(), newClass.id);
                             classId = newClass.id;
@@ -1505,7 +1502,7 @@ function exportAllData() {
                         const studentKey = `${studentName.toLowerCase()}-${classId}`;
                         if (!existingStudentsMap.has(studentKey)) {
                             const newStudent = { name: studentName, classId,};
-                            await localDB.add('students', newStudent);
+                            await onlineDB.add('students', newStudent);
                             existingStudentsMap.set(studentKey, true);
                             newStudentsCount++;
                         }
@@ -2060,7 +2057,7 @@ function exportAllData() {
                     const name = ui.classNameInput.value.trim(); 
                     if (name) { 
                         setButtonLoading(ui.addClassBtn, true);
-                        await localDB.add('classes', { name });
+                        await onlineDB.add('classes', { name });
                         ui.classNameInput.value = ''; 
                         showToast(`Kelas "${name}" berhasil dibuat.`);
                         await refreshAllDataAndRender();
@@ -2114,7 +2111,7 @@ function exportAllData() {
                                 const input = classItem.querySelector('.class-edit-form input');
                                 const newName = input.value.trim();
                                 if (newName) {
-                                    await localDB.update('classes', { name: newName, id: classId });
+                                    await onlineDB.update('classes', { name: newName, id: classId });
                                     showToast("Nama kelas diperbarui.");
                                     await refreshAllDataAndRender();
                                 }
@@ -2134,7 +2131,7 @@ function exportAllData() {
                     const classId = document.getElementById('new-student-class').value; 
                     if (!name || !classId) return showToast('Nama siswa dan kelas harus diisi.', 'error');
                     setButtonLoading(ui.addStudentSubmitBtn, true);
-                    await localDB.add('students', { name, classId });
+                    await onlineDB.add('students', { name, classId });
                     ui.addStudentForm.reset(); 
                     document.getElementById('add-student-modal').classList.add('hidden'); 
                         showToast("Siswa baru berhasil ditambahkan.");
@@ -2222,7 +2219,7 @@ function exportAllData() {
                             timestamp: Date.now()
                         };
                         
-                        await localDB.add('hafalan', newEntry);
+                        await onlineDB.add('hafalan', newEntry);
                         showToast("Setoran berhasil disimpan!");
                         
                         await refreshAllDataAndRender();
