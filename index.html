@@ -1510,7 +1510,6 @@ function exportAllData() {
 
                     ui.addStudentModal.classList.add('hidden'); 
                     showToast(`${newStudentsCount} siswa baru dan ${newClassesCount} kelas baru berhasil diimpor.`, 'success');
-                    await refreshAllDataAndRender();
                 } catch (error) {
                     console.error("Import Error:", error);
                     showToast("Terjadi kesalahan saat memproses file XLSX.", "error");
@@ -1522,19 +1521,6 @@ function exportAllData() {
             reader.readAsArrayBuffer(file);
         }
             
-            // --- RENDER FUNCTIONS ---
-            async function refreshAllDataAndRender() {
-                const [classes, students, hafalan] = await Promise.all([
-                    onlineDB.getAll('classes'),
-                    onlineDB.getAll('students'),
-                    onlineDB.getAll('hafalan')
-                ]);
-                window.appState.allClasses = classes;
-                window.appState.allStudents = students;
-                window.appState.allHafalan = hafalan;
-                renderAll();
-            }
-
             function renderAll() {
                 renderSummary();
                 renderClassList();
@@ -2060,7 +2046,6 @@ function exportAllData() {
                         await onlineDB.add('classes', { name });
                         ui.classNameInput.value = ''; 
                         showToast(`Kelas "${name}" berhasil dibuat.`);
-                        await refreshAllDataAndRender();
                         setButtonLoading(ui.addClassBtn, false);
                     } 
                 });
@@ -2091,7 +2076,6 @@ function exportAllData() {
                                         
                                         clearStudentDetail();
                                         showToast("Kelas berhasil dihapus.");
-                                        await refreshAllDataAndRender();
                                     }
                                 });
                                 break;
@@ -2113,7 +2097,6 @@ function exportAllData() {
                                 if (newName) {
                                     await onlineDB.update('classes', { name: newName, id: classId });
                                     showToast("Nama kelas diperbarui.");
-                                    await refreshAllDataAndRender();
                                 }
                                 classItem.querySelector('.class-display').classList.remove('hidden');
                                 classItem.querySelector('.class-edit-form').classList.add('hidden');
@@ -2135,7 +2118,6 @@ function exportAllData() {
                     ui.addStudentForm.reset(); 
                     document.getElementById('add-student-modal').classList.add('hidden'); 
                         showToast("Siswa baru berhasil ditambahkan.");
-                    await refreshAllDataAndRender();
                     setButtonLoading(ui.addStudentSubmitBtn, false);
                 });
                 ui.studentFilterClass.addEventListener('change', renderStudentList);
@@ -2177,7 +2159,6 @@ function exportAllData() {
                                 }
                                 await onlineDB.delete('students', studentId);
                                 showToast("Siswa berhasil dihapus.");
-                                await refreshAllDataAndRender();
                             }
                         });
                     }
@@ -2222,7 +2203,6 @@ function exportAllData() {
                         await onlineDB.add('hafalan', newEntry);
                         showToast("Setoran berhasil disimpan!");
                         
-                        await refreshAllDataAndRender();
                     }
                 });
 
@@ -2237,7 +2217,6 @@ function exportAllData() {
                                 onConfirm: async () => {
                                     await onlineDB.delete('hafalan', entryId);
                                     showToast("Riwayat setoran berhasil dihapus.");
-                                    await refreshAllDataAndRender();
                                 }
                             });
                         }
@@ -2285,7 +2264,6 @@ function exportAllData() {
                     };
                     saveMutqinScores(newScores);
                     showToast("Pengaturan skor berhasil disimpan.", "success");
-                    refreshAllDataAndRender();
                 });
 
                 if (ui.settings.quranScopeForm) {
@@ -2299,19 +2277,36 @@ function exportAllData() {
                     });
                 }
 
-                // --- Initial Data Load ---
-                try {
-                    await onlineDB.init();
-                    const classes = await onlineDB.getAll('classes');
-                    if (classes.length === 0) {
-                        await performInitialSeed();
-                    }
-                    await refreshAllDataAndRender();
-                    document.getElementById('loader').classList.add('hidden');
-                } catch(error) {
-                    console.error("DB Init/Load error:", error); 
-                    document.getElementById('loader').classList.add('hidden');
-                }
+                // ✅ TAMBAHKAN KODE BARU INI DI AKHIR FUNGSI initApp()
+
+// --- Initial Data Load with Real-time Listeners ---
+try {
+    // Listener untuk koleksi 'classes'
+    db.collection('classes').onSnapshot(snapshot => {
+        window.appState.allClasses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderAll(); // Render ulang setiap kali ada perubahan data kelas
+    });
+
+    // Listener untuk koleksi 'students'
+    db.collection('students').onSnapshot(snapshot => {
+        window.appState.allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderAll(); // Render ulang setiap kali ada perubahan data siswa
+    });
+
+    // Listener untuk koleksi 'hafalan'
+    db.collection('hafalan').onSnapshot(snapshot => {
+        window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderAll(); // Render ulang setiap kali ada perubahan data hafalan
+    });
+
+    document.getElementById('loader').classList.add('hidden');
+    showToast("Sinkronisasi data aktif.", "info");
+
+} catch(error) {
+    console.error("DB Listener error:", error); 
+    showToast("Gagal menyambungkan ke database real-time.", "error");
+    document.getElementById('loader').classList.add('hidden');
+}
             }
             initApp();
         }
