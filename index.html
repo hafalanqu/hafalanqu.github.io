@@ -630,6 +630,13 @@
             allStudents: [],
             allHafalan: [],
             quranData: [],
+            pengaturan: { // <-- TAMBAHKAN OBJEK INI
+            skorMutqin: { 
+            'sangat-lancar': 100, 'lancar': 90, 'cukup-lancar': 70, 
+            'tidak-lancar': 50, 'sangat-tidak-lancar': 30
+            },
+            lingkupHafalan: 'full'
+        },
             loggedInRole: null,
         };
 
@@ -1999,21 +2006,47 @@ function renderAll() {
                 'sangat-tidak-lancar': 30
             };
 
+            // ✅ FUNGSI PENGATURAN BARU (GUNAKAN INI)
             function getMutqinScores() {
-                const savedScores = localStorage.getItem(MUTQIN_SCORES_KEY);
-                return savedScores ? JSON.parse(savedScores) : DEFAULT_MUTQIN_SCORES;
-            }
-
-            function saveMutqinScores(scores) {
-                localStorage.setItem(MUTQIN_SCORES_KEY, JSON.stringify(scores));
+                // Langsung ambil dari appState
+                return window.appState.pengaturan.skorMutqin;
             }
 
             function getQuranScope() {
-                return localStorage.getItem(QURAN_SCOPE_KEY) || 'full'; // Default to 'full'
+                // Langsung ambil dari appState
+                return window.appState.pengaturan.lingkupHafalan;
             }
-            
-            function saveQuranScope(scope) {
-                localStorage.setItem(QURAN_SCOPE_KEY, scope);
+
+            async function saveMutqinScores(scores) {
+                // Cari dokumen pengaturan skorMutqin di Firestore dan update
+                try {
+                    const snapshot = await db.collection('pengaturan').where('nama', '==', 'skorMutqin').get();
+                    if (!snapshot.empty) {
+                        const docId = snapshot.docs[0].id;
+                        await db.collection('pengaturan').doc(docId).update({ scores });
+                        showToast("Pengaturan skor berhasil disimpan.", "success");
+                    } else {
+                        showToast("Gagal: dokumen 'skorMutqin' tidak ditemukan.", "error");
+                    }
+                } catch (e) {
+                    showToast("Error saat menyimpan skor.", "error");
+                }
+            }
+
+            async function saveQuranScope(scope) {
+                // Cari dokumen pengaturan lingkupHafalan di Firestore dan update
+                try {
+                    const snapshot = await db.collection('pengaturan').where('nama', '==', 'lingkupHafalan').get();
+                    if (!snapshot.empty) {
+                        const docId = snapshot.docs[0].id;
+                        await db.collection('pengaturan').doc(docId).update({ scope });
+                        showToast("Pengaturan lingkup hafalan disimpan.", "success");
+                    } else {
+                        showToast("Gagal: dokumen 'lingkupHafalan' tidak ditemukan.", "error");
+                    }
+                } catch(e) {
+                    showToast("Error saat menyimpan lingkup.", "error");
+                }
             }
 
             window.populateSettingsForms = function() {
@@ -2251,7 +2284,7 @@ function renderAll() {
                 });
                 
                 // Settings Page Listeners
-                ui.settings.mutqinForm.addEventListener('submit', (e) => {
+                ui.settings.mutqinForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const newScores = {
                         'sangat-lancar': parseInt(document.getElementById('score-sangat-lancar').value),
@@ -2260,19 +2293,17 @@ function renderAll() {
                         'tidak-lancar': parseInt(document.getElementById('score-tidak-lancar').value),
                         'sangat-tidak-lancar': parseInt(document.getElementById('score-sangat-tidak-lancar').value)
                     };
-                    saveMutqinScores(newScores);
+                    await saveMutqinScores(newScores);
                     showToast("Pengaturan skor berhasil disimpan.", "success");
-                    renderAll(); // Re-render to reflect new scores
                 });
 
                 if (ui.settings.quranScopeForm) {
-                     ui.settings.quranScopeForm.addEventListener('submit', (e) => {
+                     ui.settings.quranScopeForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const newScope = ui.settings.quranScopeSelect.value;
-                        saveQuranScope(newScope);
+                        await saveQuranScope(newScope);
                         showToast("Pengaturan lingkup hafalan disimpan.", "success");
                         // Re-render student list to apply changes immediately if user goes back
-                        renderStudentList();
                     });
                 }
                  // Add listener for logout button in settings
@@ -2282,34 +2313,75 @@ function renderAll() {
                 }
 
 
-// --- Initial Data Load with Real-time Listeners ---
-try {
-    // Listener untuk koleksi 'classes'
-    db.collection('classes').onSnapshot(snapshot => {
-        window.appState.allClasses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderAll(); // Render ulang setiap kali ada perubahan data kelas
-    });
+                // --- Initial Data Load with Real-time Listeners ---
+                try {
+                    // Listener untuk koleksi 'classes'
+                    db.collection('classes').onSnapshot(snapshot => {
+                        window.appState.allClasses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderAll(); // Render ulang setiap kali ada perubahan data kelas
+                    });
 
-    // Listener untuk koleksi 'students'
-    db.collection('students').onSnapshot(snapshot => {
-        window.appState.allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderAll(); // Render ulang setiap kali ada perubahan data siswa
-    });
+                    // Listener untuk koleksi 'students'
+                    db.collection('students').onSnapshot(snapshot => {
+                        window.appState.allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderAll(); // Render ulang setiap kali ada perubahan data siswa
+                    });
 
-    // Listener untuk koleksi 'hafalan'
-    db.collection('hafalan').onSnapshot(snapshot => {
-        window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderAll(); // Render ulang setiap kali ada perubahan data hafalan
-    });
+                    // Listener untuk koleksi 'hafalan'
+                    db.collection('hafalan').onSnapshot(snapshot => {
+                        window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        renderAll(); // Render ulang setiap kali ada perubahan data hafalan
+                    });
+                // ✅ FUNGSI PENGATURAN BARU (GUNAKAN INI)
+                function getMutqinScores() {
+                    // Langsung ambil dari appState
+                    return window.appState.pengaturan.skorMutqin;
+                }
 
-    document.getElementById('loader').classList.add('hidden');
-    showToast("Assalamu'alaikum!", "info");
+                function getQuranScope() {
+                    // Langsung ambil dari appState
+                    return window.appState.pengaturan.lingkupHafalan;
+                }
 
-} catch(error) {
-    console.error("DB Listener error:", error); 
-    showToast("Gagal menyambungkan ke database real-time.", "error");
-    document.getElementById('loader').classList.add('hidden');
-}
+                async function saveMutqinScores(scores) {
+                    // Cari dokumen pengaturan skorMutqin di Firestore dan update
+                    try {
+                        const snapshot = await db.collection('pengaturan').where('nama', '==', 'skorMutqin').get();
+                        if (!snapshot.empty) {
+                            const docId = snapshot.docs[0].id;
+                            await db.collection('pengaturan').doc(docId).update({ scores });
+                            showToast("Pengaturan skor berhasil disimpan.", "success");
+                        } else {
+                            showToast("Gagal: dokumen 'skorMutqin' tidak ditemukan.", "error");
+                        }
+                    } catch (e) {
+                        showToast("Error saat menyimpan skor.", "error");
+                    }
+                }
+
+                async function saveQuranScope(scope) {
+                    // Cari dokumen pengaturan lingkupHafalan di Firestore dan update
+                    try {
+                        const snapshot = await db.collection('pengaturan').where('nama', '==', 'lingkupHafalan').get();
+                        if (!snapshot.empty) {
+                            const docId = snapshot.docs[0].id;
+                            await db.collection('pengaturan').doc(docId).update({ scope });
+                            showToast("Pengaturan lingkup hafalan disimpan.", "success");
+                        } else {
+                            showToast("Gagal: dokumen 'lingkupHafalan' tidak ditemukan.", "error");
+                        }
+                    } catch(e) {
+                        showToast("Error saat menyimpan lingkup.", "error");
+                    }
+                }
+                    document.getElementById('loader').classList.add('hidden');
+                    showToast("Assalamu'alaikum!", "info");
+
+                } catch(error) {
+                    console.error("DB Listener error:", error); 
+                    showToast("Gagal menyambungkan ke database real-time.", "error");
+                    document.getElementById('loader').classList.add('hidden');
+                }
             }
             initApp();
         } // This closes initializeAppLogic
