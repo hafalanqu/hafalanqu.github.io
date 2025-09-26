@@ -228,6 +228,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span>Pencapaian</span>
                 </a>
+                <a href="#" data-page="kelas" class="menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                    <span>Kelas</span>
+                </a>
                 <a href="#" data-page="siswa" class="menu-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     <span>Siswa</span>
@@ -313,9 +317,9 @@
                     <div class="card mt-8 p-4 sm:p-6">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                             <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Pencapaian Siswa</h2>
-                            <div class="w-full sm:w-auto">
-                                <label for="summary-rank-filter-class" class="sr-only">Filter Kelas</label>
-                                <select id="summary-rank-filter-class" class="form-select"></select>
+                            <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="summary-search-student" class="form-input w-full sm:w-auto" placeholder="Cari nama siswa...">
+                                <select id="summary-rank-filter-class" class="form-select w-full sm:w-auto"></select>
                             </div>
                         </div>
                         <div id="student-progress-list" class="space-y-2 max-h-[60vh] overflow-y-auto">
@@ -329,9 +333,9 @@
                     <div class="card p-4 sm:p-6 max-w-4xl mx-auto">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                             <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Riwayat Setoran</h2>
-                            <div class="w-full sm:w-auto">
-                                <label for="riwayat-filter-class" class="sr-only">Filter Kelas</label>
-                                <select id="riwayat-filter-class" class="form-select"></select>
+                            <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="riwayat-search-student" class="form-input w-full sm:w-auto" placeholder="Cari nama siswa...">
+                                <select id="riwayat-filter-class" class="form-select w-full sm:w-auto"></select>
                             </div>
                         </div>
                         <div id="riwayat-list" class="space-y-3 max-h-[70vh] overflow-y-auto">
@@ -365,20 +369,25 @@
                 </div>
 
 
-                <!-- ===== Siswa Page (Merged with Kelas) ===== -->
-                <div id="siswa-page" class="page hidden">
-                    <div class="max-w-4xl mx-auto space-y-6">
-                        <!-- Class Management Section -->
+                <!-- ===== Kelas Page ===== -->
+                <div id="kelas-page" class="page hidden">
+                    <div class="max-w-4xl mx-auto">
                         <div class="card p-4">
                             <h2 class="text-xl font-semibold mb-4">Daftar Kelas</h2>
                             <form id="add-class-form" class="flex items-center space-x-2 mb-4">
                                 <input type="text" id="class-name" class="form-input" placeholder="Buat Kelas Baru..." required>
                                 <button type="submit" id="add-class-btn" class="btn btn-primary whitespace-nowrap"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> <span>Tambah</span></button>
                             </form>
-                            <div id="class-list" class="space-y-3 max-h-[40vh] overflow-y-auto">
+                            <div id="class-list" class="space-y-3 max-h-[70vh] overflow-y-auto">
                                 <!-- Class list will be rendered here by JS -->
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- ===== Siswa Page (Merged with Kelas) ===== -->
+                <div id="siswa-page" class="page hidden">
+                    <div class="max-w-4xl mx-auto">
                         <!-- Student Management Section -->
                         <div class="card p-4">
                             <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
@@ -726,7 +735,7 @@
                 if (pageElement) {
                     pageElement.classList.remove('hidden');
                 }
-                const pageTitles = { ringkasan: "Pencapaian", quran: "Al-Qur'an", siswa: "Manajemen Siswa & Kelas", riwayat: "Riwayat Setoran", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan" };
+                const pageTitles = { ringkasan: "Pencapaian", kelas: "Manajemen Kelas", quran: "Al-Qur'an", siswa: "Manajemen Siswa", riwayat: "Riwayat Setoran", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan" };
                 ui.pageTitle.textContent = pageTitles[pageId] || "Dashboard";
                 
                 const headerActions = document.getElementById('header-actions');
@@ -1040,10 +1049,12 @@
                         totalKelas: document.getElementById('summary-total-kelas'),
                         studentProgressList: document.getElementById('student-progress-list'),
                         rankFilterClass: document.getElementById('summary-rank-filter-class'),
+                        searchStudent: document.getElementById('summary-search-student'),
                     },
                     riwayat: {
                         filterClass: document.getElementById('riwayat-filter-class'),
                         list: document.getElementById('riwayat-list'),
+                        searchStudent: document.getElementById('riwayat-search-student'),
                     },
                     quran: {
                         surahListContainer: document.getElementById('surah-list-container'),
@@ -1616,9 +1627,15 @@ function renderAll() {
                 if (!ui.summary.studentProgressList) return;
 
                 const filterClassId = ui.summary.rankFilterClass ? ui.summary.rankFilterClass.value : '';
-                const studentsToRank = filterClassId
+                const searchTerm = ui.summary.searchStudent ? ui.summary.searchStudent.value.toLowerCase() : '';
+                
+                let studentsToRank = filterClassId
                     ? window.appState.allStudents.filter(s => s.classId === filterClassId)
                     : [...window.appState.allStudents];
+
+                if (searchTerm) {
+                    studentsToRank = studentsToRank.filter(s => s.name.toLowerCase().includes(searchTerm));
+                }
 
                 const calculateTrend = (current, previous) => {
                     if (previous > 0) return Math.round(((current - previous) / previous) * 100);
@@ -1771,7 +1788,9 @@ function renderAll() {
                 if (!ui.riwayat || !ui.riwayat.list) return;
 
                 const filterClassId = ui.riwayat.filterClass ? ui.riwayat.filterClass.value : '';
+                const searchTerm = ui.riwayat.searchStudent ? ui.riwayat.searchStudent.value.toLowerCase() : '';
                 let filteredHafalan = [...window.appState.allHafalan];
+                const studentMap = new Map(window.appState.allStudents.map(s => [s.id, s]));
 
                 if (filterClassId) {
                     const studentIdsInClass = new Set(
@@ -1782,20 +1801,26 @@ function renderAll() {
                     filteredHafalan = filteredHafalan.filter(h => studentIdsInClass.has(h.studentId));
                 }
 
+                if (searchTerm) {
+                    filteredHafalan = filteredHafalan.filter(h => {
+                        const student = studentMap.get(h.studentId);
+                        return student && student.name.toLowerCase().includes(searchTerm);
+                    });
+                }
+
                 // Sort newest first
                 filteredHafalan.sort((a, b) => b.timestamp - a.timestamp);
 
                 ui.riwayat.list.innerHTML = '';
                 
                 if (filteredHafalan.length === 0) {
-                    const message = filterClassId ? "Belum ada riwayat setoran di kelas ini." : "Belum ada riwayat setoran.";
+                    const message = filterClassId || searchTerm ? "Tidak ada riwayat yang cocok dengan filter." : "Belum ada riwayat setoran.";
                     ui.riwayat.list.innerHTML = `<p class="text-center text-slate-500 py-8">${message}</p>`;
                     return;
                 }
 
                 const fragment = document.createDocumentFragment();
                 const surahNameMap = new Map(surahList.map(s => [s.no, s.nama]));
-                const studentMap = new Map(window.appState.allStudents.map(s => [s.id, s]));
                 const classMap = new Map(window.appState.allClasses.map(c => [c.id, c.name]));
                 const kualitasDisplayMap = {
                     'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
@@ -1857,10 +1882,9 @@ function renderAll() {
 
                 ui.classList.innerHTML = '';
                 filtersToUpdate.forEach(f => { if(f.el) f.el.innerHTML = `<option value="">${f.defaultText}</option>`; });
-                selectsToUpdate.forEach(s => { if(s.el) s.el.innerHTML = `<option value="">${s.defaultText}</option>`; });
-
-                const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                    const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
                 const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                const eyeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
 
                 window.appState.allClasses.sort((a,b) => a.name.localeCompare(b.name)).forEach(cls => {
                     const studentCount = window.appState.allStudents.filter(s => s.classId === cls.id).length;
@@ -1870,13 +1894,14 @@ function renderAll() {
                     item.innerHTML = `
                         <div class="class-display">
                             <div class="flex justify-between items-center">
-                                <div class="cursor-pointer flex-grow mr-2" data-action="view-class">
+                                <div class="flex-grow mr-2">
                                     <h3 class="font-semibold text-teal-700 break-all">${cls.name}</h3>
                                     <p class="text-xs text-slate-500">${studentCount} siswa</p>
                                 </div>
                                 <div class="flex items-center space-x-1 flex-shrink-0">
-                                    <button data-action="edit-class" class="inline-flex items-center justify-center rounded-md p-1 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">${editIcon}</button>
-                                    <button data-action="delete-class" class="inline-flex items-center justify-center rounded-md p-1 bg-red-50 text-red-600 hover:bg-red-100 transition-colors">${deleteIcon}</button>
+                                    <button data-action="view-students" title="Lihat Siswa" class="inline-flex items-center justify-center rounded-md p-1 bg-teal-50 text-teal-600 hover:bg-teal-100 transition-colors">${eyeIcon}</button>
+                                    <button data-action="edit-class" title="Ubah Nama Kelas" class="inline-flex items-center justify-center rounded-md p-1 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">${editIcon}</button>
+                                    <button data-action="delete-class" title="Hapus Kelas" class="inline-flex items-center justify-center rounded-md p-1 bg-red-50 text-red-600 hover:bg-red-100 transition-colors">${deleteIcon}</button>
                                 </div>
                             </div>
                         </div>
@@ -2081,7 +2106,6 @@ function renderAll() {
                 });
                 ui.classList.addEventListener('click', async (e) => {
                     const button = e.target.closest('button');
-                    const viewDiv = e.target.closest('div[data-action="view-class"]');
                     const classItem = e.target.closest('.class-item');
                     if (!classItem) return;
                     const classId = classItem.dataset.classId;
@@ -2089,6 +2113,11 @@ function renderAll() {
                     if (button) {
                         const action = button.dataset.action;
                         switch(action) {
+                            case 'view-students':
+                                ui.studentFilterClass.value = classId;
+                                showPage('siswa');
+                                renderStudentList();
+                                break;
                             case 'delete-class': {
                                 const cls = window.appState.allClasses.find(c => c.id === classId);
                                 showConfirmModal({
@@ -2133,9 +2162,6 @@ function renderAll() {
                                 break;
                             }
                         }
-                    } else if (viewDiv) {
-                         ui.studentFilterClass.value = classId; 
-                         renderStudentList();
                     }
                 });
                 ui.addStudentForm.addEventListener('submit', async e => { 
@@ -2152,7 +2178,9 @@ function renderAll() {
                 });
                 ui.studentFilterClass.addEventListener('change', renderStudentList);
                 if(ui.summary.rankFilterClass) ui.summary.rankFilterClass.addEventListener('change', renderStudentProgressList);
+                if(ui.summary.searchStudent) ui.summary.searchStudent.addEventListener('input', renderStudentProgressList);
                 if(ui.riwayat.filterClass) ui.riwayat.filterClass.addEventListener('change', renderRiwayatList);
+                if(ui.riwayat.searchStudent) ui.riwayat.searchStudent.addEventListener('input', renderRiwayatList);
                 
                 // Import/Export listeners
                 ui.import.downloadTemplateBtn.addEventListener('click', downloadTemplate);
