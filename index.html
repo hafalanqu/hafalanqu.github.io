@@ -617,6 +617,7 @@
         });
     </script>
     <script src="firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script>
@@ -841,12 +842,11 @@
                 }
             }
             
-            ui.loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
+                const auth = firebase.auth();
                 const username = ui.usernameInput.value;
                 const password = ui.passwordInput.value;
                 let role = null;
-                if (username === 'guru' && password === 'HafalanQu30juz') {
+                if (username === 'hafalanqu@guru.com' && password === 'HafalanQu30juz') {
                     role = 'guru';
                 } else if (username === 'siswa' && password === 'SiswaMulia30juz') {
                     role = 'siswa';
@@ -2386,4 +2386,5 @@ function renderAll() {
     </script>
 </body>
 </html>
+
 
