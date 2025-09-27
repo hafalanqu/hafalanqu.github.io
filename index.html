@@ -616,8 +616,6 @@
           );
         });
     </script>
-    <script src="firebase-config.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script>
@@ -842,64 +840,27 @@
                 }
             }
             
-                // ✅ GUNAKAN BLOK KODE YANG BENAR INI
-                
-                // --- App Startup Logic ---
-                function startApp(role) {
-                    // ... (isi fungsi startApp Anda tidak berubah)
+            ui.loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = ui.usernameInput.value;
+                const password = ui.passwordInput.value;
+                let role = null;
+                if (username === 'guru' && password === 'HafalanQu30juz') {
+                    role = 'guru';
+                } else if (username === 'siswa' && password === 'SiswaMulia30juz') {
+                    role = 'siswa';
                 }
-                
-                // --- LOGIN EVENT LISTENER ---
-                const auth = firebase.auth();
-                ui.loginForm.addEventListener('submit', (e) => {
-                    e.preventDefault(); // Mencegah halaman refresh
-                
-                    const email = ui.usernameInput.value; hafalanqu@guru.com
-                    const password = ui.passwordInput.value; HafalanQu30juz
-                
-                    const loginBtn = ui.loginForm.querySelector('button[type="submit"]');
-                    loginBtn.disabled = true;
-                    loginBtn.innerHTML = '<div class="spinner"></div> <span>Memverifikasi...</span>';
-                
-                    auth.signInWithEmailAndPassword(email, password)
-                        .then(async (userCredential) => {
-                            ui.loginError.classList.add('hidden');
-                
-                            const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
-                            const role = userDoc.exists ? userDoc.data().role : 'siswa'; 
-                
-                            sessionStorage.setItem('loggedInRole', role);
-                            window.appState.loggedInRole = role;
-                
-                            initializeAppLogic();
-                            startApp(role);
-                        })
-                        .catch((error) => {
-                            ui.loginError.textContent = 'Email atau password salah.';
-                            ui.loginError.classList.remove('hidden');
-                
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = 'Masuk';
-                        });
-                });
-                
-                // --- Check for existing session ---
-                const loggedInRole = sessionStorage.getItem('loggedInRole');
-                if (loggedInRole) {
-                    window.appState.loggedInRole = loggedInRole;
-                    // Kita perlu cara untuk memastikan pengguna masih valid di Firebase
-                    auth.onAuthStateChanged((user) => {
-                        if (user) {
-                            // Pengguna masih login di Firebase, lanjutkan
-                            initializeAppLogic();
-                            startApp(loggedInRole);
-                        } else {
-                            // Sesi di browser ada, tapi di Firebase sudah logout. Hapus sesi.
-                            sessionStorage.removeItem('loggedInRole');
-                            window.location.reload();
-                        }
-                    });
+
+                if (role) {
+                    sessionStorage.setItem('loggedInRole', role);
+                    window.appState.loggedInRole = role;
+                    ui.loginError.classList.add('hidden');
+                    startApp(role);
+                } else {
+                    ui.loginError.textContent = 'Username atau password salah.';
+                    ui.loginError.classList.remove('hidden');
                 }
+            });
             
             // --- Online Database (Firestore) Wrapper ---
             const onlineDB = {
@@ -2424,8 +2385,3 @@ function renderAll() {
     </script>
 </body>
 </html>
-
-
-
-
-
