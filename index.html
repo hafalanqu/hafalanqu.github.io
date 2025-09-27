@@ -853,7 +853,6 @@
                 const username = ui.usernameInput.value;
                 const password = ui.passwordInput.value;
                 let role = null;
-
                 if (username === 'guru' && password === 'HafalanQu30juz') {
                     role = 'guru';
                 } else if (username === 'siswa' && password === 'SiswaMulia30juz') {
@@ -1508,9 +1507,13 @@
                             const className = row.Kelas?.toString().trim();
                             if (!studentName || !className) continue;
                             let classId = classMap.get(className.toLowerCase());
+                            // ✅ KODE YANG SUDAH DIPERBAIKI
+                            // ... di dalam fungsi handleImport ...
                             if (!classId) {
-                                const newClass = { name: className};
-                                await onlinelDB.add('classes', newClass);
+                                const newClassData = { name: className };
+                                const newClassRef = await onlineDB.add('classes', newClassData); // <-- GANTI BARIS INI
+                                const newClass = { id: newClassRef.id, ...newClassData }; // <-- TAMBAHKAN BARIS INI
+                                
                                 window.appState.allClasses.push(newClass);
                                 classMap.set(className.toLowerCase(), newClass.id);
                                 classId = newClass.id;
