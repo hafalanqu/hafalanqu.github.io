@@ -842,25 +842,46 @@
                 }
             }
             
-                const auth = firebase.auth();
-                const username = ui.usernameInput.value;
+            // ✅ GUNAKAN BLOK KODE YANG BENAR INI
+            const auth = firebase.auth();
+            
+            ui.loginForm.addEventListener('submit', (e) => {
+                e.preventDefault(); // Mencegah halaman refresh
+            
+                // Ambil nilai email dan password SAAT tombol diklik
+                const email = ui.usernameInput.value; // Input ini sekarang untuk email
                 const password = ui.passwordInput.value;
-                let role = null;
-                if (username === 'hafalanqu@guru.com' && password === 'HafalanQu30juz') {
-                    role = 'guru';
-                } else if (username === 'siswa' && password === 'SiswaMulia30juz') {
-                    role = 'siswa';
-                }
-
-                if (role) {
-                    sessionStorage.setItem('loggedInRole', role);
-                    window.appState.loggedInRole = role;
-                    ui.loginError.classList.add('hidden');
-                    startApp(role);
-                } else {
-                    ui.loginError.textContent = 'Username atau password salah.';
-                    ui.loginError.classList.remove('hidden');
-                }
+            
+                // Tampilkan loading di tombol
+                const loginBtn = ui.loginForm.querySelector('button[type="submit"]');
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<div class="spinner"></div> <span>Memverifikasi...</span>';
+            
+                // Gunakan fungsi login dari Firebase
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(async (userCredential) => {
+                        // Jika login berhasil
+                        ui.loginError.classList.add('hidden');
+            
+                        // Ambil role dari database Firestore
+                        const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
+                        const role = userDoc.exists ? userDoc.data().role : 'siswa'; // Default ke 'siswa' jika tidak ada role
+            
+                        // Simpan sesi dan mulai aplikasi
+                        sessionStorage.setItem('loggedInRole', role);
+                        window.appState.loggedInRole = role;
+                        initializeAppLogic();
+                        startApp(role);
+                    })
+                    .catch((error) => {
+                        // Jika login gagal
+                        ui.loginError.textContent = 'Email atau password salah.';
+                        ui.loginError.classList.remove('hidden');
+            
+                        // Kembalikan tombol ke keadaan semula
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = 'Masuk';
+                    });
             });
             
             // --- Online Database (Firestore) Wrapper ---
@@ -2386,5 +2407,6 @@ function renderAll() {
     </script>
 </body>
 </html>
+
 
 
