@@ -16,6 +16,20 @@
 
         document.addEventListener('DOMContentLoaded', () => {
              try {
+            // --- Toast Notification ---
+            let toastTimeout;
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast-notification');
+                const toastMessage = document.getElementById('toast-message');
+                if (!toast || !toastMessage) return;
+                clearTimeout(toastTimeout);
+                toastMessage.textContent = message;
+                toast.className = 'fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50'; // Reset
+                toast.classList.add('show', type);
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
                 // Membuat dan menyuntikkan link manifest
                 const manifestJsonText = document.getElementById('manifest-json').textContent;
                 const manifestBlob = new Blob([manifestJsonText], { type: 'application/json' });
@@ -25,13 +39,9 @@
                 manifestLink.href = manifestUrl;
                 document.head.appendChild(manifestLink);
 
-                // Mendaftarkan service worker
+                // Mendaftarkan service worker dari file sw.js
                 if ('serviceWorker' in navigator) {
-                    const swScriptText = document.getElementById('sw-script').textContent;
-                    const swBlob = new Blob([swScriptText], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(swBlob);
-
-                    navigator.serviceWorker.register(swUrl)
+                    navigator.serviceWorker.register('/sw.js') // <-- CUKUP PANGGIL NAMA FILE-NYA
                         .then(registration => {
                             console.log('ServiceWorker pendaftaran berhasil dengan scope: ', registration.scope);
                         })
@@ -178,20 +188,6 @@
                 }
             });
 
-            // --- Toast Notification ---
-            let toastTimeout;
-            function showToast(message, type = 'success') {
-                const toast = document.getElementById('toast-notification');
-                const toastMessage = document.getElementById('toast-message');
-                if (!toast || !toastMessage) return;
-                clearTimeout(toastTimeout);
-                toastMessage.textContent = message;
-                toast.className = 'fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50'; // Reset
-                toast.classList.add('show', type);
-                toastTimeout = setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
-            }
             window.showToast = showToast;
             
             // --- Initial UI bindings ---
