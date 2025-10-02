@@ -945,9 +945,6 @@ function renderAll() {
                     studentsToRank = studentsToRank.filter(s => s.name.toLowerCase().includes(searchTerm));
                 }
 
-                const calculateTrend = (current, previous) => { /* ... (fungsi ini tetap sama) ... */ };
-                const renderStudentTrend = (trend) => { /* ... (fungsi ini tetap sama) ... */ };
-
                 const studentScores = studentsToRank.map(student => {
                     // ... (logika kalkulasi skor siswa di sini tetap sama) ...
                     const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
