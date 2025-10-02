@@ -1353,7 +1353,6 @@ function renderAll() {
                 filtersToUpdate.forEach((f, i) => { if(f.el) f.el.value = currentValues[i]; });
                 selectsToUpdate.forEach((s, i) => { if(s.el) s.el.value = currentValues[filtersToUpdate.length + i]; });
             }
-            // Tambahkan fungsi ini sebelum fungsi renderStudentList()
             function renderSiswaPagination(totalStudents) {
                 const paginationContainer = document.getElementById('student-pagination-controls');
                 if (!paginationContainer) return;
@@ -1362,7 +1361,7 @@ function renderAll() {
                 const SISWA_PER_PAGE = 36;
                 const totalPages = Math.ceil(totalStudents / SISWA_PER_PAGE);
 
-                if (totalPages <= 1) return; // Tidak perlu paginasi jika hanya 1 halaman
+                if (totalPages <= 1) return; // Tidak perlu paginasi
 
                 const currentPage = window.appState.currentPageSiswa;
 
@@ -1371,25 +1370,51 @@ function renderAll() {
                     button.innerHTML = text;
                     button.disabled = isDisabled;
                     button.className = `btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}`;
-                    if (!isDisabled) {
+                    if (!isDisabled && page) {
                         button.onclick = () => {
                             window.appState.currentPageSiswa = page;
                             renderStudentList();
+                            // Scroll ke atas daftar siswa setelah pindah halaman
+                            document.getElementById('student-list').scrollIntoView({ behavior: 'smooth' });
                         };
                     }
                     return button;
                 };
+                
+                const createEllipsis = () => {
+                    const span = document.createElement('span');
+                    span.textContent = '...';
+                    span.className = 'flex items-center justify-center px-2 py-1 text-slate-500 font-bold';
+                    return span;
+                };
 
                 // Tombol "Sebelumnya"
-                paginationContainer.appendChild(createButton('Sebelumnya', currentPage - 1, currentPage === 1));
+                paginationContainer.appendChild(createButton('‹', currentPage - 1, currentPage === 1));
 
-                // Tombol Angka Halaman
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationContainer.appendChild(createButton(i, i, false, i === currentPage));
+                // Logika untuk menampilkan nomor halaman yang relevan
+                const pagesToShow = new Set();
+                pagesToShow.add(1); // Selalu tampilkan halaman pertama
+                pagesToShow.add(totalPages); // Selalu tampilkan halaman terakhir
+
+                // Tambahkan halaman di sekitar halaman saat ini
+                if (currentPage > 2) pagesToShow.add(currentPage - 1);
+                pagesToShow.add(currentPage);
+                if (currentPage < totalPages - 1) pagesToShow.add(currentPage + 1);
+
+                const sortedPages = Array.from(pagesToShow).sort((a, b) => a - b);
+                let lastPage = 0;
+
+                for (const page of sortedPages) {
+                    // Jika ada celah antara nomor halaman terakhir yang dirender dan halaman saat ini, tambahkan "..."
+                    if (page > lastPage + 1) {
+                        paginationContainer.appendChild(createEllipsis());
+                    }
+                    paginationContainer.appendChild(createButton(page, page, false, page === currentPage));
+                    lastPage = page;
                 }
 
                 // Tombol "Berikutnya"
-                paginationContainer.appendChild(createButton('Berikutnya', currentPage + 1, currentPage === totalPages));
+                paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
             }
             function renderStudentList() {
                 const SISWA_PER_PAGE = 36; // Batas siswa per halaman
