@@ -914,6 +914,22 @@ function renderAll() {
 
                 paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
             }
+                const calculateTrend = (current, previous) => {
+                    if (previous > 0) return Math.round(((current - previous) / previous) * 100);
+                    if (current > 0) return 100;
+                    return 0;
+                };
+
+                const renderStudentTrend = (trend) => {
+                    if (trend === 0) return `<div class="text-xs text-slate-400 flex items-center justify-end gap-1 mt-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>Tidak ada perubahan</span></div>`;
+                    
+                    const colorClass = trend > 0 ? 'text-green-500' : 'text-red-500';
+                    const icon = trend > 0 
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" y1="18" x2="12" y2="6"></line></svg>`
+                        : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><polyline points="7 13 12 18 17 13"></polyline><line x1="12" y1="6" x2="12" y2="18"></line></svg>`;
+                    
+                    return `<div class="text-xs font-semibold ${colorClass} flex items-center justify-end gap-1 mt-1">${icon}<span>${Math.abs(trend)}% 7 hari terakhir</span></div>`;
+                }
             function renderStudentProgressList() {
                 if (!ui.summary.studentProgressList) return;
                 
