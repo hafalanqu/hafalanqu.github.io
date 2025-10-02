@@ -710,7 +710,8 @@
                 XLSX.writeFile(workbook, "template_import_siswa.xlsx");
             }
 
-                function handleImport(event) {
+            // GANTI FUNGSI LAMA DENGAN VERSI BARU YANG LEBIH CEPAT INI
+            function handleImport(event) {
                 const file = event.target.files[0];
                 if (!file) return;
 
@@ -732,41 +733,72 @@
                             return;
                         }
 
+                        // --- LOGIKA BATCH WRITE DIMULAI DI SINI ---
+                        
+                        // Siapkan array untuk menampung semua "keranjang" (batch)
+                        const batches = [];
+                        // Buat keranjang pertama
+                        let currentBatch = db.batch();
+                        batches.push(currentBatch);
+                        let operationCount = 0;
+
                         let newStudentsCount = 0;
                         let newClassesCount = 0;
                         const classMap = new Map(window.appState.allClasses.map(c => [c.name.toLowerCase().trim(), c.id]));
                         const existingStudentsMap = new Map(window.appState.allStudents.map(s => [`${s.name.toLowerCase().trim()}-${s.classId}`, true]));
 
                         for (const row of jsonData) {
+                            // Jika keranjang saat ini sudah penuh (mendekati batas 500), buat keranjang baru
+                            if (operationCount >= 499) {
+                                currentBatch = db.batch();
+                                batches.push(currentBatch);
+                                operationCount = 0;
+                            }
+
                             const studentName = row.Nama?.toString().trim();
                             const className = row.Kelas?.toString().trim();
                             if (!studentName || !className) continue;
+
                             let classId = classMap.get(className.toLowerCase());
-                            // ✅ KODE YANG SUDAH DIPERBAIKI
-                            // ... di dalam fungsi handleImport ...
+
                             if (!classId) {
                                 const newClassData = { name: className };
-                                const newClassRef = await onlineDB.add('classes', newClassData); // <-- GANTI BARIS INI
-                                const newClass = { id: newClassRef.id, ...newClassData }; // <-- TAMBAHKAN BARIS INI
+                                // Buat referensi dokumen baru untuk kelas
+                                const newClassRef = db.collection('classes').doc();
+                                // Masukkan operasi "buat kelas" ke dalam keranjang
+                                currentBatch.set(newClassRef, newClassData);
+                                operationCount++;
                                 
-                                classMap.set(className.toLowerCase(), newClass.id);
-                                classId = newClass.id;
+                                classId = newClassRef.id;
+                                classMap.set(className.toLowerCase(), classId);
                                 newClassesCount++;
                             }
+
                             const studentKey = `${studentName.toLowerCase()}-${classId}`;
                             if (!existingStudentsMap.has(studentKey)) {
-                                const newStudent = { name: studentName, classId,};
-                                await onlineDB.add('students', newStudent);
-                                existingStudentsMap.set(studentKey, true);
+                                const newStudent = { name: studentName, classId };
+                                // Buat referensi dokumen baru untuk siswa
+                                const newStudentRef = db.collection('students').doc();
+                                // Masukkan operasi "buat siswa" ke dalam keranjang
+                                currentBatch.set(newStudentRef, newStudent);
+                                operationCount++;
+
+                                existingStudentsMap.set(studentKey, true); // Tandai siswa ini sudah diproses
                                 newStudentsCount++;
                             }
                         }
 
+                        // Kirim semua keranjang ke server secara paralel
+                        await Promise.all(batches.map(batch => batch.commit()));
+                        
+                        // --- LOGIKA BATCH WRITE SELESAI ---
+
                         ui.addStudentModal.classList.add('hidden'); 
-                        showToast(`${newStudentsCount} siswa baru dan ${newClassesCount} kelas baru berhasil diimpor.`, 'success');
+                        showToast(`${newStudentsCount} siswa baru dan ${newClassesCount} kelas baru berhasil diimpor dengan cepat.`, 'success');
+
                     } catch (error) {
                         console.error("Import Error:", error);
-                        showToast("Terjadi kesalahan saat memproses file XLSX.", "error");
+                        showToast("Terjadi kesalahan saat memproses file. " + error.message, "error");
                     } finally {
                         setButtonLoading(importBtn, false);
                         event.target.value = '';
