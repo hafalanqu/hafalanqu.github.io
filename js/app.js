@@ -863,7 +863,7 @@ function renderAll() {
                 if (!paginationContainer) return;
 
                 paginationContainer.innerHTML = '';
-                const ITEMS_PER_PAGE = 15; // Batas item per halaman
+                const ITEMS_PER_PAGE = 36; // Batas item per halaman
                 const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
                 if (totalPages <= 1) return; 
@@ -933,7 +933,7 @@ function renderAll() {
             function renderStudentProgressList() {
                 if (!ui.summary.studentProgressList) return;
                 
-                const ITEMS_PER_PAGE = 15; // Batas siswa per halaman di menu ini
+                const ITEMS_PER_PAGE = 36; // Batas siswa per halaman di menu ini
                 const filterClassId = ui.summary.rankFilterClass ? ui.summary.rankFilterClass.value : '';
                 const searchTerm = ui.summary.searchStudent ? ui.summary.searchStudent.value.toLowerCase() : '';
                 
