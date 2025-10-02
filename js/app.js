@@ -4,13 +4,14 @@
             allStudents: [],
             allHafalan: [],
             quranData: [],
-            pengaturan: { // <-- TAMBAHKAN OBJEK INI
+            pengaturan: { 
             skorMutqin: { 
             'sangat-lancar': 100, 'lancar': 90, 'cukup-lancar': 70, 
             'tidak-lancar': 50, 'sangat-tidak-lancar': 30
             },
             lingkupHafalan: 'full'
         },
+            currentPageSiswa: 1,
             loggedInRole: null,
         };
 
@@ -1352,8 +1353,46 @@ function renderAll() {
                 filtersToUpdate.forEach((f, i) => { if(f.el) f.el.value = currentValues[i]; });
                 selectsToUpdate.forEach((s, i) => { if(s.el) s.el.value = currentValues[filtersToUpdate.length + i]; });
             }
+            // Tambahkan fungsi ini sebelum fungsi renderStudentList()
+            function renderSiswaPagination(totalStudents) {
+                const paginationContainer = document.getElementById('student-pagination-controls');
+                if (!paginationContainer) return;
 
+                paginationContainer.innerHTML = '';
+                const SISWA_PER_PAGE = 36;
+                const totalPages = Math.ceil(totalStudents / SISWA_PER_PAGE);
+
+                if (totalPages <= 1) return; // Tidak perlu paginasi jika hanya 1 halaman
+
+                const currentPage = window.appState.currentPageSiswa;
+
+                const createButton = (text, page, isDisabled = false, isActive = false) => {
+                    const button = document.createElement('button');
+                    button.innerHTML = text;
+                    button.disabled = isDisabled;
+                    button.className = `btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}`;
+                    if (!isDisabled) {
+                        button.onclick = () => {
+                            window.appState.currentPageSiswa = page;
+                            renderStudentList();
+                        };
+                    }
+                    return button;
+                };
+
+                // Tombol "Sebelumnya"
+                paginationContainer.appendChild(createButton('Sebelumnya', currentPage - 1, currentPage === 1));
+
+                // Tombol Angka Halaman
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationContainer.appendChild(createButton(i, i, false, i === currentPage));
+                }
+
+                // Tombol "Berikutnya"
+                paginationContainer.appendChild(createButton('Berikutnya', currentPage + 1, currentPage === totalPages));
+            }
             function renderStudentList() {
+                const SISWA_PER_PAGE = 36; // Batas siswa per halaman
                 const filterId = ui.studentFilterClass.value;
                 const filteredStudents = filterId 
                     ? window.appState.allStudents.filter(s => s.classId === filterId) 
@@ -1361,31 +1400,42 @@ function renderAll() {
 
                 filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
 
+                // --- LOGIKA PAGINASI BARU ---
+                const currentPage = window.appState.currentPageSiswa;
+                const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
+                const endIndex = startIndex + SISWA_PER_PAGE;
+                const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+                // --- AKHIR LOGIKA PAGINASI BARU ---
+
                 ui.studentList.innerHTML = '';
-                
+
                 const quranScope = getQuranScope();
                 const isJuzAmma = quranScope === 'juz30';
                 let surahsForForm;
-                const pilihanSurahNumbers = [18, 36, 55, 56, 67]; // Al-Kahfi, Yasin, Ar-Rahman, Al-Waqi'ah, Al-Mulk
+                const pilihanSurahNumbers = [18, 36, 55, 56, 67];
 
                 if (quranScope === 'juz30') {
                     surahsForForm = surahList.filter(s => s.no >= 78);
                 } else if (quranScope === 'pilihan') {
                     surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
-                } else { // 'full'
+                } else {
                     surahsForForm = surahList;
                 }
                 const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
 
                 if (window.appState.allClasses.length === 0 && window.appState.allStudents.length > 0) {
-                     ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
-                     return;
+                    ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
+                    return;
                 }
-                if(filteredStudents.length === 0) {
-                     ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
-                     return;
+                if(paginatedStudents.length === 0) {
+                    const message = filteredStudents.length > 0 
+                        ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>`
+                        : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
+                    ui.studentList.innerHTML = message;
+                    renderSiswaPagination(filteredStudents.length); // Tetap render paginasi
+                    return;
                 }
-                
+
                 const ayatInputsHTML = isJuzAmma ? '' : `
                     <div class="grid grid-cols-2 gap-4">
                         <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
@@ -1393,7 +1443,8 @@ function renderAll() {
                     </div>
                 `;
 
-                filteredStudents.forEach(student => {
+                // --- GUNAKAN paginatedStudents BUKAN filteredStudents ---
+                paginatedStudents.forEach(student => {
                     const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
                     const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp));
 
@@ -1406,7 +1457,7 @@ function renderAll() {
                             <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
                             <span class="font-medium ml-3 flex-grow">${student.name}</span>
                             <button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <svg xmlns="http://www.w.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                         </div>
                         <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
@@ -1431,7 +1482,6 @@ function renderAll() {
                     `;
                     ui.studentList.appendChild(item);
 
-                    // Populate initial ayat dropdowns for this new form only if not Juz 'Amma
                     if (!isJuzAmma) {
                         const surahSelect = item.querySelector('.surah-select');
                         const ayatDariSelect = item.querySelector('.ayat-dari-select');
@@ -1439,6 +1489,9 @@ function renderAll() {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                     }
                 });
+
+                // --- PANGGIL FUNGSI RENDER PAGINASI ---
+                renderSiswaPagination(filteredStudents.length);
             }
             
             // --- EVENT HANDLERS (CRUD) ---
@@ -1610,7 +1663,10 @@ function renderAll() {
                         showToast("Siswa baru berhasil ditambahkan.");
                     setButtonLoading(ui.addStudentSubmitBtn, false);
                 });
-                ui.studentFilterClass.addEventListener('change', renderStudentList);
+                ui.studentFilterClass.addEventListener('change', () => {
+                    window.appState.currentPageSiswa = 1; // Reset ke halaman pertama
+                    renderStudentList();
+                });
                 if(ui.summary.rankFilterClass) ui.summary.rankFilterClass.addEventListener('change', renderStudentProgressList);
                 if(ui.summary.searchStudent) ui.summary.searchStudent.addEventListener('input', renderStudentProgressList);
                 if(ui.riwayat.filterClass) ui.riwayat.filterClass.addEventListener('change', renderRiwayatList);
