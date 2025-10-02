@@ -13,6 +13,7 @@
         },
             currentPageSiswa: 1,
             currentPagePencapaian: 1,
+            currentPageRiwayat: 1,
             loggedInRole: null,
         };
 
@@ -1034,10 +1035,66 @@ function renderAll() {
                 // Panggil fungsi untuk merender tombol paginasi
                 renderPencapaianPagination(studentScores.length);
             }
+            function renderRiwayatPagination(totalItems) {
+                const paginationContainer = document.getElementById('riwayat-pagination-controls');
+                if (!paginationContainer) return;
 
+                paginationContainer.innerHTML = '';
+                const ITEMS_PER_PAGE = 36; // Batas item per halaman
+                const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+                if (totalPages <= 1) return;
+
+                const currentPage = window.appState.currentPageRiwayat;
+
+                const createButton = (text, page, isDisabled = false, isActive = false) => {
+                    const button = document.createElement('button');
+                    button.innerHTML = text;
+                    button.disabled = isDisabled;
+                    button.className = `btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}`;
+                    if (!isDisabled && page) {
+                        button.onclick = () => {
+                            window.appState.currentPageRiwayat = page;
+                            renderRiwayatList(); // Panggil fungsi render yang sesuai
+                            document.getElementById('riwayat-list').scrollIntoView({ behavior: 'smooth' });
+                        };
+                    }
+                    return button;
+                };
+                
+                const createEllipsis = () => {
+                    const span = document.createElement('span');
+                    span.textContent = '...';
+                    span.className = 'flex items-center justify-center px-2 py-1 text-slate-500 font-bold';
+                    return span;
+                };
+
+                paginationContainer.appendChild(createButton('‹', currentPage - 1, currentPage === 1));
+
+                const pagesToShow = new Set();
+                pagesToShow.add(1);
+                pagesToShow.add(totalPages);
+                if (currentPage > 2) pagesToShow.add(currentPage - 1);
+                pagesToShow.add(currentPage);
+                if (currentPage < totalPages - 1) pagesToShow.add(currentPage + 1);
+
+                const sortedPages = Array.from(pagesToShow).sort((a, b) => a - b);
+                let lastPage = 0;
+
+                for (const page of sortedPages) {
+                    if (page > lastPage + 1) {
+                        paginationContainer.appendChild(createEllipsis());
+                    }
+                    paginationContainer.appendChild(createButton(page, page, false, page === currentPage));
+                    lastPage = page;
+                }
+
+                paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
+            }
             function renderRiwayatList() {
                 if (!ui.riwayat || !ui.riwayat.list) return;
 
+                const ITEMS_PER_PAGE = 36; // Batas item per halaman
                 const filterClassId = ui.riwayat.filterClass ? ui.riwayat.filterClass.value : '';
                 const searchTerm = ui.riwayat.searchStudent ? ui.riwayat.searchStudent.value.toLowerCase() : '';
                 let filteredHafalan = [...window.appState.allHafalan];
@@ -1059,14 +1116,21 @@ function renderAll() {
                     });
                 }
 
-                // Sort newest first
                 filteredHafalan.sort((a, b) => b.timestamp - a.timestamp);
+
+                // --- LOGIKA PAGINASI BARU ---
+                const currentPage = window.appState.currentPageRiwayat;
+                const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+                const endIndex = startIndex + ITEMS_PER_PAGE;
+                const paginatedHafalan = filteredHafalan.slice(startIndex, endIndex);
+                // --- AKHIR LOGIKA PAGINASI BARU ---
 
                 ui.riwayat.list.innerHTML = '';
                 
                 if (filteredHafalan.length === 0) {
                     const message = filterClassId || searchTerm ? "Tidak ada riwayat yang cocok dengan filter." : "Belum ada riwayat setoran.";
                     ui.riwayat.list.innerHTML = `<p class="text-center text-slate-500 py-8">${message}</p>`;
+                    document.getElementById('riwayat-pagination-controls').innerHTML = ''; // Kosongkan paginasi
                     return;
                 }
 
@@ -1079,9 +1143,10 @@ function renderAll() {
                     'sangat-tidak-lancar': 'Sangat Tdk Lancar'
                 };
 
-                filteredHafalan.forEach(entry => {
+                // Gunakan paginatedHafalan untuk iterasi
+                paginatedHafalan.forEach(entry => {
                     const student = studentMap.get(entry.studentId);
-                    if (!student) return; // Skip if student not found
+                    if (!student) return;
 
                     const className = classMap.get(student.classId) || 'Tanpa Kelas';
                     const surahName = surahNameMap.get(entry.surahNo) || `Surah ${entry.surahNo}`;
@@ -1104,16 +1169,19 @@ function renderAll() {
                             </div>
                         </div>
                         <div class="text-right flex-shrink-0">
-                             <p class="text-xs text-slate-500">${date}</p>
-                             <button data-action="delete-riwayat" data-id="${entry.id}" class="delete-riwayat-btn text-red-400 hover:text-red-600 p-1 rounded-full mt-2">
+                            <p class="text-xs text-slate-500">${date}</p>
+                            <button data-action="delete-riwayat" data-id="${entry.id}" class="delete-riwayat-btn text-red-400 hover:text-red-600 p-1 rounded-full mt-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                             </button>
+                            </button>
                         </div>
                     `;
                     fragment.appendChild(item);
                 });
 
                 ui.riwayat.list.appendChild(fragment);
+
+                // Panggil fungsi untuk merender tombol paginasi
+                renderRiwayatPagination(filteredHafalan.length);
             }
 
             function renderClassList() {
@@ -1524,8 +1592,14 @@ function renderAll() {
                     window.appState.currentPagePencapaian = 1; // Reset ke halaman pertama
                     renderStudentProgressList();
                 });
-                if(ui.riwayat.filterClass) ui.riwayat.filterClass.addEventListener('change', renderRiwayatList);
-                if(ui.riwayat.searchStudent) ui.riwayat.searchStudent.addEventListener('input', renderRiwayatList);
+                if(ui.riwayat.filterClass) ui.riwayat.filterClass.addEventListener('change', () => {
+                    window.appState.currentPageRiwayat = 1; // Reset ke halaman pertama
+                    renderRiwayatList();
+                });
+                if(ui.riwayat.searchStudent) ui.riwayat.searchStudent.addEventListener('input', () => {
+                    window.appState.currentPageRiwayat = 1; // Reset ke halaman pertama
+                    renderRiwayatList();
+                });
                 
                 // Import/Export listeners
                 ui.import.downloadTemplateBtn.addEventListener('click', downloadTemplate);
