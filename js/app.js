@@ -225,16 +225,17 @@
             ui.cancelAddStudentBtn.addEventListener('click', () => ui.addStudentModal.classList.add('hidden'));
 
             // --- App Startup Logic ---
-            function startApp(role) {
+            // ✅ INI VERSI YANG BENAR
+            function startApp(role, lembagaId) { // <-- Terima 'lembagaId'
                 ui.loginView.classList.add('hidden');
                 ui.app.classList.remove('hidden');
 
                 setupUIForRole(role);
-                initializeAppLogic(); // Initialize DB and main logic AFTER successful login
+                initializeAppLogic(lembagaId); // <-- Teruskan 'lembagaId'
 
                 const initialPage = window.location.hash.substring(1);
                 if (initialPage && document.getElementById(`${initialPage}-page`)) {
-                    const siswaAllowedPages = ['ringkasan', 'riwayat', 'quran', 'tentang'];
+                    const siswaAllowedPages = ['ringkasan', 'riwayat', 'quran', 'tentang', 'pengaturan'];
                     if(role === 'siswa' && !siswaAllowedPages.includes(initialPage)){
                         window.location.hash = '#';
                         _showIconMenuImpl();
@@ -1483,14 +1484,26 @@ function renderAll() {
 
             // ✅ KODE YANG SUDAH DIPERBAIKI
             async function saveMutqinScores(scores) {
+                const lembagaId = window.appState.lembagaId;
                 try {
-                    const snapshot = await db.collection('pengaturan').where('nama', '==', 'skorMutqin').get();
+                    const snapshot = await db.collection('pengaturan')
+                        .where('nama', '==', 'skorMutqin')
+                        .where('lembagaId', '==', lembagaId) // <-- Tambahkan filter lembagaId
+                        .get();
+
                     if (!snapshot.empty) {
+                        // Jika dokumen sudah ada, update
                         const docId = snapshot.docs[0].id;
                         await db.collection('pengaturan').doc(docId).update({ scores });
-                        showToast("Perubahan skor berhasil disimpan."); // <-- TAMBAHKAN BARIS INI
+                        showToast("Perubahan skor berhasil disimpan.");
                     } else {
-                        showToast("Gagal menyimpan: Dokumen pengaturan tidak ditemukan.", "error");
+                        // Jika dokumen belum ada, buat yang baru untuk lembaga ini
+                        await db.collection('pengaturan').add({
+                            nama: 'skorMutqin',
+                            scores: scores,
+                            lembagaId: lembagaId
+                        });
+                        showToast("Pengaturan skor berhasil dibuat untuk lembaga ini.");
                     }
                 } catch (e) { 
                     console.error("Error saat menyimpan skor: ", e);
@@ -1500,14 +1513,26 @@ function renderAll() {
 
             // ✅ KODE YANG SUDAH DIPERBAIKI
             async function saveQuranScope(scope) {
+                const lembagaId = window.appState.lembagaId;
                 try {
-                    const snapshot = await db.collection('pengaturan').where('nama', '==', 'lingkupHafalan').get();
+                    const snapshot = await db.collection('pengaturan')
+                        .where('nama', '==', 'lingkupHafalan')
+                        .where('lembagaId', '==', lembagaId) // <-- Tambahkan filter lembagaId
+                        .get();
+
                     if (!snapshot.empty) {
+                        // Jika dokumen sudah ada, update
                         const docId = snapshot.docs[0].id;
                         await db.collection('pengaturan').doc(docId).update({ scope });
-                        showToast("Perubahan lingkup berhasil disimpan."); // <-- TAMBAHKAN BARIS INI
+                        showToast("Perubahan lingkup berhasil disimpan.");
                     } else {
-                        showToast("Gagal menyimpan: Dokumen pengaturan tidak ditemukan.", "error");
+                        // Jika dokumen belum ada, buat yang baru untuk lembaga ini
+                        await db.collection('pengaturan').add({
+                            nama: 'lingkupHafalan',
+                            scope: scope,
+                            lembagaId: lembagaId
+                        });
+                        showToast("Pengaturan lingkup berhasil dibuat untuk lembaga ini.");
                     }
                 } catch(e) { 
                     console.error("Error saat menyimpan lingkup: ", e);
@@ -1542,7 +1567,6 @@ function renderAll() {
                         setButtonLoading(ui.addClassBtn, true);
                         // Tambahkan lembagaId saat membuat kelas baru
                         await onlineDB.add('classes', { name, lembagaId: window.appState.lembagaId }); 
-                        await onlineDB.add('classes', { name });
                         ui.classNameInput.value = ''; 
                         showToast(`Kelas "${name}" berhasil dibuat.`);
                         setButtonLoading(ui.addClassBtn, false);
@@ -1616,7 +1640,6 @@ function renderAll() {
                     setButtonLoading(ui.addStudentSubmitBtn, true);
                     // Tambahkan lembagaId saat membuat siswa baru
                     await onlineDB.add('students', { name, classId, lembagaId: window.appState.lembagaId });
-                    await onlineDB.add('students', { name, classId });
                     ui.addStudentForm.reset(); 
                     document.getElementById('add-student-modal').classList.add('hidden'); 
                         showToast("Siswa baru berhasil ditambahkan.");
@@ -1841,24 +1864,30 @@ function renderAll() {
                             window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                             renderAll();
                         }, error => commonErrorHandler(error, 'hafalan'));
-                    // Listener untuk koleksi 'pengaturan'
-                    db.collection('pengaturan').onSnapshot(snapshot => {
-                        snapshot.docs.forEach(doc => {
-                            const data = doc.data();
-                            if (data.nama === 'skorMutqin') {
-                                window.appState.pengaturan.skorMutqin = data.scores;
-                            } else if (data.nama === 'lingkupHafalan') {
-                                window.appState.pengaturan.lingkupHafalan = data.scope;
+                    // Listener untuk koleksi 'pengaturan' DENGAN filter lembagaId
+                    db.collection('pengaturan').where('lembagaId', '==', lembagaId)
+                        .onSnapshot(snapshot => {
+                            // Jika tidak ada pengaturan untuk lembaga ini, gunakan default
+                            if (snapshot.empty) {
+                                console.log("Tidak ada pengaturan khusus untuk lembaga ini, menggunakan default.");
+                                // Tidak perlu melakukan apa-apa, karena nilai default sudah ada di window.appState
+                            } else {
+                                snapshot.docs.forEach(doc => {
+                                    const data = doc.data();
+                                    if (data.nama === 'skorMutqin') {
+                                        window.appState.pengaturan.skorMutqin = data.scores;
+                                    } else if (data.nama === 'lingkupHafalan') {
+                                        window.appState.pengaturan.lingkupHafalan = data.scope;
+                                    }
+                                });
                             }
-                        });
-                        // Panggil renderAll() agar UI diperbarui setelah pengaturan diterima
-                        renderAll(); 
-                        
-                        // Panggil populateSettingsForms lagi untuk memastikan form terisi data terbaru
-                        if (typeof window.populateSettingsForms === 'function') {
-                            window.populateSettingsForms();
-                        }
-                    });
+                            
+                            renderAll(); 
+                            
+                            if (typeof window.populateSettingsForms === 'function') {
+                                window.populateSettingsForms();
+                            }
+                        }, error => commonErrorHandler(error, 'pengaturan'));
                     document.getElementById('loader').classList.add('hidden');
                     showToast("Assalamu'alaikum!", "info");
 
