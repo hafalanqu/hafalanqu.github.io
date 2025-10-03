@@ -1218,7 +1218,7 @@ function renderAll() {
                         </div>
                         <div class="text-right flex-shrink-0">
                             <p class="text-xs text-slate-500">${date}</p>
-                            ${deleteButtonHTML}  // <-- Tombol hapus disisipkan di sini
+                            ${deleteButtonHTML}
                         </div>
                     `;
                     // --- 👆 AKHIR DARI PERUBAHAN 👆 ---
