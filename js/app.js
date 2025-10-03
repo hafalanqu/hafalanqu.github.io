@@ -1137,7 +1137,7 @@ function renderAll() {
             function renderRiwayatList() {
                 if (!ui.riwayat || !ui.riwayat.list) return;
 
-                const ITEMS_PER_PAGE = 36; // Batas item per halaman
+                const ITEMS_PER_PAGE = 36;
                 const filterClassId = ui.riwayat.filterClass ? ui.riwayat.filterClass.value : '';
                 const searchTerm = ui.riwayat.searchStudent ? ui.riwayat.searchStudent.value.toLowerCase() : '';
                 let filteredHafalan = [...window.appState.allHafalan];
@@ -1161,19 +1161,17 @@ function renderAll() {
 
                 filteredHafalan.sort((a, b) => b.timestamp - a.timestamp);
 
-                // --- LOGIKA PAGINASI BARU ---
                 const currentPage = window.appState.currentPageRiwayat;
                 const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
                 const endIndex = startIndex + ITEMS_PER_PAGE;
                 const paginatedHafalan = filteredHafalan.slice(startIndex, endIndex);
-                // --- AKHIR LOGIKA PAGINASI BARU ---
 
                 ui.riwayat.list.innerHTML = '';
                 
                 if (filteredHafalan.length === 0) {
                     const message = filterClassId || searchTerm ? "Tidak ada riwayat yang cocok dengan filter." : "Belum ada riwayat setoran.";
                     ui.riwayat.list.innerHTML = `<p class="text-center text-slate-500 py-8">${message}</p>`;
-                    document.getElementById('riwayat-pagination-controls').innerHTML = ''; // Kosongkan paginasi
+                    document.getElementById('riwayat-pagination-controls').innerHTML = '';
                     return;
                 }
 
@@ -1186,7 +1184,6 @@ function renderAll() {
                     'sangat-tidak-lancar': 'Sangat Tdk Lancar'
                 };
 
-                // Gunakan paginatedHafalan untuk iterasi
                 paginatedHafalan.forEach(entry => {
                     const student = studentMap.get(entry.studentId);
                     if (!student) return;
@@ -1197,6 +1194,14 @@ function renderAll() {
                     const date = new Date(entry.timestamp).toLocaleDateString('id-ID', {
                         day: 'numeric', month: 'long', year: 'numeric'
                     });
+
+                    // --- 👇 PERUBAHAN ADA DI SINI 👇 ---
+                    // Buat tombol hapus hanya jika role adalah 'guru'
+                    const deleteButtonHTML = window.appState.loggedInRole === 'guru'
+                        ? `<button data-action="delete-riwayat" data-id="${entry.id}" class="delete-riwayat-btn text-red-400 hover:text-red-600 p-1 rounded-full mt-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>`
+                        : ''; // Jika bukan guru, hasilnya string kosong
 
                     const item = document.createElement('div');
                     item.className = 'riwayat-item flex items-start justify-between p-3 bg-slate-50 rounded-lg gap-4';
@@ -1213,17 +1218,15 @@ function renderAll() {
                         </div>
                         <div class="text-right flex-shrink-0">
                             <p class="text-xs text-slate-500">${date}</p>
-                            <button data-action="delete-riwayat" data-id="${entry.id}" class="delete-riwayat-btn text-red-400 hover:text-red-600 p-1 rounded-full mt-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
+                            ${deleteButtonHTML}  // <-- Tombol hapus disisipkan di sini
                         </div>
                     `;
+                    // --- 👆 AKHIR DARI PERUBAHAN 👆 ---
+
                     fragment.appendChild(item);
                 });
 
                 ui.riwayat.list.appendChild(fragment);
-
-                // Panggil fungsi untuk merender tombol paginasi
                 renderRiwayatPagination(filteredHafalan.length);
             }
 
