@@ -23,6 +23,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&display=swap" rel="stylesheet">
   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 </head>
 <body class="antialiased">
     <div id="login-view" class="flex flex-col items-center justify-center min-h-screen p-4 bg-slate-50">
@@ -60,13 +62,16 @@
       }
     </script>
     <div id="app" class="hidden">
-        <!-- Icon Menu View (Visible on load) -->
         <div id="icon-menu-view" class="flex flex-col items-center justify-center min-h-screen p-4">
               <div class="text-center mb-10">
                   <h1 class="text-3xl sm:text-5xl font-bold text-teal-600">HafalanQu</h1>
                   <p class="text-base text-slate-500 mt-2">Jurnal Progres Hafalan Qur'an</p>
               </div>
             <div class="flex items-center justify-center flex-wrap gap-4 sm:gap-8">
+                <a href="#" data-page="profil" class="menu-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Profil</span>
+                </a>
                 <a href="#" data-page="ringkasan" class="menu-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span>Pencapaian</span>
@@ -98,7 +103,6 @@
             </div>
         </div>
         
-        <!-- Main Content View (Hidden on load) -->
         <main id="main-content-view" class="hidden min-h-screen p-4 sm:p-6 md:p-8">
             <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                 <div class="flex items-center space-x-4">
@@ -108,17 +112,46 @@
                     <h1 id="page-title" class="text-2xl sm:text-3xl font-bold text-slate-800"></h1>
                 </div>
                 <div id="header-actions" class="w-full sm:w-auto">
-                    <!-- Action buttons like Export will be injected here by JS -->
-                </div>
+                    </div>
             </header>
             
             <div id="loader" class="text-center py-10 flex justify-center items-center text-teal-500">
                 <div class="spinner w-8 h-8"></div>
             </div>
 
-            <!-- Page containers will be here -->
             <div id="page-content">
-                <!-- ===== Ringkasan Page ===== -->
+                <div id="profil-page" class="page hidden">
+                    <div class="max-w-3xl mx-auto space-y-8">
+                        <div class="card p-6">
+                            <h2 class="text-xl font-semibold text-slate-800 mb-6">Profil Saya</h2>
+                            <form id="profile-form" class="space-y-4">
+                                <div class="flex flex-col items-center space-y-4">
+                                    <div class="relative">
+                                        <img id="profile-picture-preview" src="https://placehold.co/128x128/e2e8f0/94a3b8?text=Foto" alt="Foto Profil" class="w-32 h-32 rounded-full object-cover border-4 border-slate-200">
+                                        <label for="profile-picture-input" class="absolute bottom-0 right-0 bg-teal-600 text-white rounded-full p-2 cursor-pointer hover:bg-teal-700 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 20h9a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h9"></path><line x1="16" y1="16" x2="16" y2="10"></line><line x1="19" y1="13" x2="13" y2="13"></line></svg>
+                                        </label>
+                                        <input type="file" id="profile-picture-input" class="hidden" accept="image/*">
+                                    </div>
+                                    <div id="upload-progress-container" class="w-full max-w-xs hidden">
+                                        <progress id="upload-progress" value="0" max="100" class="w-full"></progress>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="profile-fullname" class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
+                                    <input type="text" id="profile-fullname" class="form-input" placeholder="Masukkan nama lengkap Anda">
+                                </div>
+                                <div>
+                                    <label for="profile-pob" class="block text-sm font-medium text-slate-700 mb-1">Tempat, Tanggal Lahir</label>
+                                    <input type="text" id="profile-pob" class="form-input" placeholder="Contoh: Brebes, 17 Agustus 1945">
+                                </div>
+                                <div class="flex justify-end pt-2">
+                                    <button type="submit" id="save-profile-btn" class="btn btn-primary">Simpan Perubahan</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 <div id="ringkasan-page" class="page hidden">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="card p-6 flex items-center space-x-4">
@@ -138,25 +171,21 @@
                         <div id="mutqin-card" class="card p-6">
                             <p class="text-sm text-slate-500">Skor Mutqin</p>
                             <div id="summary-mutqin-score" class="flex items-center text-2xl md:text-3xl font-bold mt-1">
-                                <!-- JS will render this part -->
-                            </div>
+                                </div>
                         </div>
                     </div>
                      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <div class="card p-6 bg-teal-50 border border-teal-200">
                              <p class="text-sm text-teal-800 font-semibold">Ziyadah Bulan Ini</p>
                              <div id="summary-ziyadah-combined" class="flex items-baseline gap-2 text-3xl font-bold text-teal-700">
-                                 <!-- JS Renders Here -->
-                             </div>
+                                 </div>
                          </div>
                           <div class="card p-6 bg-sky-50 border border-sky-200">
                              <p class="text-sm text-sky-800 font-semibold">Muraja'ah Bulan Ini</p>
                               <div id="summary-murajaah-combined" class="flex items-baseline gap-2 text-3xl font-bold text-sky-700">
-                                 <!-- JS Renders Here -->
-                              </div>
+                                 </div>
                          </div>
                     </div>
-                    <!-- Student Progress List Card -->
                     <div class="card mt-8 p-4 sm:p-6">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                             <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Pencapaian Siswa</h2>
@@ -171,7 +200,6 @@
                     </div>
                 </div>
             </div>
-                <!-- ===== Riwayat Page ===== -->
                 <div id="riwayat-page" class="page hidden">
                     <div class="card p-4 sm:p-6 max-w-4xl mx-auto">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
@@ -182,21 +210,18 @@
                             </div>
                         </div>
                         <div id="riwayat-list" class="space-y-3">
-                            <!-- Riwayat list will be rendered here -->
-                        </div>
+                            </div>
                         <div id="riwayat-pagination-controls" class="flex flex-wrap justify-center items-center gap-2 mt-6">
                     </div>
                 </div>
             </div>
-                <!-- ===== Quran Page (Al-Qur'an) ===== -->
                 <div id="quran-page" class="page hidden">
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                                 <div class="md:col-span-4 lg:col-span-3">
                                     <div class="card p-4">
                                         <input type="text" id="surah-search" placeholder="Cari surah atau ayat (cth: 78:1)..." class="form-input mb-4">
                                         <div id="surah-list-container" class="max-h-[70vh] overflow-y-auto">
-                                            <!-- Surah list will be loaded here -->
-                                        </div>
+                                            </div>
                                     </div>
                                 </div>
                                 <div class="md:col-span-8 lg:col-span-9">
@@ -206,14 +231,12 @@
                                             <h2 class="mt-4 text-xl font-semibold text-slate-700">Pilih Surah</h2>
                                             <p class="mt-2 text-slate-500">Pilih surah dari daftar di samping untuk membacanya.</p>
                                         </div>
-                                        <!-- Surah detail will be loaded here -->
-                                    </div>
+                                        </div>
                                 </div>
                             </div>
                 </div>
 
 
-                <!-- ===== Kelas Page ===== -->
                 <div id="kelas-page" class="page hidden">
                     <div class="max-w-4xl mx-auto">
                         <div class="card p-4">
@@ -223,16 +246,13 @@
                                 <button type="submit" id="add-class-btn" class="btn btn-primary whitespace-nowrap"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> <span>Tambah</span></button>
                             </form>
                             <div id="class-list" class="space-y-3">
-                                <!-- Class list will be rendered here by JS -->
-                            </div>
+                                </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ===== Siswa Page (Merged with Kelas) ===== -->
                 <div id="siswa-page" class="page hidden">
                     <div class="max-w-4xl mx-auto">
-                        <!-- Student Management Section -->
                         <div class="card p-4">
                             <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
                                 <h2 class="text-xl font-semibold">Daftar Siswa</h2>
@@ -247,10 +267,8 @@
                     </div>
                 </div>
 
-                <!-- ===== Pengaturan Page ===== -->
                 <div id="pengaturan-page" class="page hidden">
                     <div class="max-w-3xl mx-auto space-y-8">
-                        <!-- Pengaturan Lingkup Hafalan -->
                         <div class="card p-6">
                              <h2 class="text-xl font-semibold text-slate-800 mb-1">Pengaturan Lingkup Hafalan</h2>
                             <p class="text-sm text-slate-500 mb-6">Pilih lingkup hafalan yang akan ditampilkan pada formulir entri setoran siswa di menu "Siswa".</p>
@@ -268,7 +286,6 @@
                                 </div>
                             </form>
                         </div>
-                        <!-- Skor Mutqin Card -->
                         <div class="card p-6">
                             <h2 class="text-xl font-semibold text-slate-800 mb-1">Pengaturan Skor Mutqin</h2>
                             <p class="text-sm text-slate-500 mb-6">Sesuaikan nilai persentase untuk setiap tingkat kualitas hafalan. Nilai ini akan digunakan untuk menghitung skor rata-rata Mutqin.</p>
@@ -299,7 +316,6 @@
                             </form>
                         </div>
 
-                        <!-- Akun Section -->
                         <div class="card p-6">
                             <h2 class="text-xl font-semibold text-slate-800 mb-4">Akun</h2>
                             <p class="text-sm text-slate-500 mb-4">Keluar dari sesi Anda saat ini.</p>
@@ -311,7 +327,6 @@
                     </div>
                 </div>
 
-                <!-- ===== Tentang Page ===== -->
                 <div id="tentang-page" class="page hidden">
                     <div class="card p-6 max-w-3xl mx-auto">
                         <h2 class="text-2xl font-bold text-teal-600 mb-4">Tentang HafalanQu</h2>
@@ -340,12 +355,10 @@
         </main>
     </div>
 
-    <!-- Add Student Modal -->
     <div id="add-student-modal" class="modal hidden">
         <div class="card w-full max-w-md p-6">
             <h2 class="text-2xl font-semibold mb-4">Tambah Siswa</h2>
             
-            <!-- Import Section -->
             <div class="mb-6 border-b pb-6">
                  <h3 class="text-lg font-medium mb-2 text-slate-800">Impor Data Siswa</h3>
                  <p class="text-sm text-slate-500 mb-4">Gunakan template untuk menambah banyak siswa sekaligus dari file.</p>
@@ -380,7 +393,6 @@
         </div>
     </div>
     
-    <!-- Custom Confirmation Modal -->
     <div id="confirm-modal" class="modal hidden">
         <div class="card w-full max-w-sm p-6 text-center">
             <h2 id="confirm-modal-title" class="text-xl font-semibold mb-2">Konfirmasi</h2>
@@ -392,7 +404,6 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast-notification" class="fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50">
         <p id="toast-message"></p>
     </div>
@@ -430,7 +441,7 @@
         apiKey: "AIzaSyB4zxl2TCsevr7KKfdpIQYE3VRyfr-rLOY",
         authDomain: "hafalanqu-app.firebaseapp.com",
         projectId: "hafalanqu-app",
-        storageBucket: "hafalanqu-app.firebasestorage.app",
+        storageBucket: "hafalanqu-app.appspot.com", // <-- Perbaiki storageBucket
         messagingSenderId: "1032716870319",
         appId: "1:1032716870319:web:30bd0e7353ae806f676a5a"
         };
@@ -439,7 +450,8 @@
   // Buat koneksi ke Firestore Database
   const db = firebase.firestore();
   const auth = firebase.auth();
+  const storage = firebase.storage(); // <-- Inisialisasi Storage
 </script>
- <script src="js/app v.1.js"></script>
+ <script src="js/app-v.1.1.js"></script>
 </body>
 </html>

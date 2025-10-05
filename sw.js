@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hafalanqu-cache-v1.0';
+const CACHE_NAME = 'hafalanqu-cache-v1.1';
 // URL di bawah ini adalah aset utama yang diperlukan agar aplikasi dapat berjalan offline.
 const urlsToCache = [
   './', // Cache halaman utama (index.html)
