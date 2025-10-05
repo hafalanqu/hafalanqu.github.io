@@ -4,7 +4,7 @@ const urlsToCache = [
   './', // Cache halaman utama (index.html)
   './css/output.css',
   './css/style.css',
-  './js/app.js',
+  './js/app-v.1.1.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
