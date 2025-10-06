@@ -1,37 +1,32 @@
-const CACHE_NAME = 'hafalanqu-cache-v1.1';
-// URL di bawah ini adalah aset utama yang diperlukan agar aplikasi dapat berjalan offline.
-const urlsToCache = [
-  './', // Cache halaman utama (index.html)
-  './css/output.css',
-  './css/style.css',
-  './js/app-v.1.1.js',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-];
+// Service worker ini tidak lagi melakukan caching.
+// Semua permintaan akan langsung diteruskan ke jaringan.
 
 self.addEventListener('install', event => {
-  // Lakukan proses instalasi: buka cache dan tambahkan aset utama.
+  // Service worker baru akan langsung aktif setelah instalasi.
+  console.log('Service Worker baru sedang diinstal (tanpa caching).');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  // Hapus cache lama saat service worker baru aktif.
+  const cacheNameToDelete = 'hafalanqu-cache-v1.2';
+  console.log(`Service Worker aktif, menghapus cache lama: ${cacheNameToDelete}`);
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Cache dibuka');
-        return cache.addAll(urlsToCache);
-      })
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName === cacheNameToDelete) {
+            console.log(`Menghapus cache: ${cacheName}`);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
 self.addEventListener('fetch', event => {
-  // Tangani permintaan jaringan.
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Jika aset ada di cache, kembalikan dari cache.
-        if (response) {
-          return response;
-        }
-        // Jika tidak ada, coba ambil dari jaringan.
-        return fetch(event.request);
-      })
-  );
+  // Tangani permintaan jaringan dengan langsung mengambil dari jaringan,
+  // tanpa mencoba mencocokkan dengan cache terlebih dahulu.
+  event.respondWith(fetch(event.request));
 });
