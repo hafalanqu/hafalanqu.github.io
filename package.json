@@ -19,6 +19,7 @@
   "homepage": "https://github.com/hafalanqu/hafalanqu.github.io#readme",
   "devDependencies": {
     "autoprefixer": "^10.4.21",
+    "live-server": "^1.2.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"
   }
