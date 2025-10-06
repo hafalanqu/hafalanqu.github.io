@@ -520,12 +520,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function setButtonLoading(button, isLoading) {
             if (!button) return;
-            const span = button.querySelector('span');
-            const text = span ? span.textContent : '';
+
+            // Cek apakah originalContent sudah disimpan, jika belum, simpan sekarang.
+            if (!button.dataset.originalContent) {
+                button.dataset.originalContent = button.innerHTML;
+            }
 
             if (isLoading) {
                 button.disabled = true;
-                button.innerHTML = `<div class="spinner"></div> ${text ? `<span>Memproses...</span>` : ''}`;
+                const span = button.querySelector('span');
+                // Jika ada span, gunakan teks 'Memproses...', jika tidak, biarkan kosong.
+                const loadingText = span ? `<span>Memproses...</span>` : '';
+                button.innerHTML = `<div class="spinner"></div> ${loadingText}`;
             } else {
                 button.disabled = false;
                 button.innerHTML = button.dataset.originalContent;
