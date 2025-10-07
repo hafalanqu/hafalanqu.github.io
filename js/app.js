@@ -1358,122 +1358,133 @@ document.addEventListener('DOMContentLoaded', () => {
 
             paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
         }
-        function renderStudentList() {
-            const SISWA_PER_PAGE = 36;
-            const filterId = ui.studentFilterClass.value;
-            const filteredStudents = filterId 
-                ? window.appState.allStudents.filter(s => s.classId === filterId) 
-                : [...window.appState.allStudents]; 
+function renderStudentList() {
+    const SISWA_PER_PAGE = 36;
 
-            filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
-
-            const currentPage = window.appState.currentPageSiswa;
-            const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
-            const endIndex = startIndex + SISWA_PER_PAGE;
-            const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
-
-            ui.studentList.innerHTML = '';
-
-            const quranScope = getQuranScope();
-            const isJuzAmma = quranScope === 'juz30';
-            let surahsForForm;
-            const pilihanSurahNumbers = [18, 36, 55, 56, 67];
-
-            if (quranScope === 'juz30') {
-                surahsForForm = surahList.filter(s => s.no >= 78);
-            } else if (quranScope === 'pilihan') {
-                surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
-            } else {
-                surahsForForm = surahList;
+    // **LANGKAH 1: Simpan ID semua siswa yang formnya sedang terbuka**
+    const openStudentIds = new Set();
+    if (ui.studentList) {
+        ui.studentList.querySelectorAll('.student-item').forEach(item => {
+            const form = item.querySelector('.hafalan-form-container');
+            if (form && !form.classList.contains('hidden')) {
+                openStudentIds.add(item.dataset.studentId);
             }
-            const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+        });
+    }
 
-            if (window.appState.allClasses.length === 0 && window.appState.allStudents.length > 0) {
-                ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
-                return;
-            }
-            if(paginatedStudents.length === 0) {
-                const message = filteredStudents.length > 0 
-                    ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>`
-                    : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
-                ui.studentList.innerHTML = message;
-                renderSiswaPagination(filteredStudents.length);
-                return;
-            }
+    // Jika ada siswa yang baru saja disubmit, pastikan formnya juga ditandai untuk dibuka
+    if (window.appState.lastSubmittedStudentId) {
+        openStudentIds.add(window.appState.lastSubmittedStudentId);
+        window.appState.lastSubmittedStudentId = null; // Reset setelah ditambahkan
+    }
 
-            const ayatInputsHTML = isJuzAmma ? '' : `
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
-                    <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
-                </div>
-            `;
+    const filterId = ui.studentFilterClass.value;
+    const filteredStudents = filterId 
+        ? window.appState.allStudents.filter(s => s.classId === filterId) 
+        : [...window.appState.allStudents]; 
 
-            paginatedStudents.forEach(student => {
-                const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
-                const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp));
+    filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
 
-                const item = document.createElement('div');
-                item.className = 'student-item bg-slate-50 rounded-lg';
-                item.dataset.studentId = student.id;
+    const currentPage = window.appState.currentPageSiswa;
+    const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
+    const endIndex = startIndex + SISWA_PER_PAGE;
+    const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
 
-            // Buat variabel untuk menampung HTML tombol hapus secara kondisional
-            const deleteButtonHTML = window.appState.loggedInRole === 'guru'
-                ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>`
-                : ''; // Jika bukan guru, variabel ini akan kosong
+    ui.studentList.innerHTML = '';
 
-            item.innerHTML = `
-                <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
-                    <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
-                    <span class="font-medium ml-3 flex-grow">${student.name}</span>
-                    ${deleteButtonHTML}
-                </div>
-                <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
-                        <form class="hafalan-form space-y-4">
-                            <input type="hidden" name="studentId" value="${student.id}">
-                            <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
-                            <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
-                            ${ayatInputsHTML}
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
-                                <select name="kualitas" class="form-select">
-                                    <option value="sangat-lancar" selected>Sangat Lancar</option>
-                                    <option value="lancar">Lancar</option>
-                                    <option value="cukup-lancar">Cukup Lancar</option>
-                                    <option value="tidak-lancar">Tidak Lancar</option>
-                                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
-                        </form>
+    const quranScope = getQuranScope();
+    const isJuzAmma = quranScope === 'juz30';
+    let surahsForForm;
+    const pilihanSurahNumbers = [18, 36, 55, 56, 67];
+
+    if (quranScope === 'juz30') {
+        surahsForForm = surahList.filter(s => s.no >= 78);
+    } else if (quranScope === 'pilihan') {
+        surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
+    } else {
+        surahsForForm = surahList;
+    }
+    const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+
+    if (window.appState.allClasses.length === 0 && window.appState.allStudents.length > 0) {
+        ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
+        return;
+    }
+    if(paginatedStudents.length === 0) {
+        const message = filteredStudents.length > 0 
+            ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>`
+            : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
+        ui.studentList.innerHTML = message;
+        renderSiswaPagination(filteredStudents.length);
+        return;
+    }
+
+    const ayatInputsHTML = isJuzAmma ? '' : `
+        <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
+            <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
+        </div>
+    `;
+
+    paginatedStudents.forEach(student => {
+        const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
+        const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp));
+        const item = document.createElement('div');
+        item.className = 'student-item bg-slate-50 rounded-lg';
+        item.dataset.studentId = student.id;
+        const deleteButtonHTML = window.appState.loggedInRole === 'guru'
+            ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>`
+            : '';
+        item.innerHTML = `
+            <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
+                <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
+                <span class="font-medium ml-3 flex-grow">${student.name}</span>
+                ${deleteButtonHTML}
+            </div>
+            <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
+                <form class="hafalan-form space-y-4">
+                    <input type="hidden" name="studentId" value="${student.id}">
+                    <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
+                    <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
+                    ${ayatInputsHTML}
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
+                        <select name="kualitas" class="form-select">
+                            <option value="sangat-lancar" selected>Sangat Lancar</option>
+                            <option value="lancar">Lancar</option>
+                            <option value="cukup-lancar">Cukup Lancar</option>
+                            <option value="tidak-lancar">Tidak Lancar</option>
+                            <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
+                        </select>
                     </div>
-                `;
-                ui.studentList.appendChild(item);
-
-                if (!isJuzAmma) {
-                    const surahSelect = item.querySelector('.surah-select');
-                    const ayatDariSelect = item.querySelector('.ayat-dari-select');
-                    const ayatSampaiSelect = item.querySelector('.ayat-sampai-select');
-                    populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                }
-            });
-
-            renderSiswaPagination(filteredStudents.length);
-                if (window.appState.lastSubmittedStudentId) {
-                    const lastStudentItem = ui.studentList.querySelector(
-                        `.student-item[data-student-id="${window.appState.lastSubmittedStudentId}"]`
-                    );
-                    if (lastStudentItem) {
-                        const formContainer = lastStudentItem.querySelector('.hafalan-form-container');
-                        if (formContainer) {
-                            formContainer.classList.remove('hidden');
-                        }
-                    }
-                    // Reset pengingat agar tidak berlaku untuk render selanjutnya
-                    window.appState.lastSubmittedStudentId = null;
-                }
+                    <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
+                </form>
+            </div>
+        `;
+        ui.studentList.appendChild(item);
+        if (!isJuzAmma) {
+            const surahSelect = item.querySelector('.surah-select');
+            const ayatDariSelect = item.querySelector('.ayat-dari-select');
+            const ayatSampaiSelect = item.querySelector('.ayat-sampai-select');
+            populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
         }
+    });
+
+    renderSiswaPagination(filteredStudents.length);
+
+    // **LANGKAH 2: Buka kembali semua form yang sebelumnya sudah terbuka**
+    openStudentIds.forEach(studentId => {
+        const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
+        if (studentItem) {
+            const formContainer = studentItem.querySelector('.hafalan-form-container');
+            if (formContainer) {
+                formContainer.classList.remove('hidden');
+            }
+        }
+    });
+}
         
         // --- EVENT HANDLERS (CRUD) ---
         
