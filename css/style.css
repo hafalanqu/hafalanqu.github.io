@@ -135,24 +135,38 @@
             padding: 1rem;
             animation: fadeIn 0.2s ease-in-out;
         }
-        #toast-notification {
-            transform: translateX(calc(100% + 2rem));
-            transition: transform 0.3s ease-in-out;
-        }
-        #toast-notification.show {
-            transform: translateX(0);
-        }
-        #toast-notification.success { background-color: var(--primary-color); }
-        #toast-notification.error { background-color: var(--danger-color); }
-        #toast-notification.info { background-color: #3b82f6; /* blue-500 */ }
-        .spinner {
-            width: 1em;
-            height: 1em;
-            border: 2px solid currentColor;
-            border-right-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-        }
+#toast-notification {
+    /* Posisi tetap di kanan atas */
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    width: auto;
+    max-width: 350px;
+
+    /* State awal: sembunyi di sebelah kanan layar */
+    transform: translateX(calc(100% + 2rem)); /* Geser ke kanan penuh + jarak */
+    transition: transform 0.3s ease-in-out;
+}
+
+#toast-notification.show {
+    /* State aktif: tampil di posisi yang ditentukan */
+    transform: translateX(0);
+}
+
+/* Sisa kode Anda tidak perlu diubah */
+#toast-notification.success { background-color: var(--primary-color); }
+#toast-notification.error { background-color: var(--danger-color); }
+#toast-notification.info { background-color: #3b82f6; }
+
+.spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
         @keyframes spin {
             to { transform: rotate(360deg); }
         }

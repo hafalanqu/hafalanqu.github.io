@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!toast || !toastMessage) return;
         clearTimeout(toastTimeout);
         toastMessage.textContent = message;
-        toast.className = 'fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50'; // Reset
+        toast.className = 'fixed top-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50'; // Reset
         toast.classList.add('show', type);
         toastTimeout = setTimeout(() => {
             toast.classList.remove('show');
