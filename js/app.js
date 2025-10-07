@@ -101,7 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
             card: document.getElementById('guru-pin-settings-card'),
             form: document.getElementById('guru-pin-form'),
             input: document.getElementById('guru-pin-input'),
-        }
+        },
+        mutqinSettings: {
+        card: document.getElementById('mutqin-settings-card'),
+        }, 
     };
 
     const togglePasswordBtn = document.getElementById('toggle-password');
@@ -150,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function setupUIForRole(role) {
         const allMenuLinks = document.querySelectorAll('.menu-link');
-        const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'quran', 'tentang'];
+        const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'quran', 'tentang', 'pengaturan'];
 
         if (role === 'siswa') {
             allMenuLinks.forEach(link => {
@@ -1547,6 +1550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         window.populateSettingsForms = function() {
+            // --- 1. Isi semua form dengan data yang ada ---
             const scores = getMutqinScores();
             document.getElementById('score-sangat-lancar').value = scores['sangat-lancar'];
             document.getElementById('score-lancar').value = scores['lancar'];
@@ -1554,8 +1558,35 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('score-tidak-lancar').value = scores['tidak-lancar'];
             document.getElementById('score-sangat-tidak-lancar').value = scores['sangat-tidak-lancar'];
 
-            if(ui.settings.quranScopeSelect) {
-                ui.settings.quranScopeSelect.value = getQuranScope();
+            const quranScopeSelect = document.getElementById('quran-scope-setting');
+            if (quranScopeSelect) {
+                quranScopeSelect.value = getQuranScope();
+            }
+
+            // --- 2. Ambil referensi semua kartu pengaturan ---
+            const lingkupCard = document.querySelector('.card:has(#quran-scope-form)'); // Cara lain menargetkan kartu
+            const pinCard = ui.guruPinSettings.card;
+            const mutqinCard = ui.mutqinSettings.card;
+
+            // --- 3. Atur visibilitas kartu berdasarkan peran ---
+            if (window.appState.loggedInRole === 'guru') {
+                // Jika GURU, tampilkan semuanya
+                if (lingkupCard) lingkupCard.classList.remove('hidden');
+                if (pinCard) pinCard.classList.remove('hidden');
+                if (mutqinCard) mutqinCard.classList.remove('hidden');
+
+                // Isi form PIN khusus guru
+                const currentUser = window.appState.allUsers.find(u => u.id === window.appState.currentUserUID);
+                if (currentUser && currentUser.pin && ui.guruPinSettings.input) {
+                    ui.guruPinSettings.input.value = currentUser.pin;
+                }
+            } else { // Jika SISWA
+                // Tampilkan HANYA kartu lingkup hafalan
+                if (lingkupCard) lingkupCard.classList.remove('hidden');
+
+                // Sembunyikan kartu PIN dan Skor Mutqin
+                if (pinCard) pinCard.classList.add('hidden');
+                if (mutqinCard) mutqinCard.classList.add('hidden');
             }
 
             // Show PIN settings card and populate PIN for teachers
