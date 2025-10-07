@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pageElement) {
             pageElement.classList.remove('hidden');
         }
-        const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", quran: "Al-Qur'an", siswa: "Manajemen Siswa", riwayat: "Riwayat Setoran", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan" };
+        const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", quran: "Al-Qur'an", siswa: "Hafalan", riwayat: "Riwayat Setoran", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan" };
         ui.pageTitle.textContent = pageTitles[pageId] || "Dashboard";
         
         const headerActions = document.getElementById('header-actions');
