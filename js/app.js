@@ -1416,15 +1416,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.className = 'student-item bg-slate-50 rounded-lg';
                 item.dataset.studentId = student.id;
 
-                item.innerHTML = `
-                    <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
-                        <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
-                        <span class="font-medium ml-3 flex-grow">${student.name}</span>
-                        <button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </div>
-                    <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
+            // Buat variabel untuk menampung HTML tombol hapus secara kondisional
+            const deleteButtonHTML = window.appState.loggedInRole === 'guru'
+                ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>`
+                : ''; // Jika bukan guru, variabel ini akan kosong
+
+            item.innerHTML = `
+                <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
+                    <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
+                    <span class="font-medium ml-3 flex-grow">${student.name}</span>
+                    ${deleteButtonHTML}
+                </div>
+                <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
                         <form class="hafalan-form space-y-4">
                             <input type="hidden" name="studentId" value="${student.id}">
                             <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
