@@ -438,7 +438,31 @@
             </div>
         </div>
     </div>
-
+    <!-- Modal Setup Guru Baru -->
+<div id="profile-setup-modal" class="modal hidden">
+    <div class="card w-full max-w-md p-6">
+        <h2 class="text-2xl font-semibold mb-2">Lengkapi Profil Anda</h2>
+        <p class="text-slate-600 mb-6">Untuk melanjutkan, silakan lengkapi data diri Anda di bawah ini.</p>
+        <form id="profile-setup-form" class="space-y-4">
+            <div>
+                <label for="setup-nama-lengkap" class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
+                <input type="text" id="setup-nama-lengkap" class="form-input" placeholder="Masukkan nama lengkap Anda" required>
+            </div>
+            <div>
+                <label for="setup-ttl" class="block text-sm font-medium text-slate-700 mb-1">Tempat, Tanggal Lahir</label>
+                <input type="text" id="setup-ttl" class="form-input" placeholder="Contoh: Brebes, 17 Agustus 1945" required>
+            </div>
+            <div id="setup-pin-container" class="hidden">
+                <label for="setup-pin" class="block text-sm font-medium text-slate-700 mb-1">Buat PIN 6 Digit</label>
+                <input type="number" id="setup-pin" class="form-input" placeholder="Masukkan 6 digit angka" pattern="\d{6}">
+                 <p class="text-xs text-slate-500 mt-1">PIN ini akan digunakan siswa untuk verifikasi setoran.</p>
+            </div>
+            <div class="flex justify-end pt-4">
+                <button type="submit" id="profile-setup-submit-btn" class="btn btn-primary w-full">Simpan & Lanjutkan</button>
+            </div>
+        </form>
+    </div>
+</div>
     <div id="toast-notification" class="fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-lg z-50">
         <p id="toast-message"></p>
     </div>

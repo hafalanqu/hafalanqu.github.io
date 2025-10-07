@@ -104,7 +104,16 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         mutqinSettings: {
         card: document.getElementById('mutqin-settings-card'),
-        }, 
+        },
+        profileSetupModal: {
+            el: document.getElementById('profile-setup-modal'),
+            form: document.getElementById('profile-setup-form'),
+            namaLengkapInput: document.getElementById('setup-nama-lengkap'),
+            ttlInput: document.getElementById('setup-ttl'),
+            pinContainer: document.getElementById('setup-pin-container'),
+            pinInput: document.getElementById('setup-pin'),
+            submitBtn: document.getElementById('profile-setup-submit-btn')
+        },
     };
 
     const togglePasswordBtn = document.getElementById('toggle-password');
@@ -524,6 +533,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 mutqinForm: document.getElementById('mutqin-settings-form'),
                 quranScopeForm: document.getElementById('quran-scope-form'),
                 quranScopeSelect: document.getElementById('quran-scope-setting'),
+            }
+        }
+    function checkUserProfileCompletion() {
+            const currentUserUID = window.appState.currentUserUID;
+            const role = window.appState.loggedInRole;
+            if (!currentUserUID || !role) return;
+
+            const user = window.appState.allUsers.find(u => u.id === currentUserUID);
+            // Jika data user belum termuat, fungsi ini akan berjalan lagi nanti saat data sudah ada.
+            if (!user) return;
+
+            const isProfileIncomplete = !user.namaLengkap || !user.ttl;
+            const isPinMissingForGuru = (role === 'guru' && !user.pin);
+            const modal = ui.profileSetupModal;
+
+            if (isProfileIncomplete || isPinMissingForGuru) {
+                // Isi form dengan data yang sudah ada jika ada
+                modal.namaLengkapInput.value = user.namaLengkap || '';
+                modal.ttlInput.value = user.ttl || '';
+
+                // Tampilkan kolom PIN hanya untuk guru dan jadikan wajib diisi
+                if (role === 'guru') {
+                    modal.pinContainer.classList.remove('hidden');
+                    modal.pinInput.required = true;
+                } else {
+                    modal.pinContainer.classList.add('hidden');
+                    modal.pinInput.required = false;
+                }
+
+                // Tampilkan modal
+                modal.el.classList.remove('hidden');
+            } else {
+                // Sembunyikan modal jika profil sudah lengkap
+                modal.el.classList.add('hidden');
             }
         };
         Object.assign(ui, uiElements);
@@ -1861,7 +1904,40 @@ function renderStudentList() {
                     }
                 }
             });
+            if (ui.profileSetupModal.form) {
+                ui.profileSetupModal.form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const role = window.appState.loggedInRole;
+                    const uid = window.appState.currentUserUID;
+                    setButtonLoading(ui.profileSetupModal.submitBtn, true);
 
+                    const updatedData = {
+                        namaLengkap: ui.profileSetupModal.namaLengkapInput.value.trim(),
+                        ttl: ui.profileSetupModal.ttlInput.value.trim()
+                    };
+
+                    if (role === 'guru') {
+                        const pin = ui.profileSetupModal.pinInput.value;
+                        if (!/^\d{6}$/.test(pin)) {
+                            showToast("PIN harus terdiri dari 6 digit angka.", "error");
+                            setButtonLoading(ui.profileSetupModal.submitBtn, false);
+                            return;
+                        }
+                        updatedData.pin = pin;
+                    }
+
+                    try {
+                        await db.collection('users').doc(uid).update(updatedData);
+                        showToast("Profil berhasil disimpan.", "success");
+                        ui.profileSetupModal.el.classList.add('hidden'); // Sembunyikan jika berhasil
+                    } catch (error) {
+                        console.error("Gagal update profil dari modal setup:", error);
+                        showToast("Gagal menyimpan perubahan.", "error");
+                    } finally {
+                        setButtonLoading(ui.profileSetupModal.submitBtn, false);
+                    }
+                });
+            }
             // --- PIN Modal Listeners ---
             if (ui.pinModal.form) {
                 ui.pinModal.form.addEventListener('submit', async (e) => {
@@ -2107,7 +2183,12 @@ function renderStudentList() {
                         window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         renderAll();
                     }, error => commonErrorHandler(error, 'users'));
-                
+                                db.collection('users').where('lembagaId', '==', lembagaId)
+                    .onSnapshot(snapshot => {
+                        window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        checkUserProfileCompletion(); // <-- TAMBAHKAN BARIS INI
+                        renderAll();
+                    }, error => commonErrorHandler(error, 'users'));
                 db.collection('pengaturan').where('userId', '==', currentUserUID)
                     .onSnapshot(snapshot => {
                         window.appState.pengaturan.skorMutqin = { 'sangat-lancar': 100, 'lancar': 90, 'cukup-lancar': 70, 'tidak-lancar': 50, 'sangat-tidak-lancar': 30 };
