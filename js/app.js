@@ -129,7 +129,34 @@ document.addEventListener('DOMContentLoaded', () => {
             eyeOffIcon.classList.toggle('hidden', !isPassword);
         });
     }
+            /**
+         * Fungsi serbaguna untuk menambahkan fungsionalitas toggle password/PIN.
+         * @param {string} buttonId - ID dari tombol ikon mata.
+         * @param {string} inputId - ID dari input field (password/PIN).
+         * @param {string} eyeIconId - ID dari SVG ikon mata terbuka.
+         * @param {string} eyeOffIconId - ID dari SVG ikon mata tertutup.
+         */
+        function setupPasswordToggle(buttonId, inputId, eyeIconId, eyeOffIconId) {
+            const toggleBtn = document.getElementById(buttonId);
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(eyeIconId);
+            const eyeOffIcon = document.getElementById(eyeOffIconId);
 
+            if (toggleBtn && input && eyeIcon && eyeOffIcon) {
+                toggleBtn.addEventListener('click', () => {
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    // Tampilkan/sembunyikan ikon yang sesuai
+                    eyeIcon.classList.toggle('hidden', isPassword);
+                    eyeOffIcon.classList.toggle('hidden', !isPassword);
+                });
+            }
+        }
+
+        // Panggil fungsi untuk setiap input PIN yang telah kita ubah di HTML
+        setupPasswordToggle('toggle-guru-pin', 'guru-pin-input', 'guru-pin-eye-icon', 'guru-pin-eye-off-icon');
+        setupPasswordToggle('toggle-verify-pin', 'pin-input', 'verify-pin-eye-icon', 'verify-pin-eye-off-icon');
+        setupPasswordToggle('toggle-setup-pin', 'setup-pin', 'setup-pin-eye-icon', 'setup-pin-eye-off-icon');
         const loggedInRole = sessionStorage.getItem('loggedInRole');
         const lembagaId = sessionStorage.getItem('lembagaId');
         const currentUserUID = sessionStorage.getItem('currentUserUID');
