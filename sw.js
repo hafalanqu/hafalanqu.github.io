@@ -9,7 +9,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   // Hapus cache lama saat service worker baru aktif.
-  const cacheNameToDelete = 'hafalanqu-cache-v1.3';
+  const cacheNameToDelete = 'hafalanqu-cache-v1.2';
   console.log(`Service Worker aktif, menghapus cache lama: ${cacheNameToDelete}`);
   event.waitUntil(
     caches.keys().then(cacheNames => {
