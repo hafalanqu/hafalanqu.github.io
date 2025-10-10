@@ -963,9 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { juz: 28, start: { s: 58, a: 1 } },  { juz: 29, start: { s: 67, a: 1 } }, { juz: 30, start: { s: 78, a: 1 } }
             ];
 
-            // --- KALKULASI TOTAL AYAT PER JUZ (dilakukan sekali) ---
             const totalAyatPerJuz = Array(31).fill(0);
-            let cumulativeAyat = 0;
             surahInfo.forEach(surah => {
                 for (let ayat = 1; ayat <= surah.ayat; ayat++) {
                     let juz = 0;
@@ -978,7 +976,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (juz > 0) totalAyatPerJuz[juz]++;
                 }
             });
-            // --- AKHIR DATA STRUKTUR ---
 
             const ITEMS_PER_PAGE = 36;
             const filterClassId = ui.summary.rankFilterClass ? ui.summary.rankFilterClass.value : '';
@@ -997,7 +994,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const studentClass = window.appState.allClasses.find(c => c.id === student.classId);
                 const ziyadahEntries = studentHafalan.filter(h => h.jenis === 'ziyadah');
 
-                // --- LOGIKA BARU: KALKULASI JUZ YANG DISEMPURNAKAN ---
                 const memorizedVersesBySurah = new Map();
                 ziyadahEntries.forEach(entry => {
                     const surahNo = parseInt(entry.surahNo);
@@ -1035,7 +1031,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 const totalJuzFormatted = totalJuz.toFixed(1).replace('.', ',');
-                // --- AKHIR LOGIKA BARU ---
+                
+                const testEntries = studentHafalan.filter(h => h.jenis === 'tes');
+                let averageTestScore = 0;
+                if (testEntries.length > 0) {
+                    const totalTestScore = testEntries.reduce((sum, entry) => {
+                        const scoreMatch = entry.catatan.match(/Skor:\s*(\d+)/);
+                        const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+                        return sum + score;
+                    }, 0);
+                    averageTestScore = Math.round(totalTestScore / testEntries.length);
+                }
 
                 let mutqinScore = 0;
                 const scoreMap = getMutqinScores();
@@ -1057,6 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     className: studentClass ? studentClass.name : 'Tanpa Kelas', 
                     totalJuz: totalJuz,
                     totalJuzFormatted: totalJuzFormatted,
+                    testScore: averageTestScore,
                     mutqinScore, 
                     trend: calculateTrend(last7DaysTotal, previous7DaysTotal) 
                 };
@@ -1108,6 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.classList.add('bg-slate-50');
                 }
             
+                // ▼▼▼ BARIS DI BAWAH INI TELAH DIUBAH ▼▼▼
                 item.innerHTML = `
                     <div class="flex items-center space-x-4">
                         ${rankDisplay}
@@ -1119,11 +1127,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="text-right">
                         <div class="flex justify-end gap-3 sm:gap-4 text-center">
                             <div><p class="font-bold text-teal-600">${student.totalJuzFormatted}</p><p class="text-xs text-slate-500">Juz</p></div>
+                            <div><p class="font-bold text-teal-600">${student.testScore}</p><p class="text-xs text-slate-500">Tes</p></div>
                             <div><p class="font-bold text-teal-600">${student.mutqinScore}%</p><p class="text-xs text-slate-500">Mutqin</p></div>
                         </div>
                         ${renderStudentTrend(student.trend)}
                     </div>
                 `;
+                // ▲▲▲ AKHIR PERUBAHAN ▲▲▲
 
                 fragment.appendChild(item);
             });
