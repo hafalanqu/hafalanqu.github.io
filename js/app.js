@@ -1357,7 +1357,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // --- KODE BARU: HTML untuk input PIN ---
             let pinInputHTML = '';
             if (window.appState.loggedInRole === 'siswa') {
                 pinInputHTML = `
@@ -1373,7 +1372,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             }
-            // --- AKHIR KODE BARU ---
 
             paginatedStudents.forEach(student => {
                 const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
@@ -1438,24 +1436,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (ayatDariSelect && ayatSampaiSelect) {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                         const selectedOption = surahSelect.options[surahSelect.selectedIndex];
-                        const maxAyat = parseInt(selectedOption.dataset.maxAyat);
-                        let nextAyat = parseInt(lastEntry.ayatSampai) + 1;
-                        if (nextAyat > maxAyat) {
-                            const currentIndex = surahList.findIndex(s => s.no == lastEntry.surahNo);
-                            if (currentIndex !== -1 && currentIndex + 1 < surahList.length) {
-                                const nextSurah = surahList[currentIndex + 1];
-                                surahSelect.value = nextSurah.no;
+
+                        // ▼▼▼ BAGIAN YANG DIPERBAIKI ▼▼▼
+                        if (selectedOption) {
+                            const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+                            let nextAyat = parseInt(lastEntry.ayatSampai) + 1;
+                            if (nextAyat > maxAyat) {
+                                const surahOptions = Array.from(surahSelect.options).filter(opt => opt.value);
+                                const currentIndex = surahOptions.findIndex(opt => opt.value == lastEntry.surahNo);
+                                
+                                if (currentIndex !== -1 && currentIndex + 1 < surahOptions.length) {
+                                    const nextSurahOption = surahOptions[currentIndex + 1];
+                                    surahSelect.value = nextSurahOption.value;
+                                    populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+                                    ayatDariSelect.value = 1;
+                                    ayatSampaiSelect.value = 1;
+                                } else {
+                                    ayatDariSelect.value = nextAyat - 1;
+                                    ayatSampaiSelect.value = nextAyat - 1;
+                                }
+                            } else {
+                                ayatDariSelect.value = nextAyat;
+                                ayatSampaiSelect.value = nextAyat;
+                            }
+                        } else {
+                            // Jika surah terakhir tidak ada di daftar, default ke ayat pertama dari surah pertama
+                            if (surahSelect.options.length > 0) {
+                                surahSelect.selectedIndex = 0;
                                 populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                                 ayatDariSelect.value = 1;
                                 ayatSampaiSelect.value = 1;
-                            } else {
-                                ayatDariSelect.value = nextAyat -1;
-                                ayatSampaiSelect.value = nextAyat -1;
                             }
-                        } else {
-                            ayatDariSelect.value = nextAyat;
-                            ayatSampaiSelect.value = nextAyat;
                         }
+                        // ▲▲▲ AKHIR PERBAIKAN ▲▲▲
                     }
                 } else {
                     if (!isJuzAmma) {
@@ -2147,7 +2160,31 @@ function generateQuestions(verses, testType, totalQuestions = 10) {
                 window.appState.currentPageRiwayat = 1;
                 renderRiwayatList();
             });
-            
+        if (ui.riwayat.list) {
+            ui.riwayat.list.addEventListener('click', async (e) => {
+                const deleteBtn = e.target.closest('[data-action="delete-riwayat"]');
+                if (!deleteBtn) return;
+
+                const hafalanId = deleteBtn.dataset.id;
+                if (!hafalanId) return;
+
+                showConfirmModal({
+                    title: "Hapus Riwayat?",
+                    message: "Apakah Anda yakin ingin menghapus data setoran ini secara permanen?",
+                    okText: "Ya, Hapus",
+                    onConfirm: async () => {
+                        try {
+                            await onlineDB.delete('hafalan', hafalanId);
+                            showToast("Riwayat setoran berhasil dihapus.");
+                            // Daftar akan diperbarui secara otomatis oleh listener real-time.
+                        } catch (error) {
+                            console.error("Gagal menghapus riwayat:", error);
+                            showToast("Gagal menghapus data.", "error");
+                        }
+                    }
+                });
+            });
+        }
             ui.import.downloadTemplateBtn.addEventListener('click', downloadTemplate);
             ui.import.importBtn.addEventListener('click', () => ui.import.fileInput.click());
             ui.import.fileInput.addEventListener('change', handleImport);
