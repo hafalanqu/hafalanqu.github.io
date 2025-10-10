@@ -14,9 +14,9 @@
             color: #334155; /* slate-700 */
         }
         .arabic-text {
-            font-family: 'Lateef', serif;
-            font-size: 2.25rem;
-            line-height: 2.5;
+            font-family: 'Scheherazade New', serif;
+            font-size: 2.25rem; /* 36px */
+            line-height: 2; /* Sesuaikan line-height agar lebih pas */
         }
         .menu-link {
             display: flex;
@@ -180,4 +180,14 @@
         }
         .hafalan-form-container {
         background-color: #f3fffe;
+        }
+        #test-question-text {
+            font-family: 'Scheherazade New', serif;
+            font-size: 1rem;  /* 32px, sedikit lebih kecil dari .arabic-text */
+            line-height: 1.8;
+        }
+        #test-answer-options .btn {
+            font-family: 'Scheherazade New', serif;
+            font-weight: 400; /* Gunakan bobot reguler untuk keterbacaan */
+            font-size: 1rem; /* 24px */
         }
