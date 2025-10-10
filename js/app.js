@@ -908,6 +908,78 @@ document.addEventListener('DOMContentLoaded', () => {
         function renderStudentProgressList() {
             if (!ui.summary.studentProgressList) return;
             
+            // --- DATA STRUKTUR AL-QUR'AN (UNTUK PERHITUNGAN AKURAT) ---
+            const surahInfo = [
+                { no: 1, ayat: 7, nama: "Al-Fatihah" }, { no: 2, ayat: 286, nama: "Al-Baqarah" }, { no: 3, ayat: 200, nama: "Ali 'Imran" },
+                { no: 4, ayat: 176, nama: "An-Nisa'" }, { no: 5, ayat: 120, nama: "Al-Ma'idah" }, { no: 6, ayat: 165, nama: "Al-An'am" },
+                { no: 7, ayat: 206, nama: "Al-A'raf" }, { no: 8, ayat: 75, nama: "Al-Anfal" }, { no: 9, ayat: 129, nama: "At-Taubah" },
+                { no: 10, ayat: 109, nama: "Yunus" }, { no: 11, ayat: 123, nama: "Hud" }, { no: 12, ayat: 111, nama: "Yusuf" },
+                { no: 13, ayat: 43, nama: "Ar-Ra'd" }, { no: 14, ayat: 52, nama: "Ibrahim" }, { no: 15, ayat: 99, nama: "Al-Hijr" },
+                { no: 16, ayat: 128, nama: "An-Nahl" }, { no: 17, ayat: 111, nama: "Al-Isra'" }, { no: 18, ayat: 110, nama: "Al-Kahf" },
+                { no: 19, ayat: 98, nama: "Maryam" }, { no: 20, ayat: 135, nama: "Taha" }, { no: 21, ayat: 112, nama: "Al-Anbiya'" },
+                { no: 22, ayat: 78, nama: "Al-Hajj" }, { no: 23, ayat: 118, nama: "Al-Mu'minun" }, { no: 24, ayat: 64, nama: "An-Nur" },
+                { no: 25, ayat: 77, nama: "Al-Furqan" }, { no: 26, ayat: 227, nama: "Asy-Syu'ara'" }, { no: 27, ayat: 93, nama: "An-Naml" },
+                { no: 28, ayat: 88, nama: "Al-Qasas" }, { no: 29, ayat: 69, nama: "Al-'Ankabut" }, { no: 30, ayat: 60, nama: "Ar-Rum" },
+                { no: 31, ayat: 34, nama: "Luqman" }, { no: 32, ayat: 30, nama: "As-Sajdah" }, { no: 33, ayat: 73, nama: "Al-Ahzab" },
+                { no: 34, ayat: 54, nama: "Saba'" }, { no: 35, ayat: 45, nama: "Fatir" }, { no: 36, ayat: 83, nama: "Yasin" },
+                { no: 37, ayat: 182, nama: "As-Saffat" }, { no: 38, ayat: 88, nama: "Sad" }, { no: 39, ayat: 75, nama: "Az-Zumar" },
+                { no: 40, ayat: 85, nama: "Ghafir" }, { no: 41, ayat: 54, nama: "Fussilat" }, { no: 42, ayat: 53, nama: "Asy-Syura" },
+                { no: 43, ayat: 89, nama: "Az-Zukhruf" }, { no: 44, ayat: 59, nama: "Ad-Dukhan" }, { no: 45, ayat: 37, nama: "Al-Jasiyah" },
+                { no: 46, ayat: 35, nama: "Al-Ahqaf" }, { no: 47, ayat: 38, nama: "Muhammad" }, { no: 48, ayat: 29, nama: "Al-Fath" },
+                { no: 49, ayat: 18, nama: "Al-Hujurat" }, { no: 50, ayat: 45, nama: "Qaf" }, { no: 51, ayat: 60, nama: "Az-Zariyat" },
+                { no: 52, ayat: 49, nama: "At-Tur" }, { no: 53, ayat: 62, nama: "An-Najm" }, { no: 54, ayat: 55, nama: "Al-Qamar" },
+                { no: 55, ayat: 78, nama: "Ar-Rahman" }, { no: 56, ayat: 96, nama: "Al-Waqi'ah" }, { no: 57, ayat: 29, nama: "Al-Hadid" },
+                { no: 58, ayat: 22, nama: "Al-Mujadalah" }, { no: 59, ayat: 24, nama: "Al-Hasyr" }, { no: 60, ayat: 13, nama: "Al-Mumtahanah" },
+                { no: 61, ayat: 14, nama: "As-Saff" }, { no: 62, ayat: 11, nama: "Al-Jumu'ah" }, { no: 63, ayat: 11, nama: "Al-Munafiqun" },
+                { no: 64, ayat: 18, nama: "At-Tagabun" }, { no: 65, ayat: 12, nama: "At-Talaq" }, { no: 66, ayat: 12, nama: "At-Tahrim" },
+                { no: 67, ayat: 30, nama: "Al-Mulk" }, { no: 68, ayat: 52, nama: "Al-Qalam" }, { no: 69, ayat: 52, nama: "Al-Haqqah" },
+                { no: 70, ayat: 44, nama: "Al-Ma'arij" }, { no: 71, ayat: 28, nama: "Nuh" }, { no: 72, ayat: 28, nama: "Al-Jinn" },
+                { no: 73, ayat: 20, nama: "Al-Muzzammil" }, { no: 74, ayat: 56, nama: "Al-Muddassir" }, { no: 75, ayat: 40, nama: "Al-Qiyamah" },
+                { no: 76, ayat: 31, nama: "Al-Insan" }, { no: 77, ayat: 50, nama: "Al-Mursalat" }, { no: 78, ayat: 40, nama: "An-Naba'" },
+                { no: 79, ayat: 46, nama: "An-Nazi'at" }, { no: 80, ayat: 42, nama: "'Abasa" }, { no: 81, ayat: 29, nama: "At-Takwir" },
+                { no: 82, ayat: 19, nama: "Al-Infitar" }, { no: 83, ayat: 36, nama: "Al-Mutaffifin" }, { no: 84, ayat: 25, nama: "Al-Insyiqaq" },
+                { no: 85, ayat: 22, nama: "Al-Buruj" }, { no: 86, ayat: 17, nama: "At-Tariq" }, { no: 87, ayat: 19, nama: "Al-A'la" },
+                { no: 88, ayat: 26, nama: "Al-Gasyiyah" }, { no: 89, ayat: 30, nama: "Al-Fajr" }, { no: 90, ayat: 20, nama: "Al-Balad" },
+                { no: 91, ayat: 15, nama: "Asy-Syams" }, { no: 92, ayat: 21, nama: "Al-Lail" }, { no: 93, ayat: 11, nama: "Ad-Duha" },
+                { no: 94, ayat: 8, nama: "Asy-Syarh" }, { no: 95, ayat: 8, nama: "At-Tin" }, { no: 96, ayat: 19, nama: "Al-'Alaq" },
+                { no: 97, ayat: 5, nama: "Al-Qadr" }, { no: 98, ayat: 8, nama: "Al-Bayyinah" }, { no: 99, ayat: 8, nama: "Az-Zalzalah" },
+                { no: 100, ayat: 11, nama: "Al-'Adiyat" }, { no: 101, ayat: 11, nama: "Al-Qari'ah" }, { no: 102, ayat: 8, nama: "At-Takasur" },
+                { no: 103, ayat: 3, nama: "Al-'Asr" }, { no: 104, ayat: 9, nama: "Al-Humazah" }, { no: 105, ayat: 5, nama: "Al-Fil" },
+                { no: 106, ayat: 4, nama: "Quraisy" }, { no: 107, ayat: 7, nama: "Al-Ma'un" }, { no: 108, ayat: 3, nama: "Al-Kausar" },
+                { no: 109, ayat: 6, nama: "Al-Kafirun" }, { no: 110, ayat: 3, nama: "An-Nasr" }, { no: 111, ayat: 5, nama: "Al-Masad" },
+                { no: 112, ayat: 4, nama: "Al-Ikhlas" }, { no: 113, ayat: 5, nama: "Al-Falaq" }, { no: 114, ayat: 6, nama: "An-Nas" }
+            ];
+
+            const juzBoundaries = [
+                { juz: 1, start: { s: 1, a: 1 } },   { juz: 2, start: { s: 2, a: 142 } }, { juz: 3, start: { s: 2, a: 253 } },
+                { juz: 4, start: { s: 3, a: 93 } },  { juz: 5, start: { s: 4, a: 24 } },  { juz: 6, start: { s: 4, a: 148 } },
+                { juz: 7, start: { s: 5, a: 82 } },  { juz: 8, start: { s: 6, a: 111 } }, { juz: 9, start: { s: 7, a: 88 } },
+                { juz: 10, start: { s: 8, a: 41 } }, { juz: 11, start: { s: 9, a: 93 } }, { juz: 12, start: { s: 11, a: 6 } },
+                { juz: 13, start: { s: 12, a: 53 } },{ juz: 14, start: { s: 15, a: 1 } }, { juz: 15, start: { s: 17, a: 1 } },
+                { juz: 16, start: { s: 18, a: 75 } },{ juz: 17, start: { s: 21, a: 1 } }, { juz: 18, start: { s: 23, a: 1 } },
+                { juz: 19, start: { s: 25, a: 21 } },{ juz: 20, start: { s: 27, a: 56 } },{ juz: 21, start: { s: 29, a: 46 } },
+                { juz: 22, start: { s: 33, a: 31 } },{ juz: 23, start: { s: 36, a: 28 } },{ juz: 24, start: { s: 39, a: 32 } },
+                { juz: 25, start: { s: 41, a: 47 } },{ juz: 26, start: { s: 46, a: 1 } },  { juz: 27, start: { s: 51, a: 31 } },
+                { juz: 28, start: { s: 58, a: 1 } },  { juz: 29, start: { s: 67, a: 1 } }, { juz: 30, start: { s: 78, a: 1 } }
+            ];
+
+            // --- KALKULASI TOTAL AYAT PER JUZ (dilakukan sekali) ---
+            const totalAyatPerJuz = Array(31).fill(0);
+            let cumulativeAyat = 0;
+            surahInfo.forEach(surah => {
+                for (let ayat = 1; ayat <= surah.ayat; ayat++) {
+                    let juz = 0;
+                    for (let i = juzBoundaries.length - 1; i >= 0; i--) {
+                        if (surah.no > juzBoundaries[i].start.s || (surah.no === juzBoundaries[i].start.s && ayat >= juzBoundaries[i].start.a)) {
+                            juz = juzBoundaries[i].juz;
+                            break;
+                        }
+                    }
+                    if (juz > 0) totalAyatPerJuz[juz]++;
+                }
+            });
+            // --- AKHIR DATA STRUKTUR ---
+
             const ITEMS_PER_PAGE = 36;
             const filterClassId = ui.summary.rankFilterClass ? ui.summary.rankFilterClass.value : '';
             const searchTerm = ui.summary.searchStudent ? ui.summary.searchStudent.value.toLowerCase() : '';
@@ -924,15 +996,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
                 const studentClass = window.appState.allClasses.find(c => c.id === student.classId);
                 const ziyadahEntries = studentHafalan.filter(h => h.jenis === 'ziyadah');
-                const totalAyat = ziyadahEntries.reduce((sum, entry) => sum + (parseInt(entry.ayatSampai) - parseInt(entry.ayatDari) + 1), 0);
-                const memorizedSurahs = new Set(ziyadahEntries.map(entry => entry.surahNo));
-                const totalSurat = memorizedSurahs.size;
+
+                // --- LOGIKA BARU: KALKULASI JUZ YANG DISEMPURNAKAN ---
+                const memorizedVersesBySurah = new Map();
+                ziyadahEntries.forEach(entry => {
+                    const surahNo = parseInt(entry.surahNo);
+                    const dari = parseInt(entry.ayatDari);
+                    const sampai = parseInt(entry.ayatSampai);
+                    if (isNaN(surahNo) || isNaN(dari) || isNaN(sampai)) return;
+
+                    if (!memorizedVersesBySurah.has(surahNo)) {
+                        memorizedVersesBySurah.set(surahNo, new Set());
+                    }
+                    const surahSet = memorizedVersesBySurah.get(surahNo);
+                    for (let i = dari; i <= sampai; i++) {
+                        surahSet.add(i);
+                    }
+                });
+                
+                const memorizedCountPerJuz = Array(31).fill(0);
+                memorizedVersesBySurah.forEach((ayatSet, surahNo) => {
+                    ayatSet.forEach(ayatNo => {
+                        let juz = 0;
+                        for (let i = juzBoundaries.length - 1; i >= 0; i--) {
+                            if (surahNo > juzBoundaries[i].start.s || (surahNo === juzBoundaries[i].start.s && ayatNo >= juzBoundaries[i].start.a)) {
+                                juz = juzBoundaries[i].juz;
+                                break;
+                            }
+                        }
+                        if (juz > 0) memorizedCountPerJuz[juz]++;
+                    });
+                });
+
+                let totalJuz = 0;
+                for (let i = 1; i <= 30; i++) {
+                    if (memorizedCountPerJuz[i] > 0 && totalAyatPerJuz[i] > 0) {
+                        totalJuz += (memorizedCountPerJuz[i] / totalAyatPerJuz[i]);
+                    }
+                }
+                const totalJuzFormatted = totalJuz.toFixed(1).replace('.', ',');
+                // --- AKHIR LOGIKA BARU ---
+
                 let mutqinScore = 0;
                 const scoreMap = getMutqinScores();
                 if (studentHafalan.length > 0) {
                     const totalScore = studentHafalan.reduce((sum, entry) => sum + (scoreMap[entry.kualitas] || 0), 0);
                     mutqinScore = Math.round(totalScore / studentHafalan.length);
                 }
+
                 const now = new Date().getTime(), sevenDaysAgo = now - 7 * 86400000, fourteenDaysAgo = now - 14 * 86400000;
                 let last7DaysTotal = 0, previous7DaysTotal = 0;
                 studentHafalan.forEach(h => {
@@ -940,7 +1051,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (h.timestamp >= sevenDaysAgo) last7DaysTotal += ayatCount;
                     else if (h.timestamp >= fourteenDaysAgo) previous7DaysTotal += ayatCount;
                 });
-                return { name: student.name, className: studentClass ? studentClass.name : 'Tanpa Kelas', totalAyat, totalSurat, mutqinScore, trend: calculateTrend(last7DaysTotal, previous7DaysTotal) };
+
+                return { 
+                    name: student.name, 
+                    className: studentClass ? studentClass.name : 'Tanpa Kelas', 
+                    totalJuz: totalJuz,
+                    totalJuzFormatted: totalJuzFormatted,
+                    mutqinScore, 
+                    trend: calculateTrend(last7DaysTotal, previous7DaysTotal) 
+                };
             });
 
             const totalMutqinKeseluruhan = studentScores.reduce((sum, student) => sum + student.mutqinScore, 0);
@@ -949,11 +1068,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 studentScores.sort((a, b) => a.name.localeCompare(b.name));
             } else {
                 studentScores.sort((a, b) => {
+                    if (b.totalJuz !== a.totalJuz) {
+                        return b.totalJuz - a.totalJuz;
+                    }
                     if (b.mutqinScore !== a.mutqinScore) {
                         return b.mutqinScore - a.mutqinScore;
-                    }
-                    if (b.totalAyat !== a.totalAyat) {
-                        return b.totalAyat - a.totalAyat;
                     }
                     return a.name.localeCompare(b.name);
                 });
@@ -999,13 +1118,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="text-right">
                         <div class="flex justify-end gap-3 sm:gap-4 text-center">
-                            <div><p class="font-bold text-teal-600">${student.totalAyat}</p><p class="text-xs text-slate-500">Ayat</p></div>
-                            <div><p class="font-bold text-teal-600">${student.totalSurat}</p><p class="text-xs text-slate-500">Surat</p></div>
+                            <div><p class="font-bold text-teal-600">${student.totalJuzFormatted}</p><p class="text-xs text-slate-500">Juz</p></div>
                             <div><p class="font-bold text-teal-600">${student.mutqinScore}%</p><p class="text-xs text-slate-500">Mutqin</p></div>
                         </div>
                         ${renderStudentTrend(student.trend)}
                     </div>
                 `;
+
                 fragment.appendChild(item);
             });
             ui.summary.studentProgressList.appendChild(fragment);
