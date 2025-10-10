@@ -401,31 +401,36 @@
 
                     <button id="test-next-step-btn" class="btn btn-primary w-full mt-4">Lanjut</button>
                 </div>
-
-                    <div id="test-step-2-scope" class="card p-6 hidden">
-                        <h2 class="text-xl font-semibold text-slate-800 mb-6">Pilih Lingkup Hafalan</h2>
-                        <div class="mb-6">
-                            <p class="block text-sm font-medium text-slate-700 mb-2">Pilih salah satu, surah atau juz, sebagai materi tes</p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="test-surah-select" class="text-xs text-slate-500">Berdasarkan Surah</label>
-                                    <select id="test-surah-select" class="form-select mt-1">
-                                        <option value="">-- Pilih Surah --</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="test-juz-select" class="text-xs text-slate-500">Berdasarkan Juz</label>
-                                    <select id="test-juz-select" class="form-select mt-1">
-                                        <option value="">-- Pilih Juz --</option>
-                                    </select>
-                                </div>
+                <div id="test-step-2-scope" class="card p-6 hidden">
+                    <h2 class="text-xl font-semibold text-slate-800 mb-6">Pilih Lingkup Hafalan</h2>
+                    <div class="space-y-4 mb-6">
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Berdasarkan Surah</label>
+                            <div class="grid grid-cols-5 items-center gap-2">
+                                <select id="test-surah-select-dari" class="form-select col-span-2"></select>
+                                <span class="text-center text-slate-500 text-sm">sampai</span>
+                                <select id="test-surah-select-sampai" class="form-select col-span-2"></select>
                             </div>
                         </div>
-                        <div class="flex flex-col-reverse sm:flex-row gap-3">
+
+                        <p class="text-center text-sm text-slate-400">ATAU</p>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-700">Berdasarkan Juz</label>
+                            <div class="grid grid-cols-5 items-center gap-2">
+                                <select id="test-juz-select-dari" class="form-select col-span-2"></select>
+                                <span class="text-center text-slate-500 text-sm">sampai</span>
+                                <select id="test-juz-select-sampai" class="form-select col-span-2"></select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="flex flex-col-reverse sm:flex-row gap-3">
                         <button id="test-back-step-btn" class="btn btn-secondary w-full sm:w-auto">Kembali</button>
                         <button id="start-test-btn" class="btn btn-primary w-full sm:flex-1">Mulai Tes</button>
-                        </div>
                     </div>
+                </div>
 
                     <div id="test-progress-view" class="hidden">
                         <div class="card p-6 mb-4">
