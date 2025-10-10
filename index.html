@@ -363,10 +363,15 @@
                 </div>
             </div>
             <div id="tes_hafalan-page" class="page hidden">
-                <div class="max-w-xl mx-auto">
-                    
-                    <div class="card p-6 mb-6">
-                        <h2 class="text-xl font-semibold text-slate-800 mb-4">Pilih Siswa</h2>
+                <div class="max-w-xl mx-auto">    
+                <div id="test-step-1-type" class="card p-6">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Pengaturan Tes</h2>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-700 mb-2">Pilih Siswa</h3>
+                        <p class="text-sm text-slate-500 mb-4">
+                            Pilih siswa jika hasil tes ingin disimpan ke riwayat. Kosongkan jika hanya untuk latihan.
+                        </p>
                         <div id="test-selected-student-container" class="hidden">
                             <div class="flex items-center justify-between p-3 bg-teal-50 border border-teal-200 rounded-lg">
                                 <div>
@@ -376,28 +381,31 @@
                                 <button id="test-change-student-btn" class="btn btn-secondary btn-sm">Ganti</button>
                             </div>
                         </div>
-
                         <div id="test-student-search-container">
                             <div class="relative">
                                 <input type="text" id="test-student-search-input" class="form-input" placeholder="Ketik nama siswa untuk mencari...">
-                                <div id="test-student-search-results" class="absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden">
+                                <div id="test-student-search-results" class="absolute z-10 w-full mt-1 border border-slate-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden" style="background-color: rgb(255, 255, 255);">
                                     </div>
                             </div>
                         </div>
                     </div>
 
-                    <div id="test-step-1-type" class="card p-6">
-                        <h2 class="text-xl font-semibold text-slate-800 mb-6">Pilih Jenis Tes</h2>
+                    <hr class="my-6 border-slate-200">
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-700 mb-2">Pilih Jenis Tes</h3>
                         <div class="mb-6">
-                            <label for="test-type-select" class="block text-sm font-medium text-slate-700 mb-2">Jenis Tes</label>
+                            <label for="test-type-select" class="block text-sm font-medium text-slate-700 mb-2 sr-only">Jenis Tes</label>
                             <select id="test-type-select" class="form-select">
-                                <option value="continue-verse" selected>Sambung Ayat Setelahnya</option>
+                                <option value="continue-verse" selected="">Sambung Ayat Setelahnya</option>
                                 <option value="previous-verse">Sambung Ayat Sebelumnya</option>
-                                <option value="reorder-verses">Menyusun Ulang Ayat</option>
+                                <option value="reorder-verses">Menyusun Ulang Ayat (Segera)</option>
                             </select>
                         </div>
-                        <button id="test-next-step-btn" class="btn btn-primary w-full">Lanjut</button>
                     </div>
+
+                    <button id="test-next-step-btn" class="btn btn-primary w-full mt-4">Lanjut</button>
+                </div>
 
                     <div id="test-step-2-scope" class="card p-6 hidden">
                         <h2 class="text-xl font-semibold text-slate-800 mb-6">Pilih Lingkup Hafalan</h2>
