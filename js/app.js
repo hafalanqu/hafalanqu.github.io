@@ -548,6 +548,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 list: document.getElementById('riwayat-list'),
                 searchStudent: document.getElementById('riwayat-search-student'),
             },
+            siswa: {
+                searchStudent: document.getElementById('siswa-search-student')
+            },
             import: {
                 downloadTemplateBtn: document.getElementById('download-template-btn'),
                 importBtn: document.getElementById('import-btn'),
@@ -1454,7 +1457,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const filterId = ui.studentFilterClass.value;
-            const filteredStudents = filterId ? window.appState.allStudents.filter(s => s.classId === filterId) : [...window.appState.allStudents];
+            const searchTerm = ui.siswa && ui.siswa.searchStudent ? ui.siswa.searchStudent.value.toLowerCase() : '';
+
+            let filteredStudents = filterId ? window.appState.allStudents.filter(s => s.classId === filterId) : [...window.appState.allStudents];
+
+            if (searchTerm) {
+                filteredStudents = filteredStudents.filter(s => s.name.toLowerCase().includes(searchTerm));
+            }
+
             filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
 
             const currentPage = window.appState.currentPageSiswa;
@@ -2293,6 +2303,12 @@ function generateQuestions(verses, testType, totalQuestions = 10) {
                 window.appState.currentPageRiwayat = 1;
                 renderRiwayatList();
             });
+            if(ui.siswa && ui.siswa.searchStudent) {
+                ui.siswa.searchStudent.addEventListener('input', () => {
+                    window.appState.currentPageSiswa = 1; // Reset ke halaman pertama saat mencari
+                    renderStudentList();
+                });
+            }
         if (ui.riwayat.list) {
             ui.riwayat.list.addEventListener('click', async (e) => {
                 const deleteBtn = e.target.closest('[data-action="delete-riwayat"]');
