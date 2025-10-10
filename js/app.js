@@ -1298,165 +1298,184 @@ document.addEventListener('DOMContentLoaded', () => {
 
             paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
         }
-function renderStudentList() {
-    const SISWA_PER_PAGE = 36;
-    const openStudentIds = new Set();
-    if (ui.studentList) {
-        ui.studentList.querySelectorAll('.student-item').forEach(item => {
-            const form = item.querySelector('.hafalan-form-container');
-            if (form && !form.classList.contains('hidden')) {
-                openStudentIds.add(item.dataset.studentId);
+        function renderStudentList() {
+            const SISWA_PER_PAGE = 36;
+            const openStudentIds = new Set();
+            if (ui.studentList) {
+                ui.studentList.querySelectorAll('.student-item').forEach(item => {
+                    const form = item.querySelector('.hafalan-form-container');
+                    if (form && !form.classList.contains('hidden')) {
+                        openStudentIds.add(item.dataset.studentId);
+                    }
+                });
             }
-        });
-    }
-    if (window.appState.lastSubmittedStudentId) {
-        openStudentIds.add(window.appState.lastSubmittedStudentId);
-        window.appState.lastSubmittedStudentId = null;
-    }
+            if (window.appState.lastSubmittedStudentId) {
+                openStudentIds.add(window.appState.lastSubmittedStudentId);
+                window.appState.lastSubmittedStudentId = null;
+            }
 
-    const filterId = ui.studentFilterClass.value;
-    const filteredStudents = filterId ? window.appState.allStudents.filter(s => s.classId === filterId) : [...window.appState.allStudents];
-    filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
+            const filterId = ui.studentFilterClass.value;
+            const filteredStudents = filterId ? window.appState.allStudents.filter(s => s.classId === filterId) : [...window.appState.allStudents];
+            filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
 
-    const currentPage = window.appState.currentPageSiswa;
-    const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
-    const endIndex = startIndex + SISWA_PER_PAGE;
-    const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+            const currentPage = window.appState.currentPageSiswa;
+            const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
+            const endIndex = startIndex + SISWA_PER_PAGE;
+            const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
 
-    ui.studentList.innerHTML = '';
+            ui.studentList.innerHTML = '';
 
-    const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, nama: "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, nama: "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
-    const quranScope = getQuranScope();
-    const isJuzAmma = quranScope === 'juz30';
-    let surahsForForm;
-    const pilihanSurahNumbers = [18, 36, 55, 56, 67];
-    if (quranScope === 'juz30') {
-        surahsForForm = surahList.filter(s => s.no >= 78);
-    } else if (quranScope === 'pilihan') {
-        surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
-    } else {
-        surahsForForm = surahList;
-    }
-    const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+            const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, nama: "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, nama: "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
+            const quranScope = getQuranScope();
+            const isJuzAmma = quranScope === 'juz30';
+            let surahsForForm;
+            const pilihanSurahNumbers = [18, 36, 55, 56, 67];
+            if (quranScope === 'juz30') {
+                surahsForForm = surahList.filter(s => s.no >= 78);
+            } else if (quranScope === 'pilihan') {
+                surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
+            } else {
+                surahsForForm = surahList;
+            }
+            const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
 
-    if (window.appState.allClasses.length === 0 && window.appState.allStudents.length > 0) {
-        ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
-        return;
-    }
-    if (paginatedStudents.length === 0) {
-        const message = filteredStudents.length > 0 ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>` : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
-        ui.studentList.innerHTML = message;
-        renderSiswaPagination(filteredStudents.length);
-        return;
-    }
+            if (window.appState.allClasses.length === 0 && window.appState.allStudents.length > 0) {
+                ui.studentList.innerHTML = `<p class="text-center text-sm text-slate-400 p-4">Buat kelas terlebih dahulu untuk melihat siswa.</p>`;
+                return;
+            }
+            if (paginatedStudents.length === 0) {
+                const message = filteredStudents.length > 0 ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>` : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
+                ui.studentList.innerHTML = message;
+                renderSiswaPagination(filteredStudents.length);
+                return;
+            }
 
-    const ayatInputsHTML = isJuzAmma ? '' : `
-        <div class="grid grid-cols-2 gap-4">
-            <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
-            <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
-        </div>
-    `;
+            const ayatInputsHTML = isJuzAmma ? '' : `
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
+                    <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
+                </div>
+            `;
 
-    paginatedStudents.forEach(student => {
-        const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
-        const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp));
-        const item = document.createElement('div');
-        item.className = 'student-item bg-slate-50 rounded-lg';
-        item.dataset.studentId = student.id;
-
-        const deleteButtonHTML = window.appState.loggedInRole === 'guru'
-            ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>`
-            : '';
-
-        item.innerHTML = `
-            <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
-                <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
-                <span class="font-medium ml-3 flex-grow">${student.name}</span>
-                ${deleteButtonHTML}
-            </div>
-            <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
-                <form class="hafalan-form space-y-4">
-                    <input type="hidden" name="studentId" value="${student.id}">
-                    <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
-                    <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
-                    ${ayatInputsHTML}
+            // --- KODE BARU: HTML untuk input PIN ---
+            let pinInputHTML = '';
+            if (window.appState.loggedInRole === 'siswa') {
+                pinInputHTML = `
                     <div>
-                        <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
-                        <select name="kualitas" class="form-select">
-                            <option value="sangat-lancar" selected>Sangat Lancar</option>
-                            <option value="lancar">Lancar</option>
-                            <option value="cukup-lancar">Cukup Lancar</option>
-                            <option value="tidak-lancar">Tidak Lancar</option>
-                            <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
-                        </select>
+                        <label class="block text-sm font-medium mb-1">PIN Verifikasi Guru</label>
+                        <div class="relative">
+                            <input type="password" name="pin" class="form-input pr-10" placeholder="Masukkan 6 digit PIN" required pattern="\\d{6}" maxlength="6" autocomplete="one-time-code">
+                            <button type="button" class="toggle-form-pin absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                                <svg class="eye-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <svg class="eye-off-icon h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+                            </button>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
-                </form>
-            </div>
-        `;
-        ui.studentList.appendChild(item);
+                `;
+            }
+            // --- AKHIR KODE BARU ---
 
-        let lastEntry = null;
-        if (studentHafalan.length > 0) {
-            lastEntry = studentHafalan.sort((a, b) => b.timestamp - a.timestamp)[0];
-        }
+            paginatedStudents.forEach(student => {
+                const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
+                const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp));
+                const item = document.createElement('div');
+                item.className = 'student-item bg-slate-50 rounded-lg';
+                item.dataset.studentId = student.id;
 
-        const form = item.querySelector('.hafalan-form');
-        const surahSelect = form.querySelector('.surah-select');
-        const ayatDariSelect = form.querySelector('.ayat-dari-select');
-        const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
+                const deleteButtonHTML = window.appState.loggedInRole === 'guru'
+                    ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>`
+                    : '';
 
-        if (lastEntry) {
-            const jenisSelect = form.querySelector('[name="jenis"]');
-            const kualitasSelect = form.querySelector('[name="kualitas"]');
+                item.innerHTML = `
+                    <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
+                        <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
+                        <span class="font-medium ml-3 flex-grow">${student.name}</span>
+                        ${deleteButtonHTML}
+                    </div>
+                    <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
+                        <form class="hafalan-form space-y-4">
+                            <input type="hidden" name="studentId" value="${student.id}">
+                            <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
+                            <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
+                            ${ayatInputsHTML}
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
+                                <select name="kualitas" class="form-select">
+                                    <option value="sangat-lancar" selected>Sangat Lancar</option>
+                                    <option value="lancar">Lancar</option>
+                                    <option value="cukup-lancar">Cukup Lancar</option>
+                                    <option value="tidak-lancar">Tidak Lancar</option>
+                                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
+                                </select>
+                            </div>
+                            ${pinInputHTML}
+                            <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
+                        </form>
+                    </div>
+                `;
+                ui.studentList.appendChild(item);
 
-            if (jenisSelect) jenisSelect.value = lastEntry.jenis;
-            if (kualitasSelect) kualitasSelect.value = lastEntry.kualitas;
-            if (surahSelect) surahSelect.value = lastEntry.surahNo;
+                let lastEntry = null;
+                if (studentHafalan.length > 0) {
+                    lastEntry = studentHafalan.sort((a, b) => b.timestamp - a.timestamp)[0];
+                }
 
-            if (ayatDariSelect && ayatSampaiSelect) {
-                populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                const selectedOption = surahSelect.options[surahSelect.selectedIndex];
-                const maxAyat = parseInt(selectedOption.dataset.maxAyat);
-                let nextAyat = parseInt(lastEntry.ayatSampai) + 1;
-                if (nextAyat > maxAyat) {
-                    const currentIndex = surahList.findIndex(s => s.no == lastEntry.surahNo);
-                    if (currentIndex !== -1 && currentIndex + 1 < surahList.length) {
-                        const nextSurah = surahList[currentIndex + 1];
-                        surahSelect.value = nextSurah.no;
+                const form = item.querySelector('.hafalan-form');
+                const surahSelect = form.querySelector('.surah-select');
+                const ayatDariSelect = form.querySelector('.ayat-dari-select');
+                const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
+
+                if (lastEntry) {
+                    const jenisSelect = form.querySelector('[name="jenis"]');
+                    const kualitasSelect = form.querySelector('[name="kualitas"]');
+
+                    if (jenisSelect) jenisSelect.value = lastEntry.jenis;
+                    if (kualitasSelect) kualitasSelect.value = lastEntry.kualitas;
+                    if (surahSelect) surahSelect.value = lastEntry.surahNo;
+
+                    if (ayatDariSelect && ayatSampaiSelect) {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                        ayatDariSelect.value = 1;
-                        ayatSampaiSelect.value = 1;
-                    } else {
-                         ayatDariSelect.value = nextAyat -1;
-                         ayatSampaiSelect.value = nextAyat -1;
+                        const selectedOption = surahSelect.options[surahSelect.selectedIndex];
+                        const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+                        let nextAyat = parseInt(lastEntry.ayatSampai) + 1;
+                        if (nextAyat > maxAyat) {
+                            const currentIndex = surahList.findIndex(s => s.no == lastEntry.surahNo);
+                            if (currentIndex !== -1 && currentIndex + 1 < surahList.length) {
+                                const nextSurah = surahList[currentIndex + 1];
+                                surahSelect.value = nextSurah.no;
+                                populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+                                ayatDariSelect.value = 1;
+                                ayatSampaiSelect.value = 1;
+                            } else {
+                                ayatDariSelect.value = nextAyat -1;
+                                ayatSampaiSelect.value = nextAyat -1;
+                            }
+                        } else {
+                            ayatDariSelect.value = nextAyat;
+                            ayatSampaiSelect.value = nextAyat;
+                        }
                     }
                 } else {
-                    ayatDariSelect.value = nextAyat;
-                    ayatSampaiSelect.value = nextAyat;
+                    if (!isJuzAmma) {
+                        populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+                    }
                 }
-            }
-        } else {
-            if (!isJuzAmma) {
-                populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-            }
-        }
-    });
+            });
 
-    renderSiswaPagination(filteredStudents.length);
+            renderSiswaPagination(filteredStudents.length);
 
-    openStudentIds.forEach(studentId => {
-        const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
-        if (studentItem) {
-            const formContainer = studentItem.querySelector('.hafalan-form-container');
-            if (formContainer) {
-                formContainer.classList.remove('hidden');
-            }
+            openStudentIds.forEach(studentId => {
+                const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
+                if (studentItem) {
+                    const formContainer = studentItem.querySelector('.hafalan-form-container');
+                    if (formContainer) {
+                        formContainer.classList.remove('hidden');
+                    }
+                }
+            });
         }
-    });
-}
         // --- TEST HAFALAN FUNCTIONS ---
         // GANTI OBJEK INI
         const testUI = {
@@ -2177,55 +2196,86 @@ function generateQuestions(verses, testType, totalQuestions = 10) {
                 }
             });
 
-            ui.studentList.addEventListener('submit', async e => {
-                e.preventDefault();
-                if (e.target.classList.contains('hafalan-form')) {
-                    const form = e.target;
-                    const formData = new FormData(form);
-                    const quranScope = getQuranScope();
-                    
-                    const surahSelect = form.querySelector('.surah-select');
-                    const selectedOption = surahSelect.options[surahSelect.selectedIndex];
-                    const maxAyat = parseInt(selectedOption.dataset.maxAyat);
-                    
-                    let ayatDari, ayatSampai;
+        // GANTI EVENT LISTENER LAMA DENGAN KODE DI BAWAH INI
+        ui.studentList.addEventListener('submit', async e => {
+            e.preventDefault();
+            if (!e.target.classList.contains('hafalan-form')) return;
 
-                    if (quranScope === 'juz30') {
-                        ayatDari = 1;
-                        ayatSampai = maxAyat;
-                    } else {
-                        ayatDari = parseInt(formData.get('ayatDari'));
-                        ayatSampai = parseInt(formData.get('ayatSampai'));
+            const form = e.target;
+            const submitButton = form.querySelector('button[type="submit"]');
+            setButtonLoading(submitButton, true);
 
-                        if (isNaN(ayatDari) || isNaN(ayatSampai)) return showToast("Ayat harus berupa angka.", "error");
-                        if (ayatDari > ayatSampai) return showToast("'Dari Ayat' tidak boleh lebih besar dari 'Sampai Ayat'.", "error");
-                        if (ayatSampai > maxAyat || ayatDari < 1) return showToast(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`, "error");
-                    }
-                    
-                    const newEntry = {
-                        studentId: formData.get('studentId'),
-                        jenis: formData.get('jenis'),
-                        kualitas: formData.get('kualitas'),
-                        surahNo: parseInt(formData.get('surah')),
-                        ayatDari,
-                        ayatSampai,
-                        catatan: '',
-                        timestamp: Date.now(),
-                        lembagaId: window.appState.lembagaId,
-                        guruId: window.appState.currentUserUID // Default to current user
-                    };
+            try {
+                const formData = new FormData(form);
+                const quranScope = getQuranScope();
+                
+                const surahSelect = form.querySelector('.surah-select');
+                const selectedOption = surahSelect.options[surahSelect.selectedIndex];
+                const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+                
+                let ayatDari, ayatSampai;
 
-                    if (window.appState.loggedInRole === 'guru') {
-                        window.appState.lastSubmittedStudentId = newEntry.studentId;
-                        await onlineDB.add('hafalan', newEntry);
-                        showToast("Setoran berhasil disimpan!");
-                    } else { // Role is 'siswa'
-                        window.appState.hafalanSubmissionData = newEntry; // Store data
-                        ui.pinModal.el.classList.remove('hidden'); // Show PIN modal
-                        ui.pinModal.input.focus();
-                    }
+                if (quranScope === 'juz30') {
+                    ayatDari = 1;
+                    ayatSampai = maxAyat;
+                } else {
+                    ayatDari = parseInt(formData.get('ayatDari'));
+                    ayatSampai = parseInt(formData.get('ayatSampai'));
+                    if (isNaN(ayatDari) || isNaN(ayatSampai)) throw new Error("Ayat harus berupa angka.");
+                    if (ayatDari > ayatSampai) throw new Error("'Dari Ayat' tidak boleh lebih besar dari 'Sampai Ayat'.");
+                    if (ayatSampai > maxAyat || ayatDari < 1) throw new Error(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`);
                 }
-            });
+                
+                const newEntry = {
+                    studentId: formData.get('studentId'),
+                    jenis: formData.get('jenis'),
+                    kualitas: formData.get('kualitas'),
+                    surahNo: parseInt(formData.get('surah')),
+                    ayatDari,
+                    ayatSampai,
+                    catatan: '',
+                    timestamp: Date.now(),
+                    lembagaId: window.appState.lembagaId,
+                    guruId: window.appState.currentUserUID // Default guruId
+                };
+
+                if (window.appState.loggedInRole === 'siswa') {
+                    const enteredPin = formData.get('pin');
+                    if (!enteredPin || !/^\d{6}$/.test(enteredPin)) {
+                        throw new Error("PIN Guru harus diisi dengan 6 digit angka.");
+                    }
+                    const togglePinBtn = e.target.closest('.toggle-form-pin');
+                    if (togglePinBtn) {
+                        e.stopPropagation();
+                        const container = togglePinBtn.closest('.relative');
+                        const input = container.querySelector('input[name="pin"]');
+                        const eyeIcon = container.querySelector('.eye-icon');
+                        const eyeOffIcon = container.querySelector('.eye-off-icon');
+                        
+                        const isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+                        eyeIcon.classList.toggle('hidden', isPassword);
+                        eyeOffIcon.classList.toggle('hidden', !isPassword);
+                    }
+                    const teachers = window.appState.allUsers.filter(u => u.role === 'guru');
+                    const verifyingTeacher = teachers.find(t => t.pin === enteredPin);
+
+                    if (!verifyingTeacher) {
+                        throw new Error("PIN Guru salah atau tidak ditemukan.");
+                    }
+                    newEntry.guruId = verifyingTeacher.id;
+                }
+
+                window.appState.lastSubmittedStudentId = newEntry.studentId;
+                await onlineDB.add('hafalan', newEntry);
+                showToast("Setoran berhasil disimpan!");
+
+            } catch (error) {
+                showToast(error.message, "error");
+            } finally {
+                setButtonLoading(submitButton, false);
+            }
+        });
             if (ui.profileSetupModal.form) {
                 ui.profileSetupModal.form.addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -2257,80 +2307,6 @@ function generateQuestions(verses, testType, totalQuestions = 10) {
                         showToast("Gagal menyimpan perubahan.", "error");
                     } finally {
                         setButtonLoading(ui.profileSetupModal.submitBtn, false);
-                    }
-                });
-            }
-            // --- PIN Modal Listeners ---
-            if (ui.pinModal.form) {
-                ui.pinModal.form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const enteredPin = ui.pinModal.input.value;
-                    const submissionData = window.appState.hafalanSubmissionData;
-
-                    if (!submissionData) {
-                        showToast("Data setoran tidak ditemukan.", "error");
-                        ui.pinModal.el.classList.add('hidden');
-                        return;
-                    }
-
-                    const teachers = window.appState.allUsers.filter(u => u.role === 'guru');
-                    const verifyingTeacher = teachers.find(t => t.pin === enteredPin);
-
-                    if (verifyingTeacher) {
-                        ui.pinModal.error.classList.add('hidden');
-                        setButtonLoading(ui.pinModal.okBtn, true);
-
-                        // Set the guruId to the teacher who verified
-                        submissionData.guruId = verifyingTeacher.id; 
-                        
-                        try {
-                            await onlineDB.add('hafalan', submissionData);
-                            showToast("Setoran berhasil diverifikasi dan disimpan!");
-                            
-                            window.appState.lastSubmittedStudentId = submissionData.studentId;
-                            
-                            ui.pinModal.el.classList.add('hidden');
-                            ui.pinModal.form.reset();
-                            window.appState.hafalanSubmissionData = null;
-
-                        } catch (error) {
-                            console.error("Error saving after PIN verification:", error);
-                            showToast("Gagal menyimpan data.", "error");
-                        } finally {
-                            setButtonLoading(ui.pinModal.okBtn, false);
-                        }
-
-                    } else {
-                        ui.pinModal.error.textContent = "PIN salah. Coba lagi.";
-                        ui.pinModal.error.classList.remove('hidden');
-                        ui.pinModal.input.select();
-                    }
-                });
-            }
-
-            if (ui.pinModal.cancelBtn) {
-                ui.pinModal.cancelBtn.addEventListener('click', () => {
-                    ui.pinModal.el.classList.add('hidden');
-                    ui.pinModal.form.reset();
-                    ui.pinModal.error.classList.add('hidden');
-                    window.appState.hafalanSubmissionData = null;
-                });
-            }
-
-
-            if(ui.riwayat && ui.riwayat.list) {
-                ui.riwayat.list.addEventListener('click', async e => {
-                    const deleteBtn = e.target.closest('.delete-riwayat-btn');
-                    if (deleteBtn) {
-                        e.stopPropagation();
-                        const entryId = deleteBtn.dataset.id;
-                        showConfirmModal({
-                            message: `Yakin ingin menghapus riwayat setoran ini? Tindakan ini tidak dapat dibatalkan.`,
-                            onConfirm: async () => {
-                                await onlineDB.delete('hafalan', entryId);
-                                showToast("Riwayat setoran berhasil dihapus.");
-                            }
-                        });
                     }
                 });
             }
