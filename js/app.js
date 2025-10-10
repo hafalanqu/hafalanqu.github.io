@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
             function setupUIForRole(role) {
                 const allMenuLinks = document.querySelectorAll('.menu-link');
-                const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'quran', 'tentang', 'pengaturan'];
+                const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'quran', 'tentang', 'pengaturan'];
 
                 if (role === 'siswa') {
                     allMenuLinks.forEach(link => {
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const initialPage = window.location.hash.substring(1);
         if (initialPage && document.getElementById(`${initialPage}-page`)) {
-            const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tentang', 'pengaturan'];
+            const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan'];
             if(role === 'siswa' && !siswaAllowedPages.includes(initialPage)){
                 window.location.hash = '#';
                 _showIconMenuImpl();
