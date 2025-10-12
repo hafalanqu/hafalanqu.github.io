@@ -1953,6 +1953,51 @@ document.addEventListener('DOMContentLoaded', () => {
                             answer: correctWords.join(' ')
                         });
                     }
+                    } else if (testType === 'guess-surah') {
+                        // Pastikan ada cukup ayat untuk dijadikan soal
+                        if (verses.length < 4) {
+                            showToast("Tidak cukup materi ayat di lingkup ini untuk membuat tes.", "info");
+                            return [];
+                        }
+
+                        // Batasi jumlah soal jika materi kurang
+                        if (verses.length < totalQuestions) {
+                            totalQuestions = verses.length;
+                        }
+
+                        // Ambil indeks ayat secara acak untuk dijadikan soal
+                        const questionVerseIndices = new Set();
+                        while (questionVerseIndices.size < totalQuestions && questionVerseIndices.size < verses.length) {
+                            questionVerseIndices.add(Math.floor(Math.random() * verses.length));
+                        }
+
+                        for (const index of questionVerseIndices) {
+                            const verse = verses[index];
+                            const [surahNo, ayatNo] = verse.verse_key.split(':');
+                            
+                            // Ambil nama surah yang benar dari daftar
+                            const correctSurahInfo = surahNameList.find(s => s.no == surahNo);
+                            if (!correctSurahInfo) continue; // Lewati jika info surah tidak ditemukan
+                            const correctAnswer = correctSurahInfo.nama;
+
+                            // Kumpulkan 3 nama surah acak sebagai jawaban salah
+                            let wrongAnswers = new Set();
+                            while (wrongAnswers.size < 3) {
+                                const randomSurah = surahNameList[Math.floor(Math.random() * surahNameList.length)];
+                                // Pastikan jawaban salah tidak sama dengan jawaban benar
+                                if (randomSurah.nama !== correctAnswer) {
+                                    wrongAnswers.add(randomSurah.nama);
+                                }
+                            }
+
+                            questions.push({
+                                type: 'guess-surah',
+                                instruction: 'Ayat berikut terdapat dalam surah...',
+                                question: verse.text_uthmani,
+                                options: [correctAnswer, ...Array.from(wrongAnswers)].sort(() => Math.random() - 0.5),
+                                answer: correctAnswer
+                            });
+                        }
                 } else {
                     showToast(`Jenis tes yang dipilih belum tersedia.`, "info");
                     return [];
@@ -1995,21 +2040,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     testUI.answerOptions.appendChild(button);
                 });
 
-            } else { // Untuk 'continue-verse' dan 'previous-verse'
+            } else { // Untuk 'continue-verse', 'previous-verse', dan 'guess-surah'
                 testUI.answerOptions.className = 'space-y-3'; // Pilihan Ganda
                 testUI.userAnswerArea.classList.add('hidden');
 
                 q.options.forEach(option => {
                     const button = document.createElement('button');
-                    button.className = 'btn btn-secondary w-full text-right font-lateef text-xl';
                     button.textContent = option;
-                    button.dir = 'rtl';
                     button.onclick = () => checkAnswer(option, q.answer);
+                    
+                    // Cek jenis soal untuk menentukan perataan teks
+                    if (q.type === 'guess-surah') {
+                        button.className = 'btn btn-secondary w-full text-left'; // Kiri-ke-kanan untuk nama surah
+                        button.dir = 'ltr';
+                    } else {
+                        button.className = 'btn btn-secondary w-full text-right font-lateef text-xl'; // Kanan-ke-kiri untuk ayat
+                        button.dir = 'rtl';
+                    }
+                    
                     testUI.answerOptions.appendChild(button);
                 });
             }
         }
-
         // Fungsi untuk memeriksa jawaban
         function checkAnswer(selectedOption, correctAnswer) {
             const isCorrect = selectedOption === correctAnswer;
