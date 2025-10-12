@@ -1965,7 +1965,8 @@ function generateQuestions(verses, testType, totalQuestions = 10) {
             testUI.finalScore.textContent = test.score;
 
             // Cek jika ada siswa yang dipilih (studentIds adalah array)
-            if (test.studentIds.length > 0 && window.appState.loggedInRole === 'guru') {
+            // VVV PERBAIKAN DILAKUKAN DI BARIS INI VVV
+            if (test.studentIds.length > 0) { // Hapus pengecekan "&& window.appState.loggedInRole === 'guru'"
                 const savePromises = test.studentIds.map(studentId => {
                     // Logika pembuatan newEntry dipindahkan ke dalam loop
                     let kualitas;
@@ -2002,7 +2003,8 @@ function generateQuestions(verses, testType, totalQuestions = 10) {
                 try {
                     // Jalankan semua promise penyimpanan secara bersamaan
                     await Promise.all(savePromises);
-                    showToast(`Hasil tes untuk ${test.studentIds.length} siswa berhasil disimpan.`, "success");
+                    // Ubah pesan notifikasi agar lebih umum
+                    showToast(`Hasil tes berhasil disimpan.`, "success");
                 } catch (error) {
                     console.error("Gagal menyimpan hasil tes:", error);
                     showToast("Gagal menyimpan sebagian atau semua hasil tes.", "error");
