@@ -387,7 +387,7 @@
                             <select id="test-type-select" class="form-select">
                                 <option value="continue-verse" selected="">Sambung Ayat Setelahnya</option>
                                 <option value="previous-verse">Sambung Ayat Sebelumnya</option>
-                                <option value="reorder-verses">Menyusun Ulang Ayat (Segera)</option>
+                                <option value="reorder-verses">Menyusun Ulang Ayat</option>
                             </select>
                         </div>
                     </div>
@@ -424,26 +424,29 @@
                         <button id="start-test-btn" class="btn btn-primary w-full sm:flex-1">Mulai Tes</button>
                     </div>
                 </div>
+                <div id="test-progress-view" class="hidden">
+                    <div class="card p-6 mb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-semibold text-slate-800">Pertanyaan <span id="current-question-number">1</span>/<span id="total-questions">10</span></h2>
+                            <div class="text-lg font-bold">Skor: <span id="current-score">0</span></div>
+                        </div>
+                        <div id="test-question-container" class="text-center">
+                            <p class="text-sm text-slate-500 mb-2" id="question-instruction">Lanjutkan potongan ayat berikut:</p>
+                            <p id="test-question-text" class="text-2xl font-lateef leading-relaxed text-slate-800 mb-6" dir="rtl">...</p>
+                        </div>
 
-                    <div id="test-progress-view" class="hidden">
-                        <div class="card p-6 mb-4">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-semibold text-slate-800">Pertanyaan <span id="current-question-number">1</span>/<span id="total-questions">10</span></h2>
-                                <div class="text-lg font-bold">Skor: <span id="current-score">0</span></div>
+                        <div id="test-user-answer-area" class="min-h-[4rem] p-3 border-2 border-dashed border-slate-300 rounded-lg flex flex-wrap-reverse justify-end items-center gap-2 mb-4 hidden" dir="rtl">
                             </div>
-                            <div id="test-question-container" class="text-center">
-                                <p class="text-sm text-slate-500 mb-2" id="question-instruction">Lanjutkan potongan ayat berikut:</p>
-                                <p id="test-question-text" class="text-2xl font-lateef leading-relaxed text-slate-800 mb-6" dir="rtl">...</p>
+                        <div id="test-answer-options" class="space-y-3">
                             </div>
-                            <div id="test-answer-options" class="space-y-3"></div>
-                            <div id="test-feedback" class="mt-4 text-center font-semibold hidden"></div>
-                        </div>
-                        <div id="test-controls" class="flex justify-end gap-3">
-                            <button id="end-test-btn" class="btn btn-danger">Akhiri Tes</button>
-                            <button id="next-question-btn" class="btn btn-secondary hidden">Lanjut</button>
-                        </div>
+                        <div id="test-feedback" class="mt-4 text-center font-semibold hidden"></div>
                     </div>
-
+                    <div id="test-controls" class="flex justify-end gap-3">
+                        <button id="check-reorder-btn" class="btn btn-primary hidden">Periksa Jawaban</button>
+                        <button id="end-test-btn" class="btn btn-danger">Akhiri Tes</button>
+                        <button id="next-question-btn" class="btn btn-secondary hidden">Lanjut</button>
+                    </div>
+                </div>
                     <div id="test-result-view" class="card p-8 text-center hidden">
                         <h2 class="text-2xl font-bold text-slate-800 mb-2">Tes Selesai!</h2>
                         <p class="text-slate-600 mb-6">Berikut adalah hasil akhir Anda.</p>
