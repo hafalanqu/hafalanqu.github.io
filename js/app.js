@@ -3014,24 +3014,35 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             testUI.restartTestBtn.addEventListener('click', restartTest);
             testUI.answerOptions.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
-                    // Ubah style menjadi seperti teks biasa saat dipindahkan ke kotak jawaban
-                    e.target.className = 'word-in-answer';
-                    testUI.userAnswerArea.appendChild(e.target); // Pindahkan elemen
+                // ▼▼▼ TAMBAHKAN BLOK PENGECEKAN INI ▼▼▼
+                const test = window.appState.currentTest;
+                if (test.isActive && test.questions[test.currentQuestionIndex].isAnswered) {
+                    return; // Hentikan fungsi jika soal sudah dijawab
+                }
+                // ▲▲▲ AKHIR BLOK PENGECEKAN ▲▲▲
 
-                    // Tampilkan tombol periksa jika semua kata sudah dipindahkan
+                if (e.target.tagName === 'BUTTON') {
+                    e.target.className = 'word-in-answer';
+                    testUI.userAnswerArea.appendChild(e.target); 
+
                     if (testUI.answerOptions.children.length === 0) {
                         testUI.checkReorderBtn.classList.remove('hidden');
                     }
                 }
             });
             testUI.userAnswerArea.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
-                    // Kembalikan style menjadi tombol saat dikembalikan ke pilihan kata
-                    e.target.className = 'btn btn-secondary font-scheherazade text-xl';
-                    testUI.answerOptions.appendChild(e.target); // Kembalikan elemen
+                // ▼▼▼ TAMBAHKAN BLOK PENGECEKAN INI ▼▼▼
+                const test = window.appState.currentTest;
+                if (test.isActive && test.questions[test.currentQuestionIndex].isAnswered) {
+                    return; // Hentikan fungsi jika soal sudah dijawab
+                }
+                // ▲▲▲ AKHIR BLOK PENGECEKAN ▲▲▲
 
-                    testUI.checkReorderBtn.classList.add('hidden'); // Sembunyikan lagi tombol periksa
+                if (e.target.tagName === 'BUTTON') {
+                    e.target.className = 'btn btn-secondary font-scheherazade text-xl';
+                    testUI.answerOptions.appendChild(e.target); 
+
+                    testUI.checkReorderBtn.classList.add('hidden');
                 }
             });
 
