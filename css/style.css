@@ -183,11 +183,11 @@
         }
         #test-question-text {
             font-family: 'Scheherazade New', serif;
-            font-size: 1rem;  /* 32px, sedikit lebih kecil dari .arabic-text */
+            font-size: 1.2rem;  /* 32px, sedikit lebih kecil dari .arabic-text */
             line-height: 1.8;
         }
         #test-answer-options .btn {
             font-family: 'Scheherazade New', serif;
             font-weight: 400; /* Gunakan bobot reguler untuk keterbacaan */
-            font-size: 1rem; /* 24px */
+            font-size: 1,1rem; /* 24px */
         }
