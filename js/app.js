@@ -2078,10 +2078,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const q = test.questions[test.currentQuestionIndex];
             
-            // Reset UI untuk setiap pertanyaan baru
             testUI.questionNumber.textContent = test.currentQuestionIndex + 1;
             testUI.totalQuestions.textContent = test.questions.length;
-            testUI.currentScore.textContent = test.score;
+            // ▼▼▼ BARIS DI BAWAH INI DIUBAH ▼▼▼
+            testUI.currentScore.textContent = Math.round(test.score);
+            // ▲▲▲ AKHIR PERUBAHAN ▲▲▲
             testUI.questionInstruction.textContent = q.instruction;
             testUI.questionText.textContent = q.question;
             testUI.answerOptions.innerHTML = '';
@@ -2090,9 +2091,8 @@ document.addEventListener('DOMContentLoaded', () => {
             testUI.nextQuestionBtn.disabled = true;
             testUI.checkReorderBtn.classList.add('hidden');
             
-            // Logika Tampilan Berdasarkan Jenis Tes
             if (q.type === 'reorder-verses') {
-                testUI.answerOptions.className = 'flex flex-wrap justify-center gap-2'; // Bank Kata
+                testUI.answerOptions.className = 'flex flex-wrap justify-center gap-2';
                 testUI.userAnswerArea.classList.remove('hidden');
 
                 q.options.forEach(word => {
@@ -2103,8 +2103,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     testUI.answerOptions.appendChild(button);
                 });
 
-            } else { // Untuk 'continue-verse', 'previous-verse', dan 'guess-surah'
-                testUI.answerOptions.className = 'space-y-3'; // Pilihan Ganda
+            } else {
+                testUI.answerOptions.className = 'space-y-3';
                 testUI.userAnswerArea.classList.add('hidden');
 
                 q.options.forEach(option => {
@@ -2112,12 +2112,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.textContent = option;
                     button.onclick = () => checkAnswer(option, q.answer);
                     
-                    // Cek jenis soal untuk menentukan perataan teks
                     if (q.type === 'guess-surah') {
-                        button.className = 'btn btn-secondary w-full text-left'; // Kiri-ke-kanan untuk nama surah
+                        button.className = 'btn btn-secondary w-full text-left';
                         button.dir = 'ltr';
                     } else {
-                        button.className = 'btn btn-secondary w-full text-right font-lateef text-xl'; // Kanan-ke-kiri untuk ayat
+                        button.className = 'btn btn-secondary w-full text-right font-lateef text-xl';
                         button.dir = 'rtl';
                     }
                     
@@ -2125,12 +2124,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
-        // Fungsi untuk memeriksa jawaban
         function checkAnswer(selectedOption, correctAnswer) {
             const isCorrect = selectedOption === correctAnswer;
             
+            // ▼▼▼ AWAL BLOK PERUBAHAN ▼▼▼
             if (isCorrect) {
-                window.appState.currentTest.score += 10;
+                const test = window.appState.currentTest;
+                const pointsPerQuestion = 100 / test.questions.length;
+                test.score += pointsPerQuestion;
+                
                 testUI.feedback.textContent = "Benar!";
                 testUI.feedback.className = 'mt-4 text-center font-semibold text-green-600';
             } else {
@@ -2138,11 +2140,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 testUI.feedback.className = 'mt-4 text-center font-semibold text-red-600';
             }
 
-            testUI.currentScore.textContent = window.appState.currentTest.score;
+            testUI.currentScore.textContent = Math.round(window.appState.currentTest.score);
+            // ▲▲▲ AKHIR BLOK PERUBAHAN ▲▲▲
+
             testUI.feedback.classList.remove('hidden');
             testUI.nextQuestionBtn.disabled = false;
 
-            // Nonaktifkan semua tombol interaktif setelah jawaban diperiksa
             const allOptionButtons = [
                 ...testUI.answerOptions.children,
                 ...testUI.userAnswerArea.children
@@ -2150,7 +2153,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             allOptionButtons.forEach(button => {
                 button.disabled = true;
-                // Untuk pilihan ganda, tandai jawaban yang benar
                 if(button.textContent === correctAnswer && window.appState.currentTest.questions[window.appState.currentTest.currentQuestionIndex].type !== 'reorder-verses') {
                     button.classList.remove('btn-secondary');
                     button.classList.add('btn-success');
@@ -2164,25 +2166,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         async function endTest() {
             const test = window.appState.currentTest;
+            const finalRoundedScore = Math.round(test.score); // Bulatkan skor di awal
+
             testUI.progressView.classList.add('hidden');
             testUI.resultView.classList.remove('hidden');
-            testUI.finalScore.textContent = test.score;
+            // ▼▼▼ BARIS DI BAWAH INI DIUBAH ▼▼▼
+            testUI.finalScore.textContent = finalRoundedScore;
 
-            // Cek jika ada siswa yang dipilih (studentIds adalah array)
-            // VVV PERBAIKAN DILAKUKAN DI BARIS INI VVV
-            if (test.studentIds.length > 0) { // Hapus pengecekan "&& window.appState.loggedInRole === 'guru'"
+            if (test.studentIds.length > 0) {
                 const savePromises = test.studentIds.map(studentId => {
-                    // Logika pembuatan newEntry dipindahkan ke dalam loop
                     let kualitas;
-                    if (test.score >= 90) kualitas = 'sangat-lancar';
-                    else if (test.score >= 70) kualitas = 'lancar';
-                    else if (test.score >= 50) kualitas = 'cukup-lancar';
-                    else if (test.score >= 30) kualitas = 'tidak-lancar';
+                    // Gunakan skor yang sudah dibulatkan untuk menentukan kualitas
+                    if (finalRoundedScore >= 90) kualitas = 'sangat-lancar';
+                    else if (finalRoundedScore >= 70) kualitas = 'lancar';
+                    else if (finalRoundedScore >= 50) kualitas = 'cukup-lancar';
+                    else if (finalRoundedScore >= 30) kualitas = 'tidak-lancar';
                     else kualitas = 'sangat-tidak-lancar';
                     
                     const { surahDari, surahSampai, juzDari, juzSampai, testType } = test.settings;
                     let materi = 'Materi Pilihan';
-                    // ... (logika penentuan `materi` tetap sama) ...
                     if (surahDari) {
                         const infoDari = surahList.find(s => s.no == surahDari)?.nama;
                         const infoSampai = surahList.find(s => s.no == surahSampai)?.nama;
@@ -2192,22 +2194,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     const newEntry = {
-                        studentId: studentId, // Gunakan studentId dari loop
+                        studentId: studentId,
                         jenis: 'tes', kualitas: kualitas,
                         surahNo: 0, ayatDari: 0, ayatSampai: 0,
-                        catatan: `Skor: ${test.score} | Materi: ${materi}`,
+                        // ▼▼▼ BARIS DI BAWAH INI DIUBAH ▼▼▼
+                        catatan: `Skor: ${finalRoundedScore} dari ${test.questions.length} Soal | Materi: ${materi}`,
                         testType: testType, timestamp: Date.now(),
                         lembagaId: window.appState.lembagaId,
                         guruId: window.appState.currentUserUID
                     };
-                    // Kembalikan promise dari proses penyimpanan
                     return onlineDB.add('hafalan', newEntry);
                 });
 
                 try {
-                    // Jalankan semua promise penyimpanan secara bersamaan
                     await Promise.all(savePromises);
-                    // Ubah pesan notifikasi agar lebih umum
                     showToast(`Hasil tes berhasil disimpan.`, "success");
                 } catch (error) {
                     console.error("Gagal menyimpan hasil tes:", error);
