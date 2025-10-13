@@ -1440,7 +1440,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
             paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
         }
+        // GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
         function renderStudentList() {
+            // --- PERUBAHAN BAGIAN 1: Menyimpan state form yang sedang terbuka ---
+            const openFormsState = new Map();
+            if (ui.studentList) {
+                ui.studentList.querySelectorAll('.student-item').forEach(item => {
+                    const formContainer = item.querySelector('.hafalan-form-container');
+                    if (formContainer && !formContainer.classList.contains('hidden')) {
+                        const studentId = item.dataset.studentId;
+                        // Hanya simpan state jika BUKAN siswa yang baru saja disubmit.
+                        // Ini mencegah state lama (sebelum submit) disimpan dan dipulihkan.
+                        if (studentId !== window.appState.lastSubmittedStudentId) {
+                            const form = item.querySelector('form');
+                            const isJuzAmma = getQuranScope() === 'juz30';
+                            const state = {
+                                surah: form.surah.value,
+                                kualitas: form.kualitas.value,
+                                ayatDari: !isJuzAmma ? form.ayatDari.value : null,
+                                ayatSampai: !isJuzAmma ? form.ayatSampai.value : null
+                            };
+                            openFormsState.set(studentId, state);
+                        }
+                    }
+                });
+            }
+
             const SISWA_PER_PAGE = 36;
             const openStudentIds = new Set();
             if (ui.studentList) {
@@ -1535,9 +1560,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>`
                     : '';
 
-                // --- AWAL LOGIKA BARU UNTUK RIWAYAT ---
                 const recentHafalan = studentHafalan
-                    .filter(entry => entry.jenis !== 'tes') // <-- Tambahkan baris filter ini
+                    .filter(entry => entry.jenis !== 'tes')
                     .sort((a, b) => b.timestamp - a.timestamp)
                     .slice(0, 5);
                 const kualitasDisplayMap = { 
@@ -1554,7 +1578,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short'});
                         const jenisLabel = entry.jenis.charAt(0).toUpperCase() + entry.jenis.slice(1);
                         const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
-
                         const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
 
                         return `
@@ -1571,7 +1594,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     historyHTML = '<p class="text-xs text-slate-400 text-center py-2">Belum ada riwayat setoran.</p>';
                 }
-                // --- AKHIR LOGIKA BARU UNTUK RIWAYAT ---
 
                 item.innerHTML = `
                     <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
@@ -1597,20 +1619,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${pinInputHTML}
                             <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
                         </form>
-
                         <div class="mt-6 pt-4 border-t">
                             <h4 class="text-sm font-semibold text-slate-600 mb-2">Riwayat Terbaru</h4>
                             <div class="student-history-list space-y-2 max-h-48 overflow-y-auto pr-2">
                                 ${historyHTML}
                             </div>
                         </div>
-                        </div>
+                    </div>
                 `;
                 ui.studentList.appendChild(item);
 
                 let lastEntry = null;
                 if (studentHafalan.length > 0) {
-                    // Urutkan lagi karena urutan sebelumnya untuk riwayat, yang ini untuk pre-fill form
                     lastEntry = studentHafalan.sort((a, b) => b.timestamp - a.timestamp)[0];
                 }
 
@@ -1618,48 +1638,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 const surahSelect = form.querySelector('.surah-select');
                 const ayatDariSelect = form.querySelector('.ayat-dari-select');
                 const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
+                
+                // --- PERUBAHAN BAGIAN 2: Logika baru untuk mengisi form ---
+                const previouslyOpenState = openFormsState.get(student.id);
 
-                if (lastEntry) {
-                    const kualitasSelect = form.querySelector('[name="kualitas"]');
+                if (previouslyOpenState) {
+                    // Jika form ini sebelumnya terbuka (dan tidak disubmit), pulihkan isinya.
+                    form.querySelector('[name="kualitas"]').value = previouslyOpenState.kualitas;
+                    surahSelect.value = previouslyOpenState.surah;
                     
-                    if (kualitasSelect) kualitasSelect.value = lastEntry.kualitas;
-                    if (surahSelect) surahSelect.value = lastEntry.surahNo;
+                    if (ayatDariSelect && ayatSampaiSelect) {
+                        populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+                        ayatDariSelect.value = previouslyOpenState.ayatDari;
+                        ayatSampaiSelect.value = previouslyOpenState.ayatSampai;
+                    }
+                } else if (lastEntry) {
+                    // Jika form baru dibuka atau baru disubmit, gunakan data terakhir dari database.
+                    // Ini juga menerapkan permintaan #1: tidak auto-increment.
+                    form.querySelector('[name="kualitas"]').value = lastEntry.kualitas;
+                    surahSelect.value = lastEntry.surahNo;
 
                     if (ayatDariSelect && ayatSampaiSelect) {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                        const selectedOption = surahSelect.options[surahSelect.selectedIndex];
-
-                        if (selectedOption) {
-                            const maxAyat = parseInt(selectedOption.dataset.maxAyat);
-                            let nextAyat = parseInt(lastEntry.ayatSampai) + 1;
-                            if (nextAyat > maxAyat) {
-                                const surahOptions = Array.from(surahSelect.options).filter(opt => opt.value);
-                                const currentIndex = surahOptions.findIndex(opt => opt.value == lastEntry.surahNo);
-                                
-                                if (currentIndex !== -1 && currentIndex + 1 < surahOptions.length) {
-                                    const nextSurahOption = surahOptions[currentIndex + 1];
-                                    surahSelect.value = nextSurahOption.value;
-                                    populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                                    ayatDariSelect.value = 1;
-                                    ayatSampaiSelect.value = 1;
-                                } else {
-                                    ayatDariSelect.value = nextAyat - 1;
-                                    ayatSampaiSelect.value = nextAyat - 1;
-                                }
-                            } else {
-                                ayatDariSelect.value = nextAyat;
-                                ayatSampaiSelect.value = nextAyat;
-                            }
-                        } else {
-                            if (surahSelect.options.length > 0) {
-                                surahSelect.selectedIndex = 0;
-                                populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                                ayatDariSelect.value = 1;
-                                ayatSampaiSelect.value = 1;
-                            }
-                        }
+                        ayatDariSelect.value = lastEntry.ayatDari;
+                        ayatSampaiSelect.value = lastEntry.ayatSampai;
                     }
                 } else {
+                    // Logika default untuk siswa yang belum punya setoran sama sekali.
                     if (!isJuzAmma) {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                     }
