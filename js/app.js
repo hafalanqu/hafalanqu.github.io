@@ -1271,7 +1271,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const testTypeDisplayMap = {
                         'continue-verse': 'Sambung Ayat Setelahnya',
                         'previous-verse': 'Sambung Ayat Sebelumnya',
-                        'reorder-verses': 'Menyusun Ulang Ayat'
+                        'reorder-verses': 'Menyusun Ulang Ayat',
+                        'guess-surah': 'Menebak Surah'
                     };
                     const testTypeText = testTypeDisplayMap[entry.testType] || 'Ujian';
 
@@ -2017,50 +2018,64 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                     } else if (testType === 'guess-surah') {
-                        // Pastikan ada cukup ayat untuk dijadikan soal
-                        if (verses.length < 4) {
-                            showToast("Tidak cukup materi ayat di lingkup ini untuk membuat tes.", "info");
-                            return [];
+                const surahsInScopeIds = new Set();
+                verses.forEach(v => {
+                    const [surahNo] = v.verse_key.split(':');
+                    surahsInScopeIds.add(parseInt(surahNo, 10));
+                });
+
+                // 2. Buat daftar nama surah yang valid HANYA dari lingkup tersebut
+                const surahsInScope = surahNameList.filter(s => surahsInScopeIds.has(s.no));
+
+                // 3. Lakukan pengecekan: Jika surah unik kurang dari 2, tes tidak bisa dibuat
+                if (surahsInScope.length < 2) {
+                    showToast("Lingkup yang dipilih terlalu sempit untuk membuat soal tebak surah (minimal harus ada 2 surah).", "info");
+                    return [];
+                }
+                
+                // Pastikan ada cukup ayat untuk dijadikan soal
+                if (verses.length < 4) {
+                    showToast("Tidak cukup materi ayat di lingkup ini untuk membuat tes.", "info");
+                    return [];
+                }
+
+                if (verses.length < totalQuestions) {
+                    totalQuestions = verses.length;
+                }
+
+                const questionVerseIndices = new Set();
+                while (questionVerseIndices.size < totalQuestions && questionVerseIndices.size < verses.length) {
+                    questionVerseIndices.add(Math.floor(Math.random() * verses.length));
+                }
+
+                for (const index of questionVerseIndices) {
+                    const verse = verses[index];
+                    const [surahNo, ayatNo] = verse.verse_key.split(':');
+                    
+                    const correctSurahInfo = surahNameList.find(s => s.no == surahNo);
+                    if (!correctSurahInfo) continue;
+                    const correctAnswer = correctSurahInfo.nama;
+
+                    // 4. Kumpulkan jawaban salah HANYA dari daftar 'surahsInScope'
+                    let wrongAnswers = new Set();
+                    // Loop akan berhenti jika sudah dapat 3 pengecoh ATAU jika semua surah lain sudah dipakai
+                    while (wrongAnswers.size < 3 && wrongAnswers.size < (surahsInScope.length - 1)) {
+                        // Ambil surah acak dari daftar lingkup yang valid
+                        const randomSurah = surahsInScope[Math.floor(Math.random() * surahsInScope.length)];
+                        
+                        if (randomSurah.nama !== correctAnswer) {
+                            wrongAnswers.add(randomSurah.nama);
                         }
+                    }
 
-                        // Batasi jumlah soal jika materi kurang
-                        if (verses.length < totalQuestions) {
-                            totalQuestions = verses.length;
-                        }
-
-                        // Ambil indeks ayat secara acak untuk dijadikan soal
-                        const questionVerseIndices = new Set();
-                        while (questionVerseIndices.size < totalQuestions && questionVerseIndices.size < verses.length) {
-                            questionVerseIndices.add(Math.floor(Math.random() * verses.length));
-                        }
-
-                        for (const index of questionVerseIndices) {
-                            const verse = verses[index];
-                            const [surahNo, ayatNo] = verse.verse_key.split(':');
-                            
-                            // Ambil nama surah yang benar dari daftar
-                            const correctSurahInfo = surahNameList.find(s => s.no == surahNo);
-                            if (!correctSurahInfo) continue; // Lewati jika info surah tidak ditemukan
-                            const correctAnswer = correctSurahInfo.nama;
-
-                            // Kumpulkan 3 nama surah acak sebagai jawaban salah
-                            let wrongAnswers = new Set();
-                            while (wrongAnswers.size < 3) {
-                                const randomSurah = surahNameList[Math.floor(Math.random() * surahNameList.length)];
-                                // Pastikan jawaban salah tidak sama dengan jawaban benar
-                                if (randomSurah.nama !== correctAnswer) {
-                                    wrongAnswers.add(randomSurah.nama);
-                                }
-                            }
-
-                            questions.push({
-                                type: 'guess-surah',
-                                instruction: 'Ayat berikut terdapat dalam surah...',
-                                question: verse.text_uthmani,
-                                options: [correctAnswer, ...Array.from(wrongAnswers)].sort(() => Math.random() - 0.5),
-                                answer: correctAnswer
-                            });
-                        }
+                    questions.push({
+                        type: 'guess-surah',
+                        instruction: 'Ayat berikut terdapat dalam surah...',
+                        question: verse.text_uthmani,
+                        options: [correctAnswer, ...Array.from(wrongAnswers)].sort(() => Math.random() - 0.5),
+                        answer: correctAnswer
+                    });
+                }
                 } else {
                     showToast(`Jenis tes yang dipilih belum tersedia.`, "info");
                     return [];
