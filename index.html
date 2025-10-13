@@ -451,11 +451,18 @@
                             </div>
                         <div id="test-feedback" class="mt-4 text-center font-semibold hidden"></div>
                     </div>
-                    <div id="test-controls" class="flex justify-end gap-3">
-                        <button id="check-reorder-btn" class="btn btn-primary hidden">Periksa Jawaban</button>
-                        <button id="end-test-btn" class="btn btn-danger">Akhiri Tes</button>
-                        <button id="next-question-btn" class="btn btn-secondary">Lanjut</button>
-                    </div>
+                <div id="test-controls" class="flex justify-between items-center gap-3">
+                    <button id="previous-question-btn" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        <span>Kembali</span>
+                    </button>
+                    <button id="end-test-btn" class="btn btn-danger">Akhiri Tes</button>
+                    <button id="check-reorder-btn" class="btn btn-primary hidden">Periksa Jawaban</button>
+                    <button id="next-question-btn" class="btn btn-secondary">
+                        <span>Lanjut</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 ml-2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                </div>
                 </div>
                     <div id="test-result-view" class="card p-8 text-center hidden">
                         <h2 class="text-2xl font-bold text-slate-800 mb-2">Tes Selesai!</h2>

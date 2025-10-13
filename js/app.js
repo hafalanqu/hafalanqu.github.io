@@ -1688,6 +1688,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+        // --- Fungsi untuk Menyimpan dan Memuat Sesi Tes ---
+        function saveTestState() {
+            if (window.appState.currentTest.isActive) {
+                sessionStorage.setItem('activeTestState', JSON.stringify(window.appState.currentTest));
+            }
+        }
+
+        function loadAndRestoreTestState() {
+            const savedStateJSON = sessionStorage.getItem('activeTestState');
+            if (savedStateJSON) {
+                const savedState = JSON.parse(savedStateJSON);
+                if (savedState.isActive) {
+                    window.appState.currentTest = savedState;
+                    
+                    // Sembunyikan tampilan setup dan tampilkan progres tes
+                    testUI.step1_type_view.classList.add('hidden');
+                    testUI.step2_scope_view.classList.add('hidden');
+                    testUI.resultView.classList.add('hidden');
+                    testUI.progressView.classList.remove('hidden');
+
+                    // Tampilkan kembali soal terakhir yang dibuka
+                    displayCurrentQuestion();
+                    showToast("Sesi tes sebelumnya berhasil dipulihkan.", "info");
+                    return true; // Mengindikasikan sesi berhasil dipulihkan
+                }
+            }
+            return false; // Tidak ada sesi aktif untuk dipulihkan
+        }
         // --- TEST HAFALAN FUNCTIONS ---
         // GANTI OBJEK INI
         const testUI = {
@@ -1730,6 +1758,7 @@ document.addEventListener('DOMContentLoaded', () => {
             finalScore: document.getElementById('final-score'),
             userAnswerArea: document.getElementById('test-user-answer-area'),
             checkReorderBtn: document.getElementById('check-reorder-btn'),
+            previousQuestionBtn: document.getElementById('previous-question-btn'),
         };
 
         // Fungsi untuk mengisi dropdown surah dan juz
@@ -1894,7 +1923,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     instruction: 'Lanjutkan ayat berikut ini:', // Ubah instruksi
                     question: questionText,                     // Soal: Ayat penuh
                     options: [correctAnswerText, ...wrongAnswers].sort(() => Math.random() - 0.5),
-                    answer: correctAnswerText                  // Jawaban: Ayat penuh berikutnya
+                    answer: correctAnswerText,                  // Jawaban: Ayat penuh berikutnya
+                    isAnswered: false,
+                    userAnswer: null,
+                    isCorrect: null
                 });
             }
             
@@ -1945,7 +1977,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         instruction: 'Sebutkan ayat SEBELUM ayat berikut:',
                         question: questionText,
                         options: [correctAnswerText, ...wrongAnswers].sort(() => Math.random() - 0.5),
-                        answer: correctAnswerText
+                        answer: correctAnswerText,
+                        isAnswered: false,
+                        userAnswer: null,
+                        isCorrect: null
                     });
                 }
                 } else if (testType === 'reorder-verses') {
@@ -2014,7 +2049,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             instruction: 'Susun ulang potongan kata berikut menjadi ayat yang benar:',
                             question: questionContext,
                             options: shuffledWords,
-                            answer: correctWords.join(' ')
+                            answer: correctWords.join(' '),
+                            isAnswered: false,
+                            userAnswer: null,
+                            isCorrect: null
                         });
                     }
                     } else if (testType === 'guess-surah') {
@@ -2073,7 +2111,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         instruction: 'Ayat berikut terdapat dalam surah...',
                         question: verse.text_uthmani,
                         options: [correctAnswer, ...Array.from(wrongAnswers)].sort(() => Math.random() - 0.5),
-                        answer: correctAnswer
+                        answer: correctAnswer,
+                        isAnswered: false,
+                        userAnswer: null,
+                        isCorrect: null
                     });
                 }
                 } else {
@@ -2095,89 +2136,114 @@ document.addEventListener('DOMContentLoaded', () => {
             
             testUI.questionNumber.textContent = test.currentQuestionIndex + 1;
             testUI.totalQuestions.textContent = test.questions.length;
-            // ▼▼▼ BARIS DI BAWAH INI DIUBAH ▼▼▼
             testUI.currentScore.textContent = Math.round(test.score);
-            // ▲▲▲ AKHIR PERUBAHAN ▲▲▲
             testUI.questionInstruction.textContent = q.instruction;
             testUI.questionText.textContent = q.question;
             testUI.answerOptions.innerHTML = '';
             testUI.userAnswerArea.innerHTML = '';
             testUI.feedback.classList.add('hidden');
-            testUI.nextQuestionBtn.disabled = true;
             testUI.checkReorderBtn.classList.add('hidden');
-            
-            if (q.type === 'reorder-verses') {
-                testUI.answerOptions.className = 'flex flex-wrap justify-center gap-2';
-                testUI.userAnswerArea.classList.remove('hidden');
 
-                q.options.forEach(word => {
-                    const button = document.createElement('button');
-                    button.className = 'btn btn-secondary font-scheherazade text-xl';
-                    button.textContent = word;
-                    button.dir = 'rtl';
-                    testUI.answerOptions.appendChild(button);
-                });
+            // Atur status tombol navigasi
+            testUI.previousQuestionBtn.disabled = (test.currentQuestionIndex === 0);
+            testUI.nextQuestionBtn.disabled = (test.currentQuestionIndex === test.questions.length - 1);
 
+            const renderOptions = (isAnswered) => {
+                if (q.type === 'reorder-verses') {
+                    testUI.answerOptions.className = 'flex flex-wrap justify-center gap-2';
+                    testUI.userAnswerArea.classList.remove('hidden');
+                    
+                    const wordsToDisplay = isAnswered ? q.answer.split(' ') : q.options;
+                    const targetContainer = isAnswered ? testUI.userAnswerArea : testUI.answerOptions;
+
+                    wordsToDisplay.forEach(word => {
+                        const element = document.createElement('button');
+                        element.className = 'word-in-answer';
+                        element.textContent = word;
+                        element.dir = 'rtl';
+                        element.disabled = isAnswered;
+                        targetContainer.appendChild(element);
+                    });
+
+                } else {
+                    testUI.answerOptions.className = 'space-y-3';
+                    testUI.userAnswerArea.classList.add('hidden');
+
+                    q.options.forEach(option => {
+                        const button = document.createElement('button');
+                        button.textContent = option;
+                        button.disabled = isAnswered;
+
+                        if (!isAnswered) {
+                            button.onclick = () => checkAnswer(option, q.answer);
+                        }
+                        
+                        if (q.type === 'guess-surah') {
+                            button.className = 'btn btn-secondary w-full text-left';
+                            button.dir = 'ltr';
+                        } else {
+                            button.className = 'btn btn-secondary w-full text-right font-lateef text-xl';
+                            button.dir = 'rtl';
+                        }
+
+                        if (isAnswered) {
+                            if (option === q.answer) {
+                                button.classList.add('btn-success');
+                            }
+                            if (option === q.userAnswer && !q.isCorrect) {
+                                button.classList.add('btn-danger');
+                            }
+                        }
+                        testUI.answerOptions.appendChild(button);
+                    });
+                }
+            };
+
+            if (q.isAnswered) {
+                testUI.feedback.textContent = q.isCorrect ? "Benar!" : "Kurang Tepat";
+                testUI.feedback.className = `mt-4 text-center font-semibold ${q.isCorrect ? 'text-green-600' : 'text-red-600'}`;
+                testUI.feedback.classList.remove('hidden');
+                renderOptions(true);
             } else {
-                testUI.answerOptions.className = 'space-y-3';
-                testUI.userAnswerArea.classList.add('hidden');
-
-                q.options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.textContent = option;
-                    button.onclick = () => checkAnswer(option, q.answer);
-                    
-                    if (q.type === 'guess-surah') {
-                        button.className = 'btn btn-secondary w-full text-left';
-                        button.dir = 'ltr';
-                    } else {
-                        button.className = 'btn btn-secondary w-full text-right font-lateef text-xl';
-                        button.dir = 'rtl';
-                    }
-                    
-                    testUI.answerOptions.appendChild(button);
-                });
+                renderOptions(false);
             }
         }
         function checkAnswer(selectedOption, correctAnswer) {
+            const test = window.appState.currentTest;
+            const q = test.questions[test.currentQuestionIndex];
+            
+            if (q.isAnswered) return; // Mencegah menjawab ulang
+
             const isCorrect = selectedOption === correctAnswer;
             
-            // ▼▼▼ AWAL BLOK PERUBAHAN ▼▼▼
-            if (isCorrect) {
-                const test = window.appState.currentTest;
-                const pointsPerQuestion = 100 / test.questions.length;
-                test.score += pointsPerQuestion;
-                
-                testUI.feedback.textContent = "Benar!";
-                testUI.feedback.className = 'mt-4 text-center font-semibold text-green-600';
-            } else {
-                testUI.feedback.textContent = "Kurang Tepat";
-                testUI.feedback.className = 'mt-4 text-center font-semibold text-red-600';
-            }
+            q.isAnswered = true;
+            q.userAnswer = selectedOption;
+            q.isCorrect = isCorrect;
 
-            testUI.currentScore.textContent = Math.round(window.appState.currentTest.score);
-            // ▲▲▲ AKHIR BLOK PERUBAHAN ▲▲▲
-
-            testUI.feedback.classList.remove('hidden');
-            testUI.nextQuestionBtn.disabled = false;
-
-            const allOptionButtons = [
-                ...testUI.answerOptions.children,
-                ...testUI.userAnswerArea.children
-            ];
-
-            allOptionButtons.forEach(button => {
-                button.disabled = true;
-                if(button.textContent === correctAnswer && window.appState.currentTest.questions[window.appState.currentTest.currentQuestionIndex].type !== 'reorder-verses') {
-                    button.classList.remove('btn-secondary');
-                    button.classList.add('btn-success');
-                }
-            });
+            // Hitung ulang skor dari awal agar akurat
+            const pointsPerQuestion = 100 / test.questions.length;
+            test.score = test.questions.reduce((total, question) => {
+                return total + (question.isCorrect ? pointsPerQuestion : 0);
+            }, 0);
+            
+            saveTestState(); // Simpan state setelah menjawab
+            displayCurrentQuestion(); // Tampilkan ulang soal dalam mode "sudah dijawab"
         }
-
         function showNextQuestion() {
-            window.appState.currentTest.currentQuestionIndex++;
-            displayCurrentQuestion();
+            const test = window.appState.currentTest;
+            if (test.currentQuestionIndex < test.questions.length - 1) {
+                test.currentQuestionIndex++;
+                saveTestState(); // Simpan state setelah navigasi
+                displayCurrentQuestion();
+            }
+        }
+        function showPreviousQuestion() {
+            const test = window.appState.currentTest;
+            if (test.currentQuestionIndex > 0) {
+                test.currentQuestionIndex--;
+                saveTestState(); // Simpan state setelah navigasi
+                displayCurrentQuestion();
+            }
         }
         async function endTest() {
             const test = window.appState.currentTest;
@@ -2230,6 +2296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             window.appState.currentTest.isActive = false;
+            sessionStorage.removeItem('activeTestState');
         }
         function restartTest() {
             testUI.resultView.classList.add('hidden');
@@ -2248,6 +2315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.appState.currentTest.studentIds = [];
             }
             renderSelectedStudentsForTest();
+            sessionStorage.removeItem('activeTestState');
         }
         function searchStudentsForTest() {
             const searchTerm = testUI.studentSearchInput.value.toLowerCase().trim();
@@ -2451,6 +2519,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         async function initApp() {
+                if (loadAndRestoreTestState()) {
+        // Jika sesi dipulihkan, beberapa inisialisasi mungkin tidak diperlukan
+        // atau perlu disesuaikan. Untuk sekarang, kita lanjutkan saja.
+    }
             [ui.addClassBtn, ui.addStudentSubmitBtn, ui.import.importBtn, ui.import.downloadTemplateBtn, ui.profile.saveBtn, ui.pinModal.okBtn].forEach(btn => {
                 if (btn) btn.dataset.originalContent = btn.innerHTML;
             });
@@ -2929,6 +3001,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             testUI.startBtn.addEventListener('click', startTest);
             testUI.nextQuestionBtn.addEventListener('click', showNextQuestion);
+            testUI.previousQuestionBtn.addEventListener('click', showPreviousQuestion);
             testUI.endTestBtn.addEventListener('click', () => {
                 showConfirmModal({
                     title: "Akhiri Tes?",
