@@ -2965,7 +2965,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 db.collection('hafalan').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderAll();
+                        
+                        // Cek halaman apa yang sedang aktif dari URL
+                        const currentPageId = window.location.hash.substring(1);
+
+                        // JANGAN refresh halaman input hafalan jika sedang aktif digunakan.
+                        // Ini mencegah form ter-reset oleh aktivitas lain (seperti tes).
+                        if (currentPageId === 'siswa') {
+                            // Cukup update halaman ringkasan dan riwayat di latar belakang.
+                            renderSummary();
+                            renderStudentProgressList();
+                            renderRiwayatList();
+                        } else {
+                            // Jika di halaman lain, aman untuk melakukan refresh total.
+                            renderAll();
+                        }
                     }, error => commonErrorHandler(error, 'hafalan'));
 
                 db.collection('users').where('lembagaId', '==', lembagaId)
