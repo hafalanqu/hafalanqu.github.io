@@ -1544,7 +1544,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
                         <form class="hafalan-form space-y-4">
                             <input type="hidden" name="studentId" value="${student.id}">
-                            <div><label class="block text-sm font-medium mb-1">Jenis Setoran</label><select name="jenis" class="form-select" required><option value="ziyadah">Ziyadah</option><option value="murajaah">Muraja'ah</option></select></div>
                             <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
                             ${ayatInputsHTML}
                             <div>
@@ -1575,10 +1574,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
 
                 if (lastEntry) {
-                    const jenisSelect = form.querySelector('[name="jenis"]');
                     const kualitasSelect = form.querySelector('[name="kualitas"]');
 
-                    if (jenisSelect) jenisSelect.value = lastEntry.jenis;
                     if (kualitasSelect) kualitasSelect.value = lastEntry.kualitas;
                     if (surahSelect) surahSelect.value = lastEntry.surahNo;
 
@@ -2557,7 +2554,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-        // GANTI EVENT LISTENER LAMA DENGAN KODE DI BAWAH INI
         ui.studentList.addEventListener('submit', async e => {
             e.preventDefault();
             if (!e.target.classList.contains('hafalan-form')) return;
@@ -2587,11 +2583,44 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (ayatSampai > maxAyat || ayatDari < 1) throw new Error(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`);
                 }
                 
+                const studentId = formData.get('studentId');
+                const surahNo = parseInt(formData.get('surah'));
+
+                // --- AWAL LOGIKA BARU ---
+                // 1. Dapatkan semua riwayat Ziyadah siswa pada surah yang sama.
+                const previousZiyadah = window.appState.allHafalan.filter(h => 
+                    h.studentId === studentId && 
+                    h.jenis === 'ziyadah' &&
+                    h.surahNo === surahNo
+                );
+
+                // 2. Buat daftar (Set) ayat yang sudah pernah dihafal dari riwayat Ziyadah.
+                const memorizedVerses = new Set();
+                previousZiyadah.forEach(entry => {
+                    for (let i = parseInt(entry.ayatDari); i <= parseInt(entry.ayatSampai); i++) {
+                        memorizedVerses.add(i);
+                    }
+                });
+
+                // 3. Cek apakah SEMUA ayat yang disetor kali ini sudah ada di daftar hafalan.
+                let isAllRepeated = true;
+                for (let i = ayatDari; i <= ayatSampai; i++) {
+                    if (!memorizedVerses.has(i)) {
+                        // Jika ditemukan satu saja ayat baru, maka ini adalah Ziyadah.
+                        isAllRepeated = false;
+                        break;
+                    }
+                }
+
+                // 4. Tentukan jenis setorannya.
+                const jenis = isAllRepeated ? 'murajaah' : 'ziyadah';
+                // --- AKHIR LOGIKA BARU ---
+
                 const newEntry = {
-                    studentId: formData.get('studentId'),
-                    jenis: formData.get('jenis'),
+                    studentId: studentId,
+                    jenis: jenis, // Menggunakan jenis yang sudah ditentukan secara otomatis
                     kualitas: formData.get('kualitas'),
-                    surahNo: parseInt(formData.get('surah')),
+                    surahNo: surahNo,
                     ayatDari,
                     ayatSampai,
                     catatan: '',
