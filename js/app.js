@@ -1535,6 +1535,44 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>`
                     : '';
 
+                // --- AWAL LOGIKA BARU UNTUK RIWAYAT ---
+                const recentHafalan = studentHafalan
+                    .filter(entry => entry.jenis !== 'tes') // <-- Tambahkan baris filter ini
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .slice(0, 5);
+                const kualitasDisplayMap = { 
+                    'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
+                    'cukup-lancar': 'Cukup Lancar', 'tidak-lancar': 'Tidak Lancar',
+                    'sangat-tidak-lancar': 'Sangat Tidak Lancar'
+                };
+                
+                let historyHTML = '';
+                if (recentHafalan.length > 0) {
+                    historyHTML = recentHafalan.map(entry => {
+                        const surahInfo = surahList.find(s => s.no == entry.surahNo);
+                        const surahName = surahInfo ? surahInfo.nama : `Surah ${entry.surahNo}`;
+                        const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short'});
+                        const jenisLabel = entry.jenis.charAt(0).toUpperCase() + entry.jenis.slice(1);
+                        const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
+
+                        const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
+
+                        return `
+                            <div class="text-xs text-slate-500 flex justify-between items-center bg-slate-100 p-2 rounded">
+                                <div>
+                                    <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
+                                    <span class="font-semibold text-slate-700">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</span>
+                                    <span class="italic">(${kualitasText})</span>
+                                </div>
+                                <span class="flex-shrink-0 ml-2 font-medium">${date}</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    historyHTML = '<p class="text-xs text-slate-400 text-center py-2">Belum ada riwayat setoran.</p>';
+                }
+                // --- AKHIR LOGIKA BARU UNTUK RIWAYAT ---
+
                 item.innerHTML = `
                     <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
                         <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
@@ -1559,12 +1597,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${pinInputHTML}
                             <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
                         </form>
-                    </div>
+
+                        <div class="mt-6 pt-4 border-t">
+                            <h4 class="text-sm font-semibold text-slate-600 mb-2">Riwayat Terbaru</h4>
+                            <div class="student-history-list space-y-2 max-h-48 overflow-y-auto pr-2">
+                                ${historyHTML}
+                            </div>
+                        </div>
+                        </div>
                 `;
                 ui.studentList.appendChild(item);
 
                 let lastEntry = null;
                 if (studentHafalan.length > 0) {
+                    // Urutkan lagi karena urutan sebelumnya untuk riwayat, yang ini untuk pre-fill form
                     lastEntry = studentHafalan.sort((a, b) => b.timestamp - a.timestamp)[0];
                 }
 
@@ -1575,7 +1621,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (lastEntry) {
                     const kualitasSelect = form.querySelector('[name="kualitas"]');
-
+                    
                     if (kualitasSelect) kualitasSelect.value = lastEntry.kualitas;
                     if (surahSelect) surahSelect.value = lastEntry.surahNo;
 
@@ -1583,7 +1629,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                         const selectedOption = surahSelect.options[surahSelect.selectedIndex];
 
-                        // ▼▼▼ BAGIAN YANG DIPERBAIKI ▼▼▼
                         if (selectedOption) {
                             const maxAyat = parseInt(selectedOption.dataset.maxAyat);
                             let nextAyat = parseInt(lastEntry.ayatSampai) + 1;
@@ -1606,7 +1651,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ayatSampaiSelect.value = nextAyat;
                             }
                         } else {
-                            // Jika surah terakhir tidak ada di daftar, default ke ayat pertama dari surah pertama
                             if (surahSelect.options.length > 0) {
                                 surahSelect.selectedIndex = 0;
                                 populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
@@ -1614,7 +1658,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ayatSampaiSelect.value = 1;
                             }
                         }
-                        // ▲▲▲ AKHIR PERBAIKAN ▲▲▲
                     }
                 } else {
                     if (!isJuzAmma) {
