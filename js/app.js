@@ -2966,13 +2966,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     .onSnapshot(snapshot => {
                         window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         
-                        // Cek halaman apa yang sedang aktif dari URL
                         const currentPageId = window.location.hash.substring(1);
 
-                        // JANGAN refresh halaman input hafalan jika sedang aktif digunakan.
-                        // Ini mencegah form ter-reset oleh aktivitas lain (seperti tes).
+                        // Jika pengguna sedang di halaman input hafalan ('siswa').
                         if (currentPageId === 'siswa') {
-                            // Cukup update halaman ringkasan dan riwayat di latar belakang.
+                            // Panggil renderStudentList() untuk me-refresh daftar siswa DAN riwayat terbarunya.
+                            // Fungsi ini sudah dirancang untuk mengingat form mana yang sedang terbuka.
+                            renderStudentList(); 
+                            
+                            // Tetap update halaman lain di latar belakang.
                             renderSummary();
                             renderStudentProgressList();
                             renderRiwayatList();
