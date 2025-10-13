@@ -1440,7 +1440,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
         }
-        // GANTI SELURUH FUNGSI LAMA DENGAN VERSI BARU INI
         function renderStudentList() {
             // --- PERUBAHAN BAGIAN 1: Menyimpan state form yang sedang terbuka ---
             const openFormsState = new Map();
@@ -1580,14 +1579,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
                         const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
 
+                        // --- KODE BARU: Tombol Hapus ---
+                        const historyDeleteBtn = window.appState.loggedInRole === 'guru'
+                            ? `<button data-action="delete-inline-riwayat" data-id="${entry.id}" class="delete-inline-riwayat-btn text-slate-400 hover:text-red-600 p-1 rounded-full -mr-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>`
+                            : '';
+
                         return `
-                            <div class="text-xs text-slate-500 flex justify-between items-center bg-slate-100 p-2 rounded">
-                                <div>
+                            <div class="text-xs text-slate-500 flex justify-between items-center bg-slate-100 p-2 rounded group">
+                                <div class="flex-grow">
                                     <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
                                     <span class="font-semibold text-slate-700">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</span>
                                     <span class="italic">(${kualitasText})</span>
                                 </div>
-                                <span class="flex-shrink-0 ml-2 font-medium">${date}</span>
+                                <div class="flex items-center flex-shrink-0 ml-2">
+                                    <span class="font-medium mr-1">${date}</span>
+                                    ${historyDeleteBtn}
+                                </div>
                             </div>
                         `;
                     }).join('');
@@ -1639,11 +1648,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ayatDariSelect = form.querySelector('.ayat-dari-select');
                 const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
                 
-                // --- PERUBAHAN BAGIAN 2: Logika baru untuk mengisi form ---
                 const previouslyOpenState = openFormsState.get(student.id);
 
                 if (previouslyOpenState) {
-                    // Jika form ini sebelumnya terbuka (dan tidak disubmit), pulihkan isinya.
                     form.querySelector('[name="kualitas"]').value = previouslyOpenState.kualitas;
                     surahSelect.value = previouslyOpenState.surah;
                     
@@ -1653,8 +1660,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         ayatSampaiSelect.value = previouslyOpenState.ayatSampai;
                     }
                 } else if (lastEntry) {
-                    // Jika form baru dibuka atau baru disubmit, gunakan data terakhir dari database.
-                    // Ini juga menerapkan permintaan #1: tidak auto-increment.
                     form.querySelector('[name="kualitas"]').value = lastEntry.kualitas;
                     surahSelect.value = lastEntry.surahNo;
 
@@ -1664,7 +1669,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         ayatSampaiSelect.value = lastEntry.ayatSampai;
                     }
                 } else {
-                    // Logika default untuk siswa yang belum punya setoran sama sekali.
                     if (!isJuzAmma) {
                         populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                     }
@@ -2558,7 +2562,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.import.importBtn.addEventListener('click', () => ui.import.fileInput.click());
             ui.import.fileInput.addEventListener('change', handleImport);
 
-                ui.studentList.addEventListener('click', async e => {
+            ui.studentList.addEventListener('click', async e => {
                 const studentItem = e.target.closest('.student-item');
                 if (!studentItem) return;
                 
@@ -2572,8 +2576,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                const deleteBtn = e.target.closest('.delete-student-btn');
-                if (deleteBtn) {
+                const deleteStudentBtn = e.target.closest('.delete-student-btn');
+                if (deleteStudentBtn) {
                     e.stopPropagation();
                     const student = window.appState.allStudents.find(s => s.id === studentId);
                     showConfirmModal({
@@ -2585,6 +2589,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             await onlineDB.delete('students', studentId);
                             showToast("Siswa berhasil dihapus.");
+                        }
+                    });
+                }
+
+                // --- KODE BARU: Logika untuk hapus riwayat terbaru ---
+                const deleteRiwayatBtn = e.target.closest('[data-action="delete-inline-riwayat"]');
+                if (deleteRiwayatBtn) {
+                    e.stopPropagation(); // Mencegah form tertutup saat tombol diklik
+                    const hafalanId = deleteRiwayatBtn.dataset.id;
+                    if (!hafalanId) return;
+
+                    showConfirmModal({
+                        title: "Hapus Riwayat?",
+                        message: "Apakah Anda yakin ingin menghapus data setoran ini secara permanen?",
+                        okText: "Ya, Hapus",
+                        onConfirm: async () => {
+                            try {
+                                // Menyimpan ID siswa agar form tetap terbuka setelah data di-refresh
+                                window.appState.lastSubmittedStudentId = studentId;
+                                await onlineDB.delete('hafalan', hafalanId);
+                                showToast("Riwayat setoran berhasil dihapus.");
+                                // Tampilan akan diperbarui secara otomatis oleh listener database
+                            } catch (error) {
+                                console.error("Gagal menghapus riwayat:", error);
+                                showToast("Gagal menghapus data.", "error");
+                                window.appState.lastSubmittedStudentId = null; // Hapus jika gagal
+                            }
                         }
                     });
                 }
