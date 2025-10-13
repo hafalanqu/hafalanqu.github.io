@@ -2083,7 +2083,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 q.options.forEach(word => {
                     const button = document.createElement('button');
-                    button.className = 'btn btn-secondary font-lateef text-xl';
+                    button.className = 'btn btn-secondary font-scheherazade text-xl';
                     button.textContent = word;
                     button.dir = 'rtl';
                     testUI.answerOptions.appendChild(button);
@@ -2904,18 +2904,22 @@ document.addEventListener('DOMContentLoaded', () => {
             testUI.restartTestBtn.addEventListener('click', restartTest);
             testUI.answerOptions.addEventListener('click', (e) => {
                 if (e.target.tagName === 'BUTTON') {
-                    testUI.userAnswerArea.appendChild(e.target); // Pindahkan tombol
-                    // Jika semua kata sudah dipindahkan, tampilkan tombol periksa
+                    // Ubah style menjadi seperti teks biasa saat dipindahkan ke kotak jawaban
+                    e.target.className = 'word-in-answer';
+                    testUI.userAnswerArea.appendChild(e.target); // Pindahkan elemen
+
+                    // Tampilkan tombol periksa jika semua kata sudah dipindahkan
                     if (testUI.answerOptions.children.length === 0) {
                         testUI.checkReorderBtn.classList.remove('hidden');
                     }
                 }
             });
-
-            // Event handler untuk mengembalikan kata dari area jawaban ke bank
             testUI.userAnswerArea.addEventListener('click', (e) => {
                 if (e.target.tagName === 'BUTTON') {
-                    testUI.answerOptions.appendChild(e.target); // Kembalikan tombol
+                    // Kembalikan style menjadi tombol saat dikembalikan ke pilihan kata
+                    e.target.className = 'btn btn-secondary font-scheherazade text-xl';
+                    testUI.answerOptions.appendChild(e.target); // Kembalikan elemen
+
                     testUI.checkReorderBtn.classList.add('hidden'); // Sembunyikan lagi tombol periksa
                 }
             });
