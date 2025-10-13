@@ -1706,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedStudentName: document.getElementById('test-selected-student-name'),
             changeStudentBtn: document.getElementById('test-change-student-btn'),
             selectedStudentsList: document.getElementById('test-selected-students-list'),
+            questionCountSelect: document.getElementById('test-question-count-select'),
             // Kontrol di Langkah 2
             surahSelectDari: document.getElementById('test-surah-select-dari'),
             surahSelectSampai: document.getElementById('test-surah-select-sampai'),
@@ -1783,6 +1784,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const juzDari = testUI.juzSelectDari.value;
             const juzSampai = testUI.juzSelectSampai.value;
             const testType = testUI.testTypeSelect.value;
+            // ▼▼▼ BARIS BARU: Ambil nilai jumlah soal ▼▼▼
+            const totalQuestions = parseInt(testUI.questionCountSelect.value, 10);
 
             if ((!surahDari && !juzDari) || (!surahSampai && !juzSampai)) {
                 showToast("Silakan pilih rentang surah atau juz terlebih dahulu.", "error");
@@ -1803,7 +1806,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                const questions = generateQuestions(verses, testType, 10);
+                // ▼▼▼ BARIS YANG DIUBAH: Gunakan variabel totalQuestions ▼▼▼
+                const questions = generateQuestions(verses, testType, totalQuestions);
+                
                 if (questions.length === 0) {
                     return;
                 }
@@ -1813,7 +1818,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     questions: questions,
                     currentQuestionIndex: 0,
                     score: 0,
-                    settings: { surahDari, surahSampai, juzDari, juzSampai, testType } // Simpan pengaturan rentang
+                    settings: { surahDari, surahSampai, juzDari, juzSampai, testType }
                 });
                 
                 testUI.step2_scope_view.classList.add('hidden');
