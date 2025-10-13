@@ -2073,7 +2073,7 @@ document.addEventListener('DOMContentLoaded', () => {
             testUI.answerOptions.innerHTML = '';
             testUI.userAnswerArea.innerHTML = '';
             testUI.feedback.classList.add('hidden');
-            testUI.nextQuestionBtn.classList.add('hidden');
+            testUI.nextQuestionBtn.disabled = true;
             testUI.checkReorderBtn.classList.add('hidden');
             
             // Logika Tampilan Berdasarkan Jenis Tes
@@ -2126,7 +2126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             testUI.currentScore.textContent = window.appState.currentTest.score;
             testUI.feedback.classList.remove('hidden');
-            testUI.nextQuestionBtn.classList.remove('hidden');
+            testUI.nextQuestionBtn.disabled = false;
 
             // Nonaktifkan semua tombol interaktif setelah jawaban diperiksa
             const allOptionButtons = [
@@ -2900,7 +2900,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             testUI.startBtn.addEventListener('click', startTest);
             testUI.nextQuestionBtn.addEventListener('click', showNextQuestion);
-            testUI.endTestBtn.addEventListener('click', endTest);
+            testUI.endTestBtn.addEventListener('click', () => {
+                showConfirmModal({
+                    title: "Akhiri Tes?",
+                    message: "Apakah Anda yakin ingin mengakhiri sesi tes ini? Progres saat ini akan disimpan jika ada siswa yang dipilih.",
+                    okText: "Ya, Akhiri Tes",
+                    onConfirm: () => {
+                        endTest(); // Panggil fungsi endTest hanya jika dikonfirmasi
+                    }
+                });
+            });
             testUI.restartTestBtn.addEventListener('click', restartTest);
             testUI.answerOptions.addEventListener('click', (e) => {
                 if (e.target.tagName === 'BUTTON') {
