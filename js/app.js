@@ -1549,7 +1549,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             paginatedStudents.forEach(student => {
                 const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
-                const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp));
+                const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp) && h.jenis !== 'tes');
                 const item = document.createElement('div');
                 item.className = 'student-item bg-slate-50 rounded-lg';
                 item.dataset.studentId = student.id;
@@ -1639,9 +1639,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 ui.studentList.appendChild(item);
 
+                const actualHafalanEntries = studentHafalan.filter(h => h.jenis !== 'tes');
+
                 let lastEntry = null;
-                if (studentHafalan.length > 0) {
-                    lastEntry = studentHafalan.sort((a, b) => b.timestamp - a.timestamp)[0];
+                if (actualHafalanEntries.length > 0) {
+                    // Cari entri terakhir HANYA dari Ziyadah atau Muraja'ah
+                    lastEntry = actualHafalanEntries.sort((a, b) => b.timestamp - a.timestamp)[0];
                 }
 
                 const form = item.querySelector('.hafalan-form');
