@@ -2018,42 +2018,48 @@ document.addEventListener('DOMContentLoaded', () => {
                         isCorrect: null
                     });
                 }
-                } else if (testType === 'reorder-verses') {
-                    // Proses setiap ayat untuk menggabungkan tanda waqaf dan penanda akhir ayat
-                    const suitableVerses = verses.map(v => {
-                        if (!v.text_uthmani) return null;
-                        let words = v.text_uthmani.trim().split(/\s+/);
-                        
-                        // Daftar tanda waqaf yang sering muncul sendiri
-                        const waqfSigns = ['صلى', 'قلى', 'ج', 'م', 'لا', 'ۛ'];
-
-                        // 1. Menggabungkan penanda akhir ayat (misal: ﴿٥﴾) dengan kata sebelumnya
-                        if (words.length > 1 && words[words.length - 1].includes('﴿')) {
-                            words[words.length - 2] = words[words.length - 2] + ' ' + words[words.length - 1];
-                            words.pop(); // Hapus elemen terakhir yang sudah digabung
-                        }
-                        
-                        // 2. Iterasi dari belakang untuk menggabungkan tanda waqaf
-                        for (let i = words.length - 1; i > 0; i--) {
-                            // Bersihkan kata dari harakat sebelum dicek
-                            const cleanedWord = words[i].trim().replace(/[\u064B-\u0652\u0670]/g, '');
+                    } else if (testType === 'reorder-verses') {
+                        // GANTI BLOK LAMA DENGAN SEMUA KODE DI BAWAH INI
+                        const suitableVerses = verses.map(v => {
+                            if (!v.text_uthmani) return null;
                             
-                            if (waqfSigns.includes(cleanedWord)) {
-                                words[i - 1] = words[i - 1] + ' ' + words[i];
-                                words.splice(i, 1); // Hapus elemen tanda waqaf yang sudah digabung
+                            // LANGKAH 1: Gunakan trim() dan split() yang kuat untuk memisahkan kata secara andal.
+                            let words = v.text_uthmani.trim().split(/\s+/);
+
+                            // LANGKAH 2: Daftar tanda waqaf yang akan digabungkan.
+                            const waqfSigns = ['صلى', 'قلى', 'ج', 'م', 'لا', 'ۛ'];
+
+                            // LANGKAH 3: Gabungkan penanda akhir ayat (misal: ﴿٥﴾) dengan kata sebelumnya.
+                            // Ini penting dilakukan sebelum menggabungkan waqof.
+                            if (words.length > 1 && words[words.length - 1].includes('﴿')) {
+                                words[words.length - 2] = words[words.length - 2] + ' ' + words[words.length - 1];
+                                words.pop(); // Hapus elemen terakhir yang sudah digabung.
                             }
-                        }
-                        
-                        return {
-                            ...v,
-                            processed_words: words,
-                            word_count: words.length
-                        };
-                    }).filter(v => {
-                        if (!v) return false;
-                        // Filter ayat yang cocok untuk dijadikan soal (antara 4-20 kata)
-                        return v.word_count >= 4 && v.word_count <= 20;
-                    });
+                            
+                            // LANGKAH 4: Iterasi dari belakang untuk mencari dan menggabungkan tanda waqof.
+                            for (let i = words.length - 1; i > 0; i--) {
+                                // Bersihkan "kata" dari harakat/diacritics sebelum membandingkan.
+                                const cleanedWord = words[i].trim().replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '');
+                                
+                                // Jika kata yang sudah dibersihkan adalah tanda waqof:
+                                if (waqfSigns.includes(cleanedWord)) {
+                                    // Gabungkan dengan kata sebelumnya.
+                                    words[i - 1] = words[i - 1] + ' ' + words[i];
+                                    // Hapus elemen tanda waqaf yang berdiri sendiri.
+                                    words.splice(i, 1);
+                                }
+                            }
+                            
+                            return {
+                                ...v,
+                                processed_words: words,
+                                word_count: words.length
+                            };
+                        }).filter(v => {
+                            if (!v) return false;
+                            // Filter ayat yang cocok untuk dijadikan soal (antara 4-20 kata).
+                            return v.word_count >= 4 && v.word_count <= 20;
+                        });
 
                     if (suitableVerses.length === 0) {
                         showToast("Tidak cukup materi ayat (4-20 kata) di lingkup ini untuk tes susun ulang.", "info");
@@ -3073,7 +3079,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     testUI.userAnswerArea.appendChild(e.target); 
 
                     // GANTI BLOK 'IF' SEBELUMNYA DENGAN PANGGILAN FUNGSI INI
-                    updateReorderButtonVisibility();
                 }
             });
             testUI.userAnswerArea.addEventListener('click', (e) => {
