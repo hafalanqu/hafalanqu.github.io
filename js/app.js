@@ -2158,7 +2158,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return questions;
             }
-
         // Fungsi untuk menampilkan pertanyaan saat ini
         function displayCurrentQuestion() {
             const test = window.appState.currentTest;
@@ -2177,7 +2176,13 @@ document.addEventListener('DOMContentLoaded', () => {
             testUI.answerOptions.innerHTML = '';
             testUI.userAnswerArea.innerHTML = '';
             testUI.feedback.classList.add('hidden');
-            testUI.checkReorderBtn.classList.add('hidden');
+            if (q.type === 'reorder-verses' && !q.isAnswered) {
+                // Jika soalnya 'susun ulang' DAN belum dijawab, TAMPILKAN tombol
+                testUI.checkReorderBtn.classList.remove('hidden');
+            } else {
+                // Untuk semua kondisi lain, SEMBUNYIKAN tombol
+                testUI.checkReorderBtn.classList.add('hidden');
+            }
 
             // Atur status tombol navigasi
             testUI.previousQuestionBtn.disabled = (test.currentQuestionIndex === 0);
@@ -3058,35 +3063,30 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             testUI.restartTestBtn.addEventListener('click', restartTest);
             testUI.answerOptions.addEventListener('click', (e) => {
-                // ▼▼▼ TAMBAHKAN BLOK PENGECEKAN INI ▼▼▼
                 const test = window.appState.currentTest;
                 if (test.isActive && test.questions[test.currentQuestionIndex].isAnswered) {
-                    return; // Hentikan fungsi jika soal sudah dijawab
+                    return;
                 }
-                // ▲▲▲ AKHIR BLOK PENGECEKAN ▲▲▲
 
                 if (e.target.tagName === 'BUTTON') {
                     e.target.className = 'word-in-answer';
                     testUI.userAnswerArea.appendChild(e.target); 
 
-                    if (testUI.answerOptions.children.length === 0) {
-                        testUI.checkReorderBtn.classList.remove('hidden');
-                    }
+                    // GANTI BLOK 'IF' SEBELUMNYA DENGAN PANGGILAN FUNGSI INI
+                    updateReorderButtonVisibility();
                 }
             });
             testUI.userAnswerArea.addEventListener('click', (e) => {
-                // ▼▼▼ TAMBAHKAN BLOK PENGECEKAN INI ▼▼▼
                 const test = window.appState.currentTest;
                 if (test.isActive && test.questions[test.currentQuestionIndex].isAnswered) {
-                    return; // Hentikan fungsi jika soal sudah dijawab
+                    return;
                 }
-                // ▲▲▲ AKHIR BLOK PENGECEKAN ▲▲▲
 
                 if (e.target.tagName === 'BUTTON') {
                     e.target.className = 'btn btn-secondary font-scheherazade text-xl';
-                    testUI.answerOptions.appendChild(e.target); 
+                    testUI.answerOptions.appendChild(e.target);
 
-                    testUI.checkReorderBtn.classList.add('hidden');
+                    // GANTI PERINTAH LANGSUNG DENGAN PANGGILAN FUNGSI INI
                 }
             });
 
