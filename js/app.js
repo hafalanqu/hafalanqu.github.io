@@ -2022,7 +2022,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Proses setiap ayat untuk menggabungkan tanda waqaf dan penanda akhir ayat
                     const suitableVerses = verses.map(v => {
                         if (!v.text_uthmani) return null;
-                        let words = v.text_uthmani.split(' ');
+                        let words = v.text_uthmani.trim().split(/\s+/);
                         
                         // Daftar tanda waqaf yang sering muncul sendiri
                         const waqfSigns = ['صلى', 'قلى', 'ج', 'م', 'لا', 'ۛ'];
