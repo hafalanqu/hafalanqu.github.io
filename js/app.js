@@ -241,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span>Ekspor Hasil Siswa</span>
             </button>`;
-            document.getElementById('export-data-btn').addEventListener('click', window.exportAllData);
         }
 
         if (pageId === 'pengaturan' && typeof window.populateSettingsForms === 'function') {
@@ -452,18 +451,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 const studentEntries = allHafalan.filter(h => h.studentId === student.id).sort((a, b) => b.timestamp - a.timestamp);
                 let isFirstRowForStudent = true; 
 
+                // TAMBAHKAN: Peta untuk mengubah jenis tes dari kode menjadi teks yang mudah dibaca
+                const testTypeDisplayMap = {
+                    'continue-verse': 'Sambung Ayat Setelahnya',
+                    'previous-verse': 'Sambung Ayat Sebelumnya',
+                    'reorder-verses': 'Menyusun Ulang Ayat',
+                    'guess-surah': 'Menebak Surah'
+                };
+
                 if (studentEntries.length > 0) {
                     studentEntries.forEach(entry => {
-                        const surahInfo = surahNameList.find(s => s.no == entry.surahNo);
-                        const rowData = {
-                            "No": isFirstRowForStudent ? studentNumber : "",
-                            "Nama": isFirstRowForStudent ? student.name : "",
-                            "Kelas": isFirstRowForStudent ? (studentClass ? studentClass.name : 'Tanpa Kelas') : "",
-                            "Jenis Setoran": entry.jenis === 'ziyadah' ? 'Ziyadah' : "Muraja'ah",
-                            "Detail Hafalan": `${surahInfo ? surahInfo.nama : 'Surah ' + entry.surahNo} ${entry.ayatDari}-${entry.ayatSampai}`,
-                            "Skor Mutqin": kualitasDisplayMap[entry.kualitas] || entry.kualitas,
-                            "Tanggal": new Date(entry.timestamp).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}),
-                        };
+                        let rowData; // Deklarasikan rowData di luar
+
+                        // MODIFIKASI: Tambahkan if/else untuk menangani jenis 'tes'
+                        if (entry.jenis === 'tes') {
+                            // BLOK BARU UNTUK HASIL TES
+                            const testTypeText = testTypeDisplayMap[entry.testType] || 'Ujian';
+                            
+                            // Ekstrak skor dari catatan menggunakan regular expression
+                            const scoreMatch = entry.catatan.match(/Skor:\s*(\d+)/);
+                            const score = scoreMatch ? scoreMatch[1] : "-"; // Ambil angka skor, atau "-" jika tidak ditemukan
+
+                            rowData = {
+                                "No": isFirstRowForStudent ? studentNumber : "",
+                                "Nama": isFirstRowForStudent ? student.name : "",
+                                "Kelas": isFirstRowForStudent ? (studentClass ? studentClass.name : 'Tanpa Kelas') : "",
+                                "Jenis Setoran": "Tes Hafalan", // Diisi dengan benar
+                                "Detail Hafalan": testTypeText, // Diisi dengan jenis tesnya
+                                "Skor Mutqin": score, // Diisi dengan skor hasil tes
+                                "Tanggal": new Date(entry.timestamp).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}),
+                            };
+
+                        } else {
+                            // BLOK LAMA UNTUK ZIYADAH & MURAJA'AH
+                            const surahInfo = surahNameList.find(s => s.no == entry.surahNo);
+                            rowData = {
+                                "No": isFirstRowForStudent ? studentNumber : "",
+                                "Nama": isFirstRowForStudent ? student.name : "",
+                                "Kelas": isFirstRowForStudent ? (studentClass ? studentClass.name : 'Tanpa Kelas') : "",
+                                "Jenis Setoran": entry.jenis === 'ziyadah' ? 'Ziyadah' : "Muraja'ah",
+                                "Detail Hafalan": `${surahInfo ? surahInfo.nama : 'Surah ' + entry.surahNo} ${entry.ayatDari}-${entry.ayatSampai}`,
+                                "Skor Mutqin": kualitasDisplayMap[entry.kualitas] || entry.kualitas,
+                                "Tanggal": new Date(entry.timestamp).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}),
+                            };
+                        }
+
                         dataForExport.push(rowData);
                         isFirstRowForStudent = false;
                     });
@@ -2522,10 +2554,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         async function initApp() {
+        const headerActions = document.getElementById('header-actions');
+        if (headerActions) {
+            headerActions.addEventListener('click', (e) => {
+                // Cek apakah yang diklik adalah tombol ekspor
+                const exportBtn = e.target.closest('#export-data-btn');
+                if (exportBtn) {
+                    // Jika ya, panggil fungsi ekspor
+                    window.exportAllData();
+                }
+            });
+        }
                 if (loadAndRestoreTestState()) {
-        // Jika sesi dipulihkan, beberapa inisialisasi mungkin tidak diperlukan
-        // atau perlu disesuaikan. Untuk sekarang, kita lanjutkan saja.
-    }
+            }   
             [ui.addClassBtn, ui.addStudentSubmitBtn, ui.import.importBtn, ui.import.downloadTemplateBtn, ui.profile.saveBtn, ui.pinModal.okBtn].forEach(btn => {
                 if (btn) btn.dataset.originalContent = btn.innerHTML;
             });
