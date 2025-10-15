@@ -204,3 +204,9 @@
       .word-in-answer:hover {
         background-color: #f1f5f9; /* Warna bg-slate-100 */
       }
+.form-select.ayat-dari-select,
+.form-select.ayat-sampai-select {
+  /* Use Inter first, then fall back to Scheherazade for Arabic */
+  font-family: 'Inter', 'Scheherazade New', serif;
+  font-size: 0,5rem;
+}

@@ -28,7 +28,8 @@ window.appState = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-        try {
+    window.quranCache = {};    
+    try {
     // --- Toast Notification ---
     let toastTimeout;
     function showToast(message, type = 'success') {
@@ -533,19 +534,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.exportAllData = exportAllData;
 
-    function populateAyatDropdowns(surahElement, ayatDariSelect, ayatSampaiSelect) {
-        if (!surahElement || !ayatDariSelect || !ayatSampaiSelect) return;
-        const selectedOption = surahElement.options[surahElement.selectedIndex];
-        if (!selectedOption) return;
-        const maxAyat = parseInt(selectedOption.dataset.maxAyat);
-        ayatDariSelect.innerHTML = '';
-        ayatSampaiSelect.innerHTML = '';
-        for (let i = 1; i <= maxAyat; i++) {
-            const option = new Option(i, i);
-            ayatDariSelect.appendChild(option.cloneNode(true));
-            ayatSampaiSelect.appendChild(option.cloneNode(true));
+        async function populateAyatDropdowns(surahElement, ayatDariSelect, ayatSampaiSelect) {
+            if (!surahElement || !ayatDariSelect || !ayatSampaiSelect) return;
+            
+            const selectedOption = surahElement.options[surahElement.selectedIndex];
+            if (!selectedOption) return;
+            
+            const surahNo = selectedOption.value;
+            const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+
+            // Tampilkan status "memuat" agar pengguna tahu ada proses berjalan
+            ayatDariSelect.innerHTML = '<option>Memuat ayat...</option>';
+            ayatSampaiSelect.innerHTML = '<option>Memuat ayat...</option>';
+            ayatDariSelect.disabled = true;
+            ayatSampaiSelect.disabled = true;
+
+            try {
+                let verses = [];
+                
+                // Cek cache terlebih dahulu untuk menghindari panggilan API yang tidak perlu
+                if (window.quranCache[surahNo]) {
+                    verses = window.quranCache[surahNo];
+                } else {
+                    // Jika tidak ada di cache, ambil dari API
+                    const response = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNo}?fields=text_uthmani&per_page=300`);
+                    if (!response.ok) {
+                        throw new Error('Gagal memuat data ayat dari server.');
+                    }
+                    const data = await response.json();
+                    verses = data.verses;
+                    // Simpan hasil ke cache untuk penggunaan berikutnya
+                    window.quranCache[surahNo] = verses;
+                }
+
+                // Kosongkan dropdown sebelum diisi
+                ayatDariSelect.innerHTML = '';
+                ayatSampaiSelect.innerHTML = '';
+
+                if (!verses || verses.length === 0) {
+                    throw new Error('Data ayat untuk surah ini tidak ditemukan.');
+                }
+
+                // Loop melalui setiap ayat yang didapat dari API
+                verses.forEach((verse, index) => {
+                    const ayatNumber = index + 1;
+                    // Ambil 4 kata pertama dari teks ayat sebagai pratinjau
+                    const textPreview = verse.text_uthmani.split(' ').slice(0, 4).join(' ');
+                    
+                    const optionText = `${ayatNumber} - ...${textPreview}`;
+                    const option = new Option(optionText, ayatNumber);
+                    
+                    ayatDariSelect.appendChild(option.cloneNode(true));
+                    ayatSampaiSelect.appendChild(option.cloneNode(true));
+                });
+
+            } catch (error) {
+                console.error("Gagal mengambil teks ayat:", error);
+                // Jika terjadi error, kembali ke metode lama (hanya menampilkan nomor)
+                ayatDariSelect.innerHTML = '';
+                ayatSampaiSelect.innerHTML = '';
+                for (let i = 1; i <= maxAyat; i++) {
+                    const option = new Option(i, i);
+                    ayatDariSelect.appendChild(option.cloneNode(true));
+                    ayatSampaiSelect.appendChild(option.cloneNode(true));
+                }
+                showToast("Gagal memuat teks ayat, menampilkan nomor saja.", "error");
+            } finally {
+                // Aktifkan kembali dropdown setelah proses selesai
+                ayatDariSelect.disabled = false;
+                ayatSampaiSelect.disabled = false;
+            }
         }
-    }
 
     function initializeAppLogic(lembagaId, uid) {
         const currentUserUID = uid || window.appState.currentUserUID;
@@ -2777,14 +2836,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            ui.studentList.addEventListener('change', e => {
+            ui.studentList.addEventListener('change', async e => { // <-- TAMBAHKAN 'async' DI SINI
                 if (e.target.classList.contains('surah-select')) {
                     const quranScope = getQuranScope();
                     if (quranScope !== 'juz30') {
                         const form = e.target.closest('.hafalan-form');
                         const ayatDariSelect = form.querySelector('.ayat-dari-select');
                         const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
-                        populateAyatDropdowns(e.target, ayatDariSelect, ayatSampaiSelect);
+                        
+                        // Panggil fungsi yang sudah di-upgrade
+                        await populateAyatDropdowns(e.target, ayatDariSelect, ayatSampaiSelect);
                     }
                 }
             });
