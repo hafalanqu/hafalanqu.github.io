@@ -2834,7 +2834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const selectedOption = e.target.options[e.target.selectedIndex];
                         const maxAyat = parseInt(selectedOption.dataset.maxAyat);
 
-                        if (maxAyat <= 30) {
+                        if (maxAyat <= 55) {
                             if (ayatSampaiSelect) ayatSampaiSelect.value = maxAyat;
                         }
                     }
