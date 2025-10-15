@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Ambil 4 kata pertama dari teks ayat sebagai pratinjau
                     const textPreview = verse.text_uthmani.split(' ').slice(0, 4).join(' ');
                     
-                    const optionText = `${ayatNumber} - ...${textPreview}`;
+                    const optionText = `${ayatNumber} - ${textPreview}`;
                     const option = new Option(optionText, ayatNumber);
                     
                     ayatDariSelect.appendChild(option.cloneNode(true));
