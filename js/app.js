@@ -2846,6 +2846,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         // Panggil fungsi yang sudah di-upgrade
                         await populateAyatDropdowns(e.target, ayatDariSelect, ayatSampaiSelect);
+                        const selectedOption = e.target.options[e.target.selectedIndex];
+                        const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+
+                        // Cek apakah surah termasuk "surah pendek" (misalnya, di bawah 30 ayat)
+                        if (maxAyat <= 50) {
+                            if (ayatSampaiSelect) {
+                                // Atur nilainya ke ayat terakhir
+                                ayatSampaiSelect.value = maxAyat;
+                            }
+                        }
                     }
                 }
             });
