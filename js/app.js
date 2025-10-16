@@ -2819,48 +2819,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             });
-            // BLOK 1: Mengurus logika saat nilai berubah (change)
-            ui.studentList.addEventListener('change', async e => {
-                // Logika untuk ganti SURAH (ini tidak berubah, tetap diperlukan)
-                if (e.target.matches('.surah-select')) {
-                    const quranScope = getQuranScope();
-                    if (quranScope !== 'juz30') {
-                        const form = e.target.closest('.hafalan-form');
-                        const ayatDariSelect = form.querySelector('.ayat-dari-select');
-                        const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
-                        
-                        await populateAyatDropdowns(e.target, ayatDariSelect, ayatSampaiSelect);
+// --- AWAL KODE PENGGANTI ---
 
-                        const selectedOption = e.target.options[e.target.selectedIndex];
-                        const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+// BLOK 1: Menangani logika saat SURAH diganti (ini tidak berubah)
+ui.studentList.addEventListener('change', async e => {
+    if (e.target.matches('.surah-select')) {
+        const quranScope = getQuranScope();
+        if (quranScope !== 'juz30') {
+            const form = e.target.closest('.hafalan-form');
+            const ayatDariSelect = form.querySelector('.ayat-dari-select');
+            const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
+            
+            await populateAyatDropdowns(e.target, ayatDariSelect, ayatSampaiSelect);
 
-                        if (maxAyat <= 55) {
-                            if (ayatSampaiSelect) ayatSampaiSelect.value = maxAyat;
-                        }
-                    }
-                }
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const maxAyat = parseInt(selectedOption.dataset.maxAyat);
 
-                // Logika untuk ganti AYAT (sembunyikan teks SEGERA setelah dipilih)
-                if (e.target.matches('.ayat-dari-select, .ayat-sampai-select')) {
-                    updateAyatDropdownText(e.target, 'simple');
-                }
-            });
+            if (maxAyat <= 55) {
+                if (ayatSampaiSelect) ayatSampaiSelect.value = maxAyat;
+            }
+        }
+    }
+});
 
-            // BLOK 2: Mengurus logika untuk MENAMPILKAN teks (mousedown)
-            // Ini berjalan TEPAT SEBELUM dropdown terbuka.
-            ui.studentList.addEventListener('mousedown', e => {
-                if (e.target.matches('.ayat-dari-select, .ayat-sampai-select')) {
-                    updateAyatDropdownText(e.target, 'full');
-                }
-            });
+// BLOK 2: Logika baru yang andal untuk dropdown AYAT
+ui.studentList.addEventListener('mousedown', e => {
+    const selectElement = e.target;
 
-            // BLOK 3: Mengurus logika saat klik di luar dropdown (blur)
-            // Ini adalah pengaman jika pengguna tidak jadi memilih.
-            ui.studentList.addEventListener('blur', e => {
-                if (e.target.matches('.ayat-dari-select, .ayat-sampai-select')) {
-                    updateAyatDropdownText(e.target, 'simple');
-                }
-            }, true); // Parameter 'true' ini penting untuk keandalan
+    // Hanya jalankan jika yang diklik adalah dropdown ayat
+    if (selectElement.matches('.ayat-dari-select, .ayat-sampai-select')) {
+        
+        // Fungsi ini akan dijalankan SEKALI SAJA untuk menutup dropdown
+        const hideTextOnInteractionEnd = () => {
+            updateAyatDropdownText(selectElement, 'simple');
+            // Penting: Hapus listener ini setelah selesai agar tidak berjalan lagi
+            document.removeEventListener('click', hideTextOnInteractionEnd);
+        };
+
+        // Tampilkan teks lengkapnya sekarang
+        updateAyatDropdownText(selectElement, 'full');
+
+        // Pasang listener sementara ke seluruh dokumen.
+        // setTimeout(..., 0) digunakan untuk memastikan listener ini
+        // terpasang SETELAH event mousedown awal selesai diproses.
+        setTimeout(() => {
+            document.addEventListener('click', hideTextOnInteractionEnd);
+        }, 0);
+    }
+});
+
+// --- AKHIR KODE PENGGANTI ---
         ui.studentList.addEventListener('submit', async e => {
             e.preventDefault();
             if (!e.target.classList.contains('hafalan-form')) return;
