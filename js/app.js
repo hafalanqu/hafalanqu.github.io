@@ -1690,9 +1690,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 item.innerHTML = `
-                    <div class="student-header flex items-center p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
-                        <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none" ${hasSubmitted ? 'checked' : ''}>
-                        <span class="font-medium ml-3 flex-grow">${student.name}</span>
+                    <div class="student-header flex items-center justify-between p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
+                        <div class="flex items-center flex-grow mr-2">
+                            <span class="font-medium">${student.name}</span>
+                            <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none ${hasSubmitted ? 'ml-3' : 'hidden'}" ${hasSubmitted ? 'checked' : ''}>
+                        </div>
                         ${deleteButtonHTML}
                     </div>
                     <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
