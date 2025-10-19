@@ -240,20 +240,81 @@
 
                 <div id="siswa-page" class="page hidden">
                     <div class="max-w-4xl mx-auto">
-                        <div class="card p-4">
-                            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
-                                <h2 class="text-xl font-semibold">Daftar Siswa</h2>
+                    <div class="card p-4">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+                            <h2 class="text-xl font-semibold">Daftar Siswa</h2>
                             <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
                                 <input type="text" id="siswa-search-student" class="form-input w-full sm:w-auto" placeholder="Cari nama siswa...">
                                 <select id="student-filter-class" class="form-select w-full sm:w-auto"><option value="">Filter berdasarkan kelas</option></select>
+                                
+                                <button id="add-bulk-hafalan-btn" class="btn btn-secondary whitespace-nowrap">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                    <span>Setoran Bersama</span>
+                                </button>
                                 <button id="add-student-modal-btn" class="btn btn-primary whitespace-nowrap"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><circle cx="11" cy="8" r="4"></circle><path d="M4 20c0-4 4-7 7-7s7 3 7 7"></path><line x1="19" y1="6" x2="19" y2="12"></line><line x1="16" y1="9" x2="22" y2="9"></line></svg><span>Tambah</span></button>
                             </div>
-                            </div>
-                            <div id="student-list" class="space-y-2"></div>
-                            <div id="student-pagination-controls" class="flex flex-wrap justify-center items-center gap-2 mt-6"></div>
                         </div>
+                        <div id="student-list" class="space-y-2"></div>
+                        <div id="student-pagination-controls" class="flex flex-wrap justify-center items-center gap-2 mt-6"></div>
+                    </div>
                     </div>
                 </div>
+                <div id="bulk-hafalan-modal" class="modal hidden">
+                    <div class="card w-full max-w-md p-6">
+                        <h2 class="text-2xl font-semibold mb-4">Input Setoran Massal</h2>
+                        
+                        <div class="mb-4">
+                            <p class="block text-sm font-medium text-slate-700 mb-2">1. Pilih Siswa</p>
+                            <div id="bulk-selected-students-list" class="flex flex-wrap gap-2 mb-2">
+                                </div>
+                            
+                            <div id="bulk-student-search-container" class="relative">
+                                <input type="text" id="bulk-student-search-input" class="form-input" placeholder="Ketik nama siswa untuk mencari...">
+                                <div id="bulk-student-search-results" class="absolute z-20 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-48 overflow-y-auto hidden">
+                                    </div>
+                            </div>
+                        </div>
+
+                        <form id="bulk-hafalan-form" class="space-y-4">
+                            <p class="block text-sm font-medium text-slate-700 mt-6 mb-2">2. Masukkan Data Hafalan</p>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Surah</label>
+                                <select name="surah" id="bulk-surah-select" class="form-select surah-select" required>
+                                    </select>
+                            </div>
+
+                            <div id="bulk-ayat-inputs-container" class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Dari Ayat</label>
+                                    <select name="ayatDari" id="bulk-ayat-dari-select" class="form-select ayat-dari-select" required></select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Sampai Ayat</label>
+                                    <select name="ayatSampai" id="bulk-ayat-sampai-select" class="form-select ayat-sampai-select" required></select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
+                                <select name="kualitas" id="bulk-kualitas-select" class="form-select">
+                                    <option value="sangat-lancar" selected>Sangat Lancar</option>
+                                    <option value="lancar">Lancar</option>
+                                    <option value="cukup-lancar">Cukup Lancar</option>
+                                    <option value="tidak-lancar">Tidak Lancar</option>
+                                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button type="button" id="cancel-bulk-hafalan" class="btn btn-secondary">Batal</button>
+                                <button type="submit" id="submit-bulk-hafalan" class="btn btn-primary">Simpan untuk Semua</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                </body>
+                </html>
                 <div id="pengaturan-page" class="page hidden">
                     <div class="max-w-3xl mx-auto space-y-8">
                         <div class="card p-6">

@@ -175,8 +175,9 @@
             transition: background-color 0.5s ease;
             border-radius: 0.75rem;
         }
-        #test-student-search-results {
-        background-color: #ffffff;
+        #test-student-search-results,
+        #bulk-student-search-results {
+            background-color: #ffffff; /* Warna putih solid */
         }
         .hafalan-form-container {
         background-color: #f3fffe;
