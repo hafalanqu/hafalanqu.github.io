@@ -1387,7 +1387,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            filteredHafalan.sort((a, b) => b.timestamp - a.timestamp);
+                filteredHafalan.sort((a, b) => {
+                if (a.timestamp !== b.timestamp) {
+                    // 1. Urutkan berdasarkan yang terbaru (timestamp terbesar)
+                    return b.timestamp - a.timestamp;
+                } else {
+                    // 2. Jika timestamp sama, urutkan berdasarkan nomor surah (terkecil ke terbesar)
+                    // Pastikan keduanya adalah angka untuk perbandingan yang benar
+                    return parseInt(a.surahNo, 10) - parseInt(b.surahNo, 10);
+                }
+            });
 
             const currentPage = window.appState.currentPageRiwayat;
             const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -1845,6 +1854,8 @@ const surahSelectLabel = document.querySelector('label[for="bulk-surah-select"]'
             const ayatContainer = ui.bulkHafalanModal.ayatInputsContainer;
             const surahSampaiContainer = document.getElementById('bulk-surah-sampai-container');
             const surahSampaiSelect = document.getElementById('bulk-surah-sampai-select');
+            const ayatDariSelect = ui.bulkHafalanModal.ayatDariSelect;
+            const ayatSampaiSelect = ui.bulkHafalanModal.ayatSampaiSelect;
 
             let surahsForForm;
             const pilihanSurahNumbers = [18, 36, 55, 56, 67];
@@ -1856,6 +1867,8 @@ const surahSelectLabel = document.querySelector('label[for="bulk-surah-select"]'
                 ayatContainer.classList.add('hidden');
                 surahSampaiContainer.classList.remove('hidden');
                 surahSampaiSelect.required = true;
+                ayatDariSelect.required = false;
+                ayatSampaiSelect.required = false;
                 
                 // Ubah label
                 if (surahSelectLabel) surahSelectLabel.textContent = 'Dari Surah';
@@ -1876,6 +1889,8 @@ const surahSelectLabel = document.querySelector('label[for="bulk-surah-select"]'
                 ayatContainer.classList.remove('hidden');
                 surahSampaiContainer.classList.add('hidden');
                 surahSampaiSelect.required = false;
+                ayatDariSelect.required = true;
+                ayatSampaiSelect.required = true;
 
                 // Kembalikan label
                 if (surahSelectLabel) surahSelectLabel.textContent = 'Surah';
