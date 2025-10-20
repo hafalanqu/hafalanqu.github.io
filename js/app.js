@@ -1392,9 +1392,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 1. Urutkan berdasarkan yang terbaru (timestamp terbesar)
                     return b.timestamp - a.timestamp;
                 } else {
-                    // 2. Jika timestamp sama, urutkan berdasarkan nomor surah (terkecil ke terbesar)
+                    // 2. Jika timestamp sama, urutkan berdasarkan nomor surah DESCENDING (terbesar dulu)
                     // Pastikan keduanya adalah angka untuk perbandingan yang benar
-                    return parseInt(a.surahNo, 10) - parseInt(b.surahNo, 10);
+                    return parseInt(b.surahNo, 10) - parseInt(a.surahNo, 10);
                 }
             });
 
@@ -1605,22 +1605,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         async function renderStudentList() {
             const openFormsState = new Map();
-            if (ui.studentList) {
+if (ui.studentList) {
                 ui.studentList.querySelectorAll('.student-item').forEach(item => {
                     const formContainer = item.querySelector('.hafalan-form-container');
                     if (formContainer && !formContainer.classList.contains('hidden')) {
                         const studentId = item.dataset.studentId;
-                        if (studentId !== window.appState.lastSubmittedStudentId) {
-                            const form = item.querySelector('form');
-                            const isJuzAmma = getQuranScope() === 'juz30';
-                            const state = {
-                                surah: form.surah.value,
-                                kualitas: form.kualitas.value,
-                                ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
-                                ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null
-                            };
-                            openFormsState.set(studentId, state);
-                        }
+                        
+                        // Jaga kode yang ada di DALAM if, tapi hapus 'if'-nya
+                        const form = item.querySelector('form');
+                        const isJuzAmma = getQuranScope() === 'juz30';
+                        
+                        const surahSampaiSelect = form.querySelector('.surah-sampai-select'); 
+
+                        const state = {
+                            surah: form.surah.value,
+                            kualitas: form.kualitas.value,
+                            ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
+                            ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null,
+                            surahSampai: (isJuzAmma && surahSampaiSelect) ? surahSampaiSelect.value : null
+                        };
+                        openFormsState.set(studentId, state);
                     }
                 });
             }
@@ -1714,12 +1718,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>`
                     : '';
 
-                // >>> BARIS YANG HILANG & DIPERBAIKI ADA DI SINI <<<
-                const recentHafalan = studentHafalan
+                    const recentHafalan = studentHafalan
                     .filter(entry => entry.jenis !== 'tes')
-                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .sort((a, b) => {
+                        if (a.timestamp !== b.timestamp) {
+                            // 1. Urutkan berdasarkan yang terbaru (timestamp terbesar)
+                            return b.timestamp - a.timestamp;
+                        } else {
+                            // 2. Jika timestamp sama, urutkan berdasarkan nomor surah DESCENDING (terbesar dulu)
+                            // Ini akan menempatkan An-Nas (114) di atas At-Takasur (102)
+                            return parseInt(b.surahNo, 10) - parseInt(a.surahNo, 10);
+                        }
+                    })
                     .slice(0, 5);
-                // >>> AKHIR DARI PERBAIKAN <<<
                 
                 const kualitasDisplayMap = { 
                     'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
@@ -1814,6 +1825,10 @@ item.innerHTML = `
                         await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
                         ayatDariSelect.value = previouslyOpenState.ayatDari;
                         ayatSampaiSelect.value = previouslyOpenState.ayatSampai;
+                    }
+                    const surahSampaiSelect = form.querySelector('.surah-sampai-select');
+                    if (surahSampaiSelect && previouslyOpenState.surahSampai) {
+                        surahSampaiSelect.value = previouslyOpenState.surahSampai;
                     }
                 } else if (lastEntry) {
                     setKualitasDropdown(lastEntry.kualitas);
