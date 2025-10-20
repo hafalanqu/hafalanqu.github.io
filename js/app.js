@@ -1846,6 +1846,7 @@ const surahSelectLabel = document.querySelector('label[for="bulk-surah-select"]'
                 // Tampilkan/Sembunyikan container
                 ayatContainer.classList.add('hidden');
                 surahSampaiContainer.classList.remove('hidden');
+                surahSampaiSelect.required = true;
                 
                 // Ubah label
                 if (surahSelectLabel) surahSelectLabel.textContent = 'Dari Surah';
@@ -1865,6 +1866,7 @@ const surahSelectLabel = document.querySelector('label[for="bulk-surah-select"]'
                 // Tampilkan/Sembunyikan container
                 ayatContainer.classList.remove('hidden');
                 surahSampaiContainer.classList.add('hidden');
+                surahSampaiSelect.required = false;
 
                 // Kembalikan label
                 if (surahSelectLabel) surahSelectLabel.textContent = 'Surah';
