@@ -259,62 +259,7 @@
                     </div>
                     </div>
                 </div>
-                <div id="bulk-hafalan-modal" class="modal hidden">
-                    <div class="card w-full max-w-md p-6">
-                        <h2 class="text-2xl font-semibold mb-4">Input Setoran Massal</h2>
-                        
-                        <div class="mb-4">
-                            <p class="block text-sm font-medium text-slate-700 mb-2">1. Pilih Siswa</p>
-                            <div id="bulk-selected-students-list" class="flex flex-wrap gap-2 mb-2">
-                                </div>
-                            
-                            <div id="bulk-student-search-container" class="relative">
-                                <input type="text" id="bulk-student-search-input" class="form-input" placeholder="Ketik nama siswa untuk mencari...">
-                                <div id="bulk-student-search-results" class="absolute z-20 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-48 overflow-y-auto hidden">
-                                    </div>
-                            </div>
-                        </div>
 
-                        <form id="bulk-hafalan-form" class="space-y-4">
-                            <p class="block text-sm font-medium text-slate-700 mt-6 mb-2">2. Masukkan Data Hafalan</p>
-                            
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Surah</label>
-                                <select name="surah" id="bulk-surah-select" class="form-select surah-select" required>
-                                    </select>
-                            </div>
-
-                            <div id="bulk-ayat-inputs-container" class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Dari Ayat</label>
-                                    <select name="ayatDari" id="bulk-ayat-dari-select" class="form-select ayat-dari-select" required></select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Sampai Ayat</label>
-                                    <select name="ayatSampai" id="bulk-ayat-sampai-select" class="form-select ayat-sampai-select" required></select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
-                                <select name="kualitas" id="bulk-kualitas-select" class="form-select">
-                                    <option value="sangat-lancar" selected>Sangat Lancar</option>
-                                    <option value="lancar">Lancar</option>
-                                    <option value="cukup-lancar">Cukup Lancar</option>
-                                    <option value="tidak-lancar">Tidak Lancar</option>
-                                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
-                                </select>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-3 pt-4">
-                                <button type="button" id="cancel-bulk-hafalan" class="btn btn-secondary">Batal</button>
-                                <button type="submit" id="submit-bulk-hafalan" class="btn btn-primary">Simpan untuk Semua</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                </body>
-                </html>
                 <div id="pengaturan-page" class="page hidden">
                     <div class="max-w-3xl mx-auto space-y-8">
                         <div class="card p-6">
@@ -425,6 +370,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="tes_hafalan-page" class="page hidden">
                 <div class="max-w-xl mx-auto">    
                 <div id="test-step-1-type" class="card p-6">
@@ -538,6 +484,66 @@
 
                 </div>
             </div>
+                <div id="bulk-hafalan-modal" class="modal hidden">
+                    <div class="card w-full max-w-md p-6">
+                        <h2 class="text-2xl font-semibold mb-4">Input Setoran Massal</h2>
+                        
+                        <div class="mb-4">
+                            <p class="block text-sm font-medium text-slate-700 mb-2">1. Pilih Siswa</p>
+                            <div id="bulk-selected-students-list" class="flex flex-wrap gap-2 mb-2">
+                                </div>
+                            
+                            <div id="bulk-student-search-container" class="relative">
+                                <input type="text" id="bulk-student-search-input" class="form-input" placeholder="Ketik nama siswa untuk mencari...">
+                                <div id="bulk-student-search-results" class="absolute z-20 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-48 overflow-y-auto hidden">
+                                    </div>
+                            </div>
+                        </div>
+
+                        <form id="bulk-hafalan-form" class="space-y-4">
+                            <p class="block text-sm font-medium text-slate-700 mt-6 mb-2">2. Masukkan Data Hafalan</p>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Surah</label>
+                                <select name="surah" id="bulk-surah-select" class="form-select surah-select" required>
+                                    </select>
+                            </div>
+
+                            <div id="bulk-ayat-inputs-container" class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Dari Ayat</label>
+                                    <select name="ayatDari" id="bulk-ayat-dari-select" class="form-select ayat-dari-select" required></select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Sampai Ayat</label>
+                                    <select name="ayatSampai" id="bulk-ayat-sampai-select" class="form-select ayat-sampai-select" required></select>
+                                </div>
+                            </div>
+                            <div id="bulk-surah-sampai-container" class="hidden">
+                                    <label class="block text-sm font-medium mb-1">Sampai Surah</label>
+                                    <select name="surahSampai" id="bulk-surah-sampai-select" class="form-select surah-sampai-select" required>
+                                    </select>
+                                </div>
+                            <div>
+                                
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
+                                <select name="kualitas" id="bulk-kualitas-select" class="form-select">
+                                    <option value="sangat-lancar" selected>Sangat Lancar</option>
+                                    <option value="lancar">Lancar</option>
+                                    <option value="cukup-lancar">Cukup Lancar</option>
+                                    <option value="tidak-lancar">Tidak Lancar</option>
+                                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <button type="button" id="cancel-bulk-hafalan" class="btn btn-secondary">Batal</button>
+                                <button type="submit" id="submit-bulk-hafalan" class="btn btn-primary">Simpan untuk Semua</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
         </main>
     <div id="add-student-modal" class="modal hidden">
         <div class="card w-full max-w-md p-6">

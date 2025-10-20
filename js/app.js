@@ -67,7 +67,40 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
         console.error("Gagal melakukan setup PWA:", e);
     }
+/**
+     * Mengecek apakah setoran baru merupakan Ziyadah atau Muraja'ah.
+     * @param {string} studentId - ID Siswa.
+     * @param {number} surahNo - Nomor Surah.
+     * @param {number} ayatDari - Ayat Mulai.
+     * @param {number} ayatSampai - Ayat Selesai.
+     * @returns {'ziyadah' | 'murajaah'} - Jenis setoran.
+     */
+    function checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai) {
+        if (!window.appState.allHafalan) return 'ziyadah'; // Default jika data belum ada
 
+        const previousZiyadah = window.appState.allHafalan.filter(h => 
+            h.studentId === studentId && 
+            h.jenis === 'ziyadah' &&
+            h.surahNo === surahNo
+        );
+
+        const memorizedVerses = new Set();
+        previousZiyadah.forEach(entry => {
+            for (let i = parseInt(entry.ayatDari); i <= parseInt(entry.ayatSampai); i++) {
+                memorizedVerses.add(i);
+            }
+        });
+
+        let isAllRepeated = true;
+        for (let i = ayatDari; i <= ayatSampai; i++) {
+            if (!memorizedVerses.has(i)) {
+                // Jika ditemukan satu saja ayat baru, maka ini adalah Ziyadah.
+                isAllRepeated = false;
+                break;
+            }
+        }
+        return isAllRepeated ? 'murajaah' : 'ziyadah';
+    }
     // --- NEW LOGIN & UI SETUP ---
     const ui = {
         loginView: document.getElementById('login-view'),
@@ -1565,8 +1598,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             const state = {
                                 surah: form.surah.value,
                                 kualitas: form.kualitas.value,
-                                ayatDari: !isJuzAmma ? form.ayatDari.value : null,
-                                ayatSampai: !isJuzAmma ? form.ayatSampai.value : null
+                                ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
+                                ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null
                             };
                             openFormsState.set(studentId, state);
                         }
@@ -1621,12 +1654,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const ayatInputsHTML = isJuzAmma ? '' : `
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
-                    <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
-                </div>
-            `;
+            const ayatInputsHTML = isJuzAmma 
+                            ? `<div>
+                                <label class="block text-sm font-medium mb-1">Sampai Surah</label>
+                                <select name="surahSampai" class="form-select surah-sampai-select" required>${surahOptionsHTML}</select>
+                            </div>`
+                            : `<div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
+                                <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
+                            </div>`;
             
             // Kembali menggunakan Dropdown untuk Kualitas
             const kualitasInputsHTML = `
@@ -1705,7 +1741,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     historyHTML = '<p class="text-xs text-slate-400 text-center py-2">Belum ada riwayat setoran.</p>';
                 }
 
-                item.innerHTML = `
+item.innerHTML = `
                     <div class="student-header flex items-center justify-between p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
                         <div class="flex items-center flex-grow mr-2">
                             <span class="font-medium">${student.name}</span>
@@ -1716,9 +1752,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
                         <form class="hafalan-form space-y-4">
                             <input type="hidden" name="studentId" value="${student.id}">
-                            <div><label class="block text-sm font-medium mb-1">Surah</label><select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select></div>
-                            ${ayatInputsHTML}
-                            ${kualitasInputsHTML} 
+                            
+                            <div class="${isJuzAmma ? 'grid grid-cols-2 gap-4' : ''}"> <div>
+                                    <label class="block text-sm font-medium mb-1">${isJuzAmma ? 'Dari Surah' : 'Surah'}</label> <select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select>
+                                </div>
+                                ${isJuzAmma ? ayatInputsHTML : ''} </div>
+                            ${!isJuzAmma ? ayatInputsHTML : ''} ${kualitasInputsHTML} 
                             ${pinInputHTML}
                             <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
                         </form>
@@ -1793,29 +1832,54 @@ document.addEventListener('DOMContentLoaded', () => {
         function populateBulkHafalanSurah() {
             const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, nama: "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, nama: "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
             const quranScope = getQuranScope();
-            const pilihanSurahNumbers = [18, 36, 55, 56, 67];
+const surahSelectLabel = document.querySelector('label[for="bulk-surah-select"]');
+            const ayatContainer = ui.bulkHafalanModal.ayatInputsContainer;
+            const surahSampaiContainer = document.getElementById('bulk-surah-sampai-container');
+            const surahSampaiSelect = document.getElementById('bulk-surah-sampai-select');
+
             let surahsForForm;
+            const pilihanSurahNumbers = [18, 36, 55, 56, 67];
 
             if (quranScope === 'juz30') {
                 surahsForForm = surahList.filter(s => s.no >= 78);
-                ui.bulkHafalanModal.ayatInputsContainer.classList.add('hidden');
-            } else if (quranScope === 'pilihan') {
-                surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
-                ui.bulkHafalanModal.ayatInputsContainer.classList.remove('hidden');
-            } else {
-                surahsForForm = surahList;
-                ui.bulkHafalanModal.ayatInputsContainer.classList.remove('hidden');
-            }
+                
+                // Tampilkan/Sembunyikan container
+                ayatContainer.classList.add('hidden');
+                surahSampaiContainer.classList.remove('hidden');
+                
+                // Ubah label
+                if (surahSelectLabel) surahSelectLabel.textContent = 'Dari Surah';
 
-            const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
-            ui.bulkHafalanModal.surahSelect.innerHTML = surahOptionsHTML;
-            
-            // Langsung panggil populateAyatDropdowns untuk surah pertama yang terpilih
-            if (quranScope !== 'juz30') {
-                populateAyatDropdowns(ui.bulkHafalanModal.surahSelect, ui.bulkHafalanModal.ayatDariSelect, ui.bulkHafalanModal.ayatSampaiSelect);
+                // Isi kedua dropdown
+                const surahOptionsHTML_Juz30 = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+                ui.bulkHafalanModal.surahSelect.innerHTML = surahOptionsHTML_Juz30;
+                surahSampaiSelect.innerHTML = surahOptionsHTML_Juz30;
+
+            } else {
+                if (quranScope === 'pilihan') {
+                    surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no));
+                } else {
+                    surahsForForm = surahList;
+                }
+                
+                // Tampilkan/Sembunyikan container
+                ayatContainer.classList.remove('hidden');
+                surahSampaiContainer.classList.add('hidden');
+
+                // Kembalikan label
+                if (surahSelectLabel) surahSelectLabel.textContent = 'Surah';
+
+                // Isi dropdown surah (yang satu)
+                const surahOptionsHTML_Full = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+                ui.bulkHafalanModal.surahSelect.innerHTML = surahOptionsHTML_Full;
+                
+                // Panggil populateAyatDropdowns untuk mengisi container ayat
+                // Pastikan elemen ayatDari/Sampai ada (seharusnya ada dari HTML)
+                if (ui.bulkHafalanModal.ayatDariSelect && ui.bulkHafalanModal.ayatSampaiSelect) {
+                    populateAyatDropdowns(ui.bulkHafalanModal.surahSelect, ui.bulkHafalanModal.ayatDariSelect, ui.bulkHafalanModal.ayatSampaiSelect);
+                }
             }
         }
-
         /**
          * Menampilkan daftar siswa yang dipilih di modal setoran massal.
          */
@@ -3006,82 +3070,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const selectedOption = surahSelect.options[surahSelect.selectedIndex];
                 const maxAyat = parseInt(selectedOption.dataset.maxAyat);
                 
-                let ayatDari, ayatSampai;
-
-                if (quranScope === 'juz30') {
-                    ayatDari = 1;
-                    ayatSampai = maxAyat;
-                } else {
-                    ayatDari = parseInt(formData.get('ayatDari'));
-                    ayatSampai = parseInt(formData.get('ayatSampai'));
-                    if (isNaN(ayatDari) || isNaN(ayatSampai)) throw new Error("Ayat harus berupa angka.");
-                    if (ayatDari > ayatSampai) throw new Error("'Dari Ayat' tidak boleh lebih besar dari 'Sampai Ayat'.");
-                    if (ayatSampai > maxAyat || ayatDari < 1) throw new Error(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`);
-                }
+const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, "nama": "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, "nama": "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
                 
+                let entriesToSave = [];
+                let teacherId = window.appState.currentUserUID; // Default ke guru yang login
                 const studentId = formData.get('studentId');
-                const surahNo = parseInt(formData.get('surah'));
-
-                // --- AWAL LOGIKA BARU ---
-                // 1. Dapatkan semua riwayat Ziyadah siswa pada surah yang sama.
-                const previousZiyadah = window.appState.allHafalan.filter(h => 
-                    h.studentId === studentId && 
-                    h.jenis === 'ziyadah' &&
-                    h.surahNo === surahNo
-                );
-
-                // 2. Buat daftar (Set) ayat yang sudah pernah dihafal dari riwayat Ziyadah.
-                const memorizedVerses = new Set();
-                previousZiyadah.forEach(entry => {
-                    for (let i = parseInt(entry.ayatDari); i <= parseInt(entry.ayatSampai); i++) {
-                        memorizedVerses.add(i);
-                    }
-                });
-
-                // 3. Cek apakah SEMUA ayat yang disetor kali ini sudah ada di daftar hafalan.
-                let isAllRepeated = true;
-                for (let i = ayatDari; i <= ayatSampai; i++) {
-                    if (!memorizedVerses.has(i)) {
-                        // Jika ditemukan satu saja ayat baru, maka ini adalah Ziyadah.
-                        isAllRepeated = false;
-                        break;
-                    }
-                }
-
-                // 4. Tentukan jenis setorannya.
-                const jenis = isAllRepeated ? 'murajaah' : 'ziyadah';
-                // --- AKHIR LOGIKA BARU ---
-
-                const newEntry = {
-                    studentId: studentId,
-                    jenis: jenis, // Menggunakan jenis yang sudah ditentukan secara otomatis
-                    kualitas: formData.get('kualitas'),
-                    surahNo: surahNo,
-                    ayatDari,
-                    ayatSampai,
-                    catatan: '',
-                    timestamp: Date.now(),
-                    lembagaId: window.appState.lembagaId,
-                    guruId: window.appState.currentUserUID // Default guruId
-                };
-
+                const kualitas = formData.get('kualitas');
+                const timestamp = Date.now();
+                const lembagaId = window.appState.lembagaId;
+                // Logika PIN Siswa (jika siswa yang login)
                 if (window.appState.loggedInRole === 'siswa') {
                     const enteredPin = formData.get('pin');
                     if (!enteredPin || !/^\d{6}$/.test(enteredPin)) {
                         throw new Error("PIN Guru harus diisi dengan 6 digit angka.");
-                    }
-                    const togglePinBtn = e.target.closest('.toggle-form-pin');
-                    if (togglePinBtn) {
-                        e.stopPropagation();
-                        const container = togglePinBtn.closest('.relative');
-                        const input = container.querySelector('input[name="pin"]');
-                        const eyeIcon = container.querySelector('.eye-icon');
-                        const eyeOffIcon = container.querySelector('.eye-off-icon');
-                        
-                        const isPassword = input.type === 'password';
-                        input.type = isPassword ? 'text' : 'password';
-                        eyeIcon.classList.toggle('hidden', isPassword);
-                        eyeOffIcon.classList.toggle('hidden', !isPassword);
                     }
                     const teachers = window.appState.allUsers.filter(u => u.role === 'guru');
                     const verifyingTeacher = teachers.find(t => t.pin === enteredPin);
@@ -3089,12 +3090,65 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!verifyingTeacher) {
                         throw new Error("PIN Guru salah atau tidak ditemukan.");
                     }
-                    newEntry.guruId = verifyingTeacher.id;
+                    teacherId = verifyingTeacher.id; // Ganti guruId dengan guru yang memverifikasi
                 }
 
-                window.appState.lastSubmittedStudentId = newEntry.studentId;
-                await onlineDB.add('hafalan', newEntry);
-                showToast("Setoran berhasil disimpan!");
+                if (quranScope === 'juz30') {
+                    const surahDariNo = parseInt(formData.get('surah'));
+                    const surahSampaiNo = parseInt(formData.get('surahSampai'));
+                    
+                    if (surahDariNo > surahSampaiNo) {
+                        throw new Error("'Dari Surah' tidak boleh lebih besar dari 'Sampai Surah'.");
+                    }
+                    const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, "nama": "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, "nama": "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, "nama": "Al-Kausar", ayat: 3 }, { no: 109, "nama": "Al-Kafirun", ayat: 6 }, { no: 110, "nama": "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
+                    // Loop dari surah_dari sampai surah_sampai
+                    for (let sNo = surahDariNo; sNo <= surahSampaiNo; sNo++) {
+                        const surahInfo = surahList.find(s => s.no === sNo);
+                        if (!surahInfo) continue; // Skip jika surah tidak ditemukan
+                        
+                        const ayatDari = 1;
+                        const ayatSampai = surahInfo.ayat;
+                        const surahNo = sNo;
+                        
+                        // Cek Ziyadah/Murajaah untuk surah INI
+                        const jenis = checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai);
+
+                        entriesToSave.push({
+                            studentId, jenis, kualitas, surahNo, ayatDari, ayatSampai,
+                            catatan: '', timestamp, lembagaId, guruId: teacherId
+                        });
+                    }
+                } else {
+                    // Logika LAMA untuk non-Juz Amma (Full/Pilihan)
+                    const surahNo = parseInt(formData.get('surah'));
+                    const surahSelect = form.querySelector('.surah-select');
+                    const selectedOption = surahSelect.options[surahSelect.selectedIndex];
+                    const maxAyat = parseInt(selectedOption.dataset.maxAyat);
+                    
+                    const ayatDari = parseInt(formData.get('ayatDari'));
+                    const ayatSampai = parseInt(formData.get('ayatSampai'));
+                    if (isNaN(ayatDari) || isNaN(ayatSampai)) throw new Error("Ayat harus berupa angka.");
+                    if (ayatDari > ayatSampai) throw new Error("'Dari Ayat' tidak boleh lebih besar dari 'Sampai Ayat'.");
+                    if (ayatSampai > maxAyat || ayatDari < 1) throw new Error(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`);
+
+                    const jenis = checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai);
+
+                    entriesToSave.push({
+                        studentId, jenis, kualitas, surahNo, ayatDari, ayatSampai,
+                        catatan: '', timestamp, lembagaId, guruId: teacherId
+                    });
+                }
+                
+                // Simpan semua entri dalam batch
+                window.appState.lastSubmittedStudentId = studentId;
+                const batch = db.batch();
+                entriesToSave.forEach(entry => {
+                    const newDocRef = db.collection('hafalan').doc();
+                    batch.set(newDocRef, entry);
+                });
+                await batch.commit();
+
+                showToast(`Setoran (${entriesToSave.length} entri) berhasil disimpan!`);
 
             } catch (error) {
                 showToast(error.message, "error");
@@ -3210,86 +3264,67 @@ if (ui.addBulkHafalanBtn) {
                     setButtonLoading(ui.bulkHafalanModal.submitBtn, true);
 
                     try {
+                        const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, "nama": "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, "nama": "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
                         const formData = new FormData(ui.bulkHafalanModal.form);
                         const quranScope = getQuranScope();
                         
-                        const surahSelect = ui.bulkHafalanModal.surahSelect;
-                        const selectedOption = surahSelect.options[surahSelect.selectedIndex];
-            // Sembunyikan hasil pencarian jika klik di luar
-            document.addEventListener('click', (e) => {
-                if (ui.bulkHafalanModal.studentSearchContainer && !ui.bulkHafalanModal.studentSearchContainer.contains(e.target)) {
-                    ui.bulkHafalanModal.studentSearchResults.classList.add('hidden');
-                }
-            });
-                        const maxAyat = parseInt(selectedOption.dataset.maxAyat);
-                        const surahNo = parseInt(formData.get('surah'));
                         const kualitas = formData.get('kualitas');
-                        
-                        let ayatDari, ayatSampai;
-
-                        if (quranScope === 'juz30') {
-                            ayatDari = 1;
-                            ayatSampai = maxAyat;
-                        } else {
-                            ayatDari = parseInt(formData.get('ayatDari'));
-                            ayatSampai = parseInt(formData.get('ayatSampai'));
-                            if (isNaN(ayatDari) || isNaN(ayatSampai)) throw new Error("Ayat harus berupa angka.");
-                            if (ayatDari > ayatSampai) throw new Error("'Dari Ayat' tidak boleh lebih besar dari 'Sampai Ayat'.");
-                            if (ayatSampai > maxAyat || ayatDari < 1) throw new Error(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`);
-                        }
-
-                        // Buat batch write ke Firestore
-                        const batch = db.batch();
                         const timestamp = Date.now();
                         const guruId = window.appState.currentUserUID;
                         const lembagaId = window.appState.lembagaId;
+                        const batch = db.batch();
+                        let totalEntries = 0;
 
-                        for (const studentId of selectedStudentIds) {
-                            // Cek logika Ziyadah/Muraja'ah untuk SETIAP siswa
-                            const previousZiyadah = window.appState.allHafalan.filter(h => 
-                                h.studentId === studentId && 
-                                h.jenis === 'ziyadah' &&
-                                h.surahNo === surahNo
-                            );
-                            const memorizedVerses = new Set();
-                            previousZiyadah.forEach(entry => {
-                                for (let i = parseInt(entry.ayatDari); i <= parseInt(entry.ayatSampai); i++) {
-                                    memorizedVerses.add(i);
+                        if (quranScope === 'juz30') {
+                            const surahDariNo = parseInt(formData.get('surah'));
+                            // Ambil surahSampai dari dropdown yang benar
+                            const surahSampaiNo = parseInt(formData.get('surahSampai')); 
+                            
+                            if (surahDariNo > surahSampaiNo) {
+                                throw new Error("'Dari Surah' tidak boleh lebih besar dari 'Sampai Surah'.");
                             }
-                            });
+                            
+                            for (const studentId of selectedStudentIds) {
+                                for (let sNo = surahDariNo; sNo <= surahSampaiNo; sNo++) {
+                                    const surahInfo = surahList.find(s => s.no === sNo);
+                                    if (!surahInfo) continue;
+                                    
+                                    const ayatDari = 1;
+                                    const ayatSampai = surahInfo.ayat;
+                                    const surahNo = sNo;
+                                    const jenis = checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai);
 
-                            let isAllRepeated = true;
-                            for (let i = ayatDari; i <= ayatSampai; i++) {
-                                if (!memorizedVerses.has(i)) {
-                                    isAllRepeated = false;
-                                    break;
+                                    const newEntry = { studentId, jenis, kualitas, surahNo, ayatDari, ayatSampai, catatan: '', timestamp, lembagaId, guruId };
+                                    const newDocRef = db.collection('hafalan').doc();
+                                    batch.set(newDocRef, newEntry);
+                                    totalEntries++;
                                 }
                             }
-                            const jenis = isAllRepeated ? 'murajaah' : 'ziyadah';
+                        } else {
+                            // Logika LAMA untuk non-Juz Amma
+                            const surahNo = parseInt(formData.get('surah'));
+                            const surahSelect = ui.bulkHafalanModal.surahSelect;
+                            const selectedOption = surahSelect.options[surahSelect.selectedIndex];
+                            const maxAyat = parseInt(selectedOption.dataset.maxAyat);
 
-                            // Siapkan data untuk di-batch
-                            const newEntry = {
-                                studentId: studentId,
-                                jenis: jenis,
-                                kualitas: kualitas,
-                                surahNo: surahNo,
-                                ayatDari: ayatDari,
-                                ayatSampai: ayatSampai,
-                                catatan: '',
-                                timestamp: timestamp,
-                                lembagaId: lembagaId,
-                                guruId: guruId
-                            };
-                            
-                            // Tambahkan ke batch
-                            const newDocRef = db.collection('hafalan').doc();
-                            batch.set(newDocRef, newEntry);
+                            const ayatDari = parseInt(formData.get('ayatDari'));
+                            const ayatSampai = parseInt(formData.get('ayatSampai'));
+                            if (isNaN(ayatDari) || isNaN(ayatSampai)) throw new Error("Ayat harus berupa angka.");
+                            if (ayatDari > ayatSampai) throw new Error("'Dari Ayat' tidak boleh lebih besar dari 'Sampai Ayat'.");
+                            if (ayatSampai > maxAyat || ayatDari < 1) throw new Error(`Ayat tidak valid. Surah ini memiliki 1-${maxAyat} ayat.`);
+
+                            for (const studentId of selectedStudentIds) {
+                                const jenis = checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai);
+                                const newEntry = { studentId, jenis, kualitas, surahNo, ayatDari, ayatSampai, catatan: '', timestamp, lembagaId, guruId };
+                                const newDocRef = db.collection('hafalan').doc();
+                                batch.set(newDocRef, newEntry);
+                                totalEntries++;
+                            }
                         }
 
-                        // Jalankan batch
                         await batch.commit();
 
-                        showToast(`Setoran berhasil disimpan untuk ${selectedStudentIds.length} siswa.`, "success");
+                        showToast(`Setoran (${totalEntries} entri) berhasil disimpan untuk ${selectedStudentIds.length} siswa.`, "success");
                         ui.bulkHafalanModal.el.classList.add('hidden'); // Sembunyikan modal
 
                     } catch (error) {
@@ -3346,9 +3381,20 @@ if (ui.addBulkHafalanBtn) {
             });
 
             if (ui.settings.quranScopeForm) {
-                    ui.settings.quranScopeForm.addEventListener('submit', async (e) => {
+                ui.settings.quranScopeForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const newScope = ui.settings.quranScopeSelect.value;
+                    
+                    // 1. Update state lokal secara instan
+                    window.appState.pengaturan.lingkupHafalan = newScope;
+                    
+                    // 2. Render ulang daftar siswa (akan menggunakan struktur form baru)
+                    renderStudentList();
+                    
+                    // 3. Update juga dropdown di modal massal
+                    populateBulkHafalanSurah(); 
+                    
+                    // 4. Simpan ke database di latar belakang
                     await saveQuranScope(newScope);
                 });
             }
