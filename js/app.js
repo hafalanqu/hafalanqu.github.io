@@ -45,6 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.classList.remove('show');
         }, 3000);
     }
+    let debounceTimeout;
+    function debounce(func, delay = 100) {
+        return function(...args) {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    }
         // Membuat dan menyuntikkan link manifest
         const manifestJsonText = document.getElementById('manifest-json').textContent;
         const manifestBlob = new Blob([manifestJsonText], { type: 'application/json' });
@@ -896,14 +905,14 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsArrayBuffer(file);
         }
-        function renderAll() {
+        function _renderAllImpl() {
             renderSummary();
             renderClassList();
             renderStudentList();
             renderStudentProgressList();
             renderRiwayatList();
         }
-
+        const renderAll = debounce(_renderAllImpl, 50);
         function renderSummary() {
             if(ui.summary.totalSiswa) ui.summary.totalSiswa.textContent = window.appState.allStudents.length;
             if(ui.summary.totalKelas) ui.summary.totalKelas.textContent = window.appState.allClasses.length;
@@ -3619,33 +3628,15 @@ if (ui.addBulkHafalanBtn) {
                         renderAll();
                     }, error => commonErrorHandler(error, 'students'));
 
-                db.collection('hafalan').where('lembagaId', '==', lembagaId)
+                    db.collection('hafalan').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         
-                        const currentPageId = window.location.hash.substring(1);
-
-                        // Jika pengguna sedang di halaman input hafalan ('siswa').
-                        if (currentPageId === 'siswa') {
-                            // Panggil renderStudentList() untuk me-refresh daftar siswa DAN riwayat terbarunya.
-                            // Fungsi ini sudah dirancang untuk mengingat form mana yang sedang terbuka.
-                            renderStudentList(); 
-                            
-                            // Tetap update halaman lain di latar belakang.
-                            renderSummary();
-                            renderStudentProgressList();
-                            renderRiwayatList();
-                        } else {
-                            // Jika di halaman lain, aman untuk melakukan refresh total.
-                            renderAll();
-                        }
-                    }, error => commonErrorHandler(error, 'hafalan'));
-
-                db.collection('users').where('lembagaId', '==', lembagaId)
-                    .onSnapshot(snapshot => {
-                        window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        // CUKUP PANGGIL renderAll()
+                        // Dia akan menunggu data lain selesai dimuat.
                         renderAll();
-                    }, error => commonErrorHandler(error, 'users'));
+
+                    }, error => commonErrorHandler(error, 'hafalan'));
                                 db.collection('users').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
