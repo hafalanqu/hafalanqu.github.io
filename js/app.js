@@ -3371,7 +3371,9 @@ if (quranScope === 'juz30') {
                 } else {
                     // Logika untuk non-Juz Amma
                     const surahNo = parseInt(formData.get('surah'));
-                    // ... (definisi maxAyat) ...
+                    const surahSelect = ui.bulkHafalanModal.surahSelect;
+                    const selectedOption = surahSelect.options[surahSelect.selectedIndex];
+                    const maxAyat = parseInt(selectedOption.dataset.maxAyat);
 
                     const ayatDari = parseInt(formData.get('ayatDari'));
                     const ayatSampai = parseInt(formData.get('ayatSampai'));
