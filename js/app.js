@@ -227,7 +227,7 @@ function checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai) {
 
         // Panggil fungsi untuk setiap input PIN yang telah kita ubah di HTML
         setupPasswordToggle('toggle-guru-pin', 'guru-pin-input', 'guru-pin-eye-icon', 'guru-pin-eye-off-icon');
-        setupPasswordToggle('toggle-verify-pin', 'pin-input', 'verify-pin-eye-icon', 'verify-pin-eye-off-icon');
+        //setupPasswordToggle('toggle-verify-pin', 'pin-input', 'verify-pin-eye-icon', 'verify-pin-eye-off-icon');
         setupPasswordToggle('toggle-setup-pin', 'setup-pin', 'setup-pin-eye-icon', 'setup-pin-eye-off-icon');
         const loggedInRole = sessionStorage.getItem('loggedInRole');
         const lembagaId = sessionStorage.getItem('lembagaId');
@@ -259,7 +259,7 @@ function checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai) {
         });
     }
     
-            function setupUIForRole(role) {
+function setupUIForRole(role) {
                 const allMenuLinks = document.querySelectorAll('.menu-link');
                 const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'quran', 'tentang', 'pengaturan'];
 
@@ -271,15 +271,30 @@ function checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai) {
                             link.classList.add('hidden');
                         }
                     });
-                    // BARIS INI DITAMBAHKAN untuk menyembunyikan tombol
+                    
+                    // Sembunyikan tombol "Tambah Siswa"
                     if (ui.addStudentModalBtn) {
                         ui.addStudentModalBtn.classList.add('hidden');
                     }
+                    
+                    // ▼▼▼ TAMBAHKAN INI ▼▼▼
+                    // Sembunyikan tombol "Setoran Bersama"
+                    if (ui.addBulkHafalanBtn) {
+                        ui.addBulkHafalanBtn.classList.add('hidden');
+                    }
+                    
                 } else { // guru
                     allMenuLinks.forEach(link => link.classList.remove('hidden'));
-                    // BARIS INI memastikan tombol terlihat untuk guru
+                    
+                    // Tampilkan tombol "Tambah Siswa"
                     if (ui.addStudentModalBtn) {
                         ui.addStudentModalBtn.classList.remove('hidden');
+                    }
+                    
+                    // ▼▼▼ TAMBAHKAN INI ▼▼▼
+                    // Tampilkan tombol "Setoran Bersama"
+                    if (ui.addBulkHafalanBtn) {
+                        ui.addBulkHafalanBtn.classList.remove('hidden');
                     }
                 }
             }
@@ -1700,6 +1715,18 @@ if (ui.studentList) {
             let pinInputHTML = '';
             if (window.appState.loggedInRole === 'siswa') {
                 pinInputHTML = `...`; // Kode PIN tidak perlu diubah
+pinInputHTML = `
+                <div>
+                    <label class="block text-sm font-medium mb-1">PIN Guru</label>
+                    <div class="relative">
+                        <input type="password" name="pin" class="form-input pr-10" placeholder="Masukkan 6 Digit" required pattern="\\d{6}" maxlength="6" autocomplete="one-time-code">
+                        <button type="button" class="toggle-pin-btn absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                            <svg class="eye-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg class="eye-off-icon h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+                        </button>
+                    </div>
+                </div>
+                `;
             }
 
             for (const student of paginatedStudents) {
@@ -3208,6 +3235,27 @@ item.innerHTML = `
                 setButtonLoading(submitButton, false);
             }
         });
+        ui.studentList.addEventListener('click', e => {
+                const toggleBtn = e.target.closest('.toggle-pin-btn');
+                
+                if (toggleBtn) {
+                    e.preventDefault(); 
+                    
+                    const relativeWrapper = toggleBtn.closest('.relative');
+                    if (!relativeWrapper) return;
+
+                    const input = relativeWrapper.querySelector('input');
+                    const eyeIcon = toggleBtn.querySelector('.eye-icon');
+                    const eyeOffIcon = toggleBtn.querySelector('.eye-off-icon');
+
+                    if (input && eyeIcon && eyeOffIcon) {
+                        const isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+                        eyeIcon.classList.toggle('hidden', isPassword);
+                        eyeOffIcon.classList.toggle('hidden', !isPassword);
+                    }
+                }
+            });
 if (ui.addBulkHafalanBtn) {
                 ui.addBulkHafalanBtn.addEventListener('click', () => {
                     // 1. Reset state
