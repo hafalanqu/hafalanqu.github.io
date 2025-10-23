@@ -309,7 +309,7 @@ function setupUIForRole(role) {
         if (pageElement) {
             pageElement.classList.remove('hidden');
         }
-        const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", siswa: "Hafalan", riwayat: "Riwayat Setoran", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan" };
+        const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan" };
         ui.pageTitle.textContent = pageTitles[pageId] || "Dashboard";
         
         const headerActions = document.getElementById('header-actions');
