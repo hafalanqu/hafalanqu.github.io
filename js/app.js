@@ -116,77 +116,83 @@ function checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai) {
     }
     return isAllRepeated ? 'murajaah' : 'ziyadah';
 }
-    // --- NEW LOGIN & UI SETUP ---
-    const ui = {
-        loginView: document.getElementById('login-view'),
-        loginForm: document.getElementById('login-form'),
-        loginError: document.getElementById('login-error'),
-        usernameInput: document.getElementById('username'),
-        passwordInput: document.getElementById('password'),
-        app: document.getElementById('app'),
-        loader: document.getElementById('loader'),
-        iconMenuView: document.getElementById('icon-menu-view'),
-        mainContentView: document.getElementById('main-content-view'),
-        menuLinks: document.querySelectorAll('.menu-link'),
-        homeBtn: document.getElementById('home-btn'),
-        pages: document.querySelectorAll('.page'),
-        pageTitle: document.getElementById('page-title'),
-        addStudentModal: document.getElementById('add-student-modal'),
-        addStudentModalBtn: document.getElementById('add-student-modal-btn'),
-        cancelAddStudentBtn: document.getElementById('cancel-add-student'),
-        profile: {
-            form: document.getElementById('profile-form'),
-            fullNameInput: document.getElementById('profile-fullname'),
-            pobInput: document.getElementById('profile-pob'),
-            picturePreview: document.getElementById('profile-picture-preview'),
-            pictureInput: document.getElementById('profile-picture-input'),
-            saveBtn: document.getElementById('save-profile-btn'),
-            progressContainer: document.getElementById('upload-progress-container'),
-            progressBar: document.getElementById('upload-progress'),
-        },
-        // PIN Modal elements
-        pinModal: {
-            el: document.getElementById('pin-modal'),
-            form: document.getElementById('pin-form'),
-            input: document.getElementById('pin-input'),
-            error: document.getElementById('pin-error'),
-            okBtn: document.getElementById('pin-modal-ok'),
-            cancelBtn: document.getElementById('pin-modal-cancel'),
-        },
-        // PIN Settings elements (for teachers)
-        guruPinSettings: {
-            card: document.getElementById('guru-pin-settings-card'),
-            form: document.getElementById('guru-pin-form'),
-            input: document.getElementById('guru-pin-input'),
-        },
-        mutqinSettings: {
-        card: document.getElementById('mutqin-settings-card'),
-        },
-        profileSetupModal: {
-            el: document.getElementById('profile-setup-modal'),
-            form: document.getElementById('profile-setup-form'),
-            namaLengkapInput: document.getElementById('setup-nama-lengkap'),
-            ttlInput: document.getElementById('setup-ttl'),
-            pinContainer: document.getElementById('setup-pin-container'),
-            pinInput: document.getElementById('setup-pin'),
-            submitBtn: document.getElementById('profile-setup-submit-btn')
-        },
-        addBulkHafalanBtn: document.getElementById('add-bulk-hafalan-btn'),
-        bulkHafalanModal: {
-            el: document.getElementById('bulk-hafalan-modal'),
-            form: document.getElementById('bulk-hafalan-form'),
-            cancelBtn: document.getElementById('cancel-bulk-hafalan'),
-            submitBtn: document.getElementById('submit-bulk-hafalan'),
-            studentSearchContainer: document.getElementById('bulk-student-search-container'),
-            studentSearchInput: document.getElementById('bulk-student-search-input'),
-            studentSearchResults: document.getElementById('bulk-student-search-results'),
-            selectedStudentsList: document.getElementById('bulk-selected-students-list'),
-            surahSelect: document.getElementById('bulk-surah-select'),
-            ayatInputsContainer: document.getElementById('bulk-ayat-inputs-container'),
-            ayatDariSelect: document.getElementById('bulk-ayat-dari-select'),
-            ayatSampaiSelect: document.getElementById('bulk-ayat-sampai-select'),
-        },
-    };
+// --- LOGIN & UI SETUP ---
+const ui = {
+    loginView: document.getElementById('login-view'),
+    loginForm: document.getElementById('login-form'),
+    loginError: document.getElementById('login-error'),
+    usernameInput: document.getElementById('username'),
+    passwordInput: document.getElementById('password'),
+    app: document.getElementById('app'),
+    loader: document.getElementById('loader'),
+
+    // --- BARU ---
+    sidebarNav: document.getElementById('sidebar-nav'), // Opsional, jika perlu
+    bottomNav: document.getElementById('bottom-nav'),   // Opsional, jika perlu
+    sidebarLinks: document.querySelectorAll('#sidebar-nav .sidebar-link'),
+    bottomNavLinks: document.querySelectorAll('#bottom-nav .bottom-nav-link'),
+    profileMenuLinks: document.querySelectorAll('.profile-menu-link'), // Link di dalam profil
+
+    mainContentView: document.getElementById('main-content-view'),
+    homeBtn: document.getElementById('home-btn'), // Tetap ada, meski mungkin disembunyikan
+    pages: document.querySelectorAll('#page-content > .page'), // Targetkan .page di dalam #page-content
+    pageTitle: document.getElementById('page-title'),
+    addStudentModal: document.getElementById('add-student-modal'),
+    addStudentModalBtn: document.getElementById('add-student-modal-btn'),
+    cancelAddStudentBtn: document.getElementById('cancel-add-student'),
+    profile: {
+        // ... (sisa properti profile tidak berubah)
+        form: document.getElementById('profile-form'),
+        fullNameInput: document.getElementById('profile-fullname'),
+        pobInput: document.getElementById('profile-pob'),
+        picturePreview: document.getElementById('profile-picture-preview'),
+        pictureInput: document.getElementById('profile-picture-input'),
+        saveBtn: document.getElementById('save-profile-btn'),
+        progressContainer: document.getElementById('upload-progress-container'),
+        progressBar: document.getElementById('upload-progress'),
+    },
+    // ... (sisa properti ui seperti pinModal, guruPinSettings, dll tidak berubah)
+    pinModal: {
+        el: document.getElementById('pin-modal'),
+        form: document.getElementById('pin-form'),
+        input: document.getElementById('pin-input'),
+        error: document.getElementById('pin-error'),
+        okBtn: document.getElementById('pin-modal-ok'),
+        cancelBtn: document.getElementById('pin-modal-cancel'),
+    },
+    guruPinSettings: {
+        card: document.getElementById('guru-pin-settings-card'),
+        form: document.getElementById('guru-pin-form'),
+        input: document.getElementById('guru-pin-input'),
+    },
+    mutqinSettings: {
+       card: document.getElementById('mutqin-settings-card'),
+    },
+     profileSetupModal: {
+        el: document.getElementById('profile-setup-modal'),
+        form: document.getElementById('profile-setup-form'),
+        namaLengkapInput: document.getElementById('setup-nama-lengkap'),
+        ttlInput: document.getElementById('setup-ttl'),
+        pinContainer: document.getElementById('setup-pin-container'),
+        pinInput: document.getElementById('setup-pin'),
+        submitBtn: document.getElementById('profile-setup-submit-btn')
+    },
+    addBulkHafalanBtn: document.getElementById('add-bulk-hafalan-btn'),
+    bulkHafalanModal: {
+        el: document.getElementById('bulk-hafalan-modal'),
+        form: document.getElementById('bulk-hafalan-form'),
+        cancelBtn: document.getElementById('cancel-bulk-hafalan'),
+        submitBtn: document.getElementById('submit-bulk-hafalan'),
+        studentSearchContainer: document.getElementById('bulk-student-search-container'),
+        studentSearchInput: document.getElementById('bulk-student-search-input'),
+        studentSearchResults: document.getElementById('bulk-student-search-results'),
+        selectedStudentsList: document.getElementById('bulk-selected-students-list'),
+        surahSelect: document.getElementById('bulk-surah-select'),
+        ayatInputsContainer: document.getElementById('bulk-ayat-inputs-container'),
+        ayatDariSelect: document.getElementById('bulk-ayat-dari-select'),
+        ayatSampaiSelect: document.getElementById('bulk-ayat-sampai-select'),
+    },
+};
 
     const togglePasswordBtn = document.getElementById('toggle-password');
     if (togglePasswordBtn) {
@@ -260,82 +266,97 @@ function checkZiyadahOrMurajaah(studentId, surahNo, ayatDari, ayatSampai) {
     }
     
 function setupUIForRole(role) {
-                const allMenuLinks = document.querySelectorAll('.menu-link');
-                const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'quran', 'tentang', 'pengaturan'];
+    // --- BARU: Gabungkan semua link navigasi ---
+    const allMenuLinks = [
+        ...ui.sidebarLinks,
+        ...ui.bottomNavLinks,
+        ...ui.profileMenuLinks // Termasuk link di dalam profil
+    ];
+    // Halaman yang boleh diakses siswa (termasuk yang ada di menu profil)
+    const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan', 'kelas'];
 
-                if (role === 'siswa') {
-                    allMenuLinks.forEach(link => {
-                        if (siswaAllowedPages.includes(link.dataset.page)) {
-                            link.classList.remove('hidden');
-                        } else {
-                            link.classList.add('hidden');
-                        }
-                    });
-                    
-                    // Sembunyikan tombol "Tambah Siswa"
-                    if (ui.addStudentModalBtn) {
-                        ui.addStudentModalBtn.classList.add('hidden');
-                    }
-                    
-                    // ▼▼▼ TAMBAHKAN INI ▼▼▼
-                    // Sembunyikan tombol "Setoran Bersama"
-                    if (ui.addBulkHafalanBtn) {
-                        ui.addBulkHafalanBtn.classList.add('hidden');
-                    }
-                    
-                } else { // guru
-                    allMenuLinks.forEach(link => link.classList.remove('hidden'));
-                    
-                    // Tampilkan tombol "Tambah Siswa"
-                    if (ui.addStudentModalBtn) {
-                        ui.addStudentModalBtn.classList.remove('hidden');
-                    }
-                    
-                    // ▼▼▼ TAMBAHKAN INI ▼▼▼
-                    // Tampilkan tombol "Setoran Bersama"
-                    if (ui.addBulkHafalanBtn) {
-                        ui.addBulkHafalanBtn.classList.remove('hidden');
-                    }
-                }
+    if (role === 'siswa') {
+        allMenuLinks.forEach(link => {
+            const page = link.dataset.page;
+            // Sembunyikan link jika halaman tidak diizinkan untuk siswa
+            if (page && !siswaAllowedPages.includes(page)) {
+                link.classList.add('hidden');
+            } else {
+                link.classList.remove('hidden'); // Pastikan link yang diizinkan terlihat
             }
+        });
 
+        // Sembunyikan tombol spesifik guru
+        if (ui.addStudentModalBtn) ui.addStudentModalBtn.classList.add('hidden');
+        if (ui.addBulkHafalanBtn) ui.addBulkHafalanBtn.classList.add('hidden');
+
+    } else { // Jika guru
+        // Tampilkan semua link navigasi
+        allMenuLinks.forEach(link => link.classList.remove('hidden'));
+
+        // Tampilkan tombol spesifik guru
+        if (ui.addStudentModalBtn) ui.addStudentModalBtn.classList.remove('hidden');
+        if (ui.addBulkHafalanBtn) ui.addBulkHafalanBtn.classList.remove('hidden');
+    }
+
+    // Tampilkan/Sembunyikan menu profil tambahan hanya berdasarkan ukuran layar (CSS sudah menangani ini via md:hidden)
+    // Tidak perlu logika JS tambahan di sini untuk menu profil tambahan.
+}
+// --- BARU: Fungsi helper untuk menyinkronkan status aktif di semua menu ---
+function updateNavActiveState(pageId) {
+    const allLinks = [
+        ...ui.sidebarLinks,
+        ...ui.bottomNavLinks,
+        ...ui.profileMenuLinks // Termasuk link di dalam profil
+    ];
+
+    allLinks.forEach(link => {
+        if (link.dataset.page === pageId) {
+            link.classList.add('active'); // Kelas 'active' dari CSS baru
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
     // --- Navigation and History Management ---
 
-    function _showPageImpl(pageId) {
-        ui.iconMenuView.classList.add('hidden');
-        ui.mainContentView.classList.remove('hidden');
-        ui.pages.forEach(p => p.classList.add('hidden'));
-        const pageElement = document.getElementById(`${pageId}-page`);
-        if (pageElement) {
-            pageElement.classList.remove('hidden');
+function _showPageImpl(pageId) {
+    // --- Logika Baru: Ganti halaman dengan toggle kelas .page-active ---
+    ui.pages.forEach(p => {
+        if (p.id === `${pageId}-page`) {
+            p.classList.add('page-active');
+        } else {
+            p.classList.remove('page-active');
         }
-        const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan" };
-        ui.pageTitle.textContent = pageTitles[pageId] || "Dashboard";
-        
-        const headerActions = document.getElementById('header-actions');
-        headerActions.innerHTML = ''; // Clear previous actions
-        headerActions.className = 'w-full sm:w-auto flex items-center justify-end gap-2';
-        
-        if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
-            headerActions.innerHTML = `<button id="export-data-btn" class="btn btn-primary w-full sm:w-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Ekspor Hasil Siswa</span>
-            </button>`;
-        }
+    });
 
-        if (pageId === 'pengaturan' && typeof window.populateSettingsForms === 'function') {
-            window.populateSettingsForms();
-        }
-        
-        if (pageId === 'profil' && typeof window.populateProfileForm === 'function') {
-            window.populateProfileForm();
-        }
+    // Update judul halaman (logika ini tetap sama)
+    const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan" };
+    ui.pageTitle.textContent = pageTitles[pageId] || "Pencapaian"; // Default ke Pencapaian jika tidak ada judul
+
+    // --- BARU: Panggil helper untuk update status 'active' di menu ---
+    updateNavActiveState(pageId);
+
+    // --- Logika header actions (tombol ekspor, dll) tetap sama ---
+    const headerActions = document.getElementById('header-actions');
+    headerActions.innerHTML = ''; // Hapus action sebelumnya
+    headerActions.className = 'w-full sm:w-auto flex items-center justify-end gap-2'; // Reset kelas
+
+    if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
+        headerActions.innerHTML = `<button id="export-data-btn" class="btn btn-primary w-full sm:w-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Ekspor Hasil Siswa</span>
+        </button>`;
     }
 
-    function _showIconMenuImpl() {
-        ui.mainContentView.classList.add('hidden');
-        ui.iconMenuView.classList.remove('hidden');
+    // Jalankan fungsi spesifik halaman jika ada
+    if (pageId === 'pengaturan' && typeof window.populateSettingsForms === 'function') {
+        window.populateSettingsForms();
     }
+    if (pageId === 'profil' && typeof window.populateProfileForm === 'function') {
+        window.populateProfileForm();
+    }
+}
     
     function showPage(pageId) {
         const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan'];
@@ -357,55 +378,64 @@ function setupUIForRole(role) {
         _showPageImpl(pageId);
     }
     
-    window.addEventListener('popstate', (event) => {
-        if (event.state && event.state.page) {
-            _showPageImpl(event.state.page);
-        } else {
-            _showIconMenuImpl();
-        }
-    });
+window.addEventListener('popstate', (event) => {
+    // Jika tidak ada state halaman (misalnya saat pertama kali load atau navigasi manual),
+    // default ke halaman 'ringkasan'.
+    const page = event.state?.page || 'ringkasan';
+    _showPageImpl(page);
+});
 
     window.showToast = showToast;
-    
-    // --- Initial UI bindings ---
-    ui.menuLinks.forEach(link => {
-        link.addEventListener('click', e => { e.preventDefault(); showPage(link.dataset.page); });
-    });
-    ui.homeBtn.addEventListener('click', (e) => {
+    // --- BARU: Tambahkan listener untuk SEMUA link navigasi baru ---
+const allNavLinks = [
+    ...ui.sidebarLinks,
+    ...ui.bottomNavLinks,
+    ...ui.profileMenuLinks // Termasuk link di dalam profil
+];
+allNavLinks.forEach(link => {
+    link.addEventListener('click', e => {
         e.preventDefault();
-        try {
-            history.back();
-        } catch (e) {
-            console.warn("history.back() failed, falling back to showIconMenu:", e);
-            _showIconMenuImpl();
+        const page = link.dataset.page;
+        if (page) {
+            showPage(page);
         }
     });
+});
+ui.homeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPage('ringkasan'); // Selalu kembali ke halaman ringkasan
+});
     ui.addStudentModalBtn.addEventListener('click', () => ui.addStudentModal.classList.remove('hidden'));
     ui.cancelAddStudentBtn.addEventListener('click', () => ui.addStudentModal.classList.add('hidden'));
 
-    // --- App Startup Logic ---
-    function startApp(role, lembagaId) {
-        ui.loginView.classList.add('hidden');
-        ui.app.classList.remove('hidden');
+// (Pastikan parameter fungsi startApp Anda sesuai, contoh: function startApp(role, lembagaId, uid))
+function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
+    ui.loginView.classList.add('hidden');
+    ui.app.classList.remove('hidden');
+    window.appState.currentUserUID = uid; // Simpan uid jika ada
 
-        setupUIForRole(role);
-        initializeAppLogic(lembagaId);
+    setupUIForRole(role);
+    initializeAppLogic(lembagaId, uid); // Pass UID
 
-        const initialPage = window.location.hash.substring(1);
-        if (initialPage && document.getElementById(`${initialPage}-page`)) {
-            const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan'];
-            if(role === 'siswa' && !siswaAllowedPages.includes(initialPage)){
-                window.location.hash = '#';
-                _showIconMenuImpl();
-            } else {
-                history.replaceState({ page: initialPage }, '', `#${initialPage}`);
-                _showPageImpl(initialPage);
-            }
-        } else {
-            history.replaceState({ page: null }, '', '#');
-            _showIconMenuImpl();
-        }
+    // --- Logika Baru: Tentukan halaman awal ---
+    // Prioritaskan hash di URL, jika tidak ada atau tidak valid, default ke 'ringkasan'
+    let initialPage = window.location.hash.substring(1);
+    const validPageElement = initialPage ? document.getElementById(`${initialPage}-page`) : null;
+
+    if (!initialPage || !validPageElement) {
+        initialPage = 'ringkasan'; // Default ke ringkasan
     }
+
+    // Validasi akses untuk siswa
+    const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan', 'kelas'];
+    if(role === 'siswa' && !siswaAllowedPages.includes(initialPage)){
+        initialPage = 'ringkasan'; // Paksa ke ringkasan jika siswa mencoba akses halaman terlarang
+    }
+
+    // Atur history dan tampilkan halaman awal
+    history.replaceState({ page: initialPage }, '', `#${initialPage}`);
+    _showPageImpl(initialPage);
+}
     
     ui.loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();

@@ -8,58 +8,21 @@
         html {
             scroll-behavior: smooth;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* slate-50 */
-            color: #334155; /* slate-700 */
-        }
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff; /* white */
+        color: #334155; /* slate-700 */
+    }
         .arabic-text {
             font-family: 'Scheherazade New', serif;
             font-size: 2.25rem; /* 36px */
             line-height: 2; /* Sesuaikan line-height agar lebih pas */
         }
-        .menu-link {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100px;
-            height: 100px;
-            border-radius: 1.5rem; /* rounded-3xl */
-            color: var(--primary-color);
-            background-color: white;
-            border: 1px solid #e2e8f0; /* slate-200 */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease-in-out;
-        }
-        .menu-link:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07);
-            border-color: var(--primary-color);
-        }
-        .menu-link span {
-            font-weight: 600;
-            margin-top: 8px;
-            font-size: 0.875rem;
-            text-align: center;
-        }
-        .menu-link svg {
-            width: 32px;
-            height: 32px;
-        }
-        @media (min-width: 640px) {
-            .menu-link {
-                width: 120px;
-                height: 120px;
-            }
-             .menu-link span {
-                font-size: 1rem;
-            }
-            .menu-link svg {
-                width: 40px;
-                height: 40px;
-            }
-        }
+        
+        /* Hapus style .menu-link lama karena sudah tidak dipakai */
+        /* .menu-link { ... } */
+
+
         .card {
             background-color: white;
             border-radius: 0.75rem;
@@ -117,13 +80,20 @@
         .form-input:disabled, .form-select:disabled {
             background-color: #f1f5f9; /* slate-100 */
         }
+
+        /* Logika Tampilan Halaman Baru */
         .page {
+            display: none; /* Sembunyikan semua halaman by default */
+        }
+        .page.page-active {
+            display: block; /* Tampilkan hanya halaman yang aktif */
             animation: fadeIn 0.5s ease-in-out;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
         .modal {
             position: fixed;
             inset: 0;
@@ -210,4 +180,113 @@
   /* Use Inter first, then fall back to Scheherazade for Arabic */
   font-family: 'Inter', 'Scheherazade New', serif;
   font-size: 0,5rem;
+}
+
+
+/* ===== STYLE BARU UNTUK NAVIGASI ===== */
+
+/* Desktop Sidebar */
+#sidebar-nav {
+    display: none; /* Sembunyi di mobile */
+    flex-direction: column;
+    width: 256px; /* 16rem, w-64 */
+    min-height: 100vh;
+    background-color: white;
+    border-right: 1px solid #e2e8f0; /* slate-200 */
+    padding: 1.5rem; /* p-6 */
+    position: fixed; /* Fixed position */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    overflow-y: auto; /* Agar bisa scroll jika menu panjang */
+}
+
+/* Tampilkan di desktop (md: 768px) */
+@media (min-width: 768px) {
+    #sidebar-nav {
+        display: flex;
+    }
+    /* PERBAIKAN: Pastikan margin kiri diterapkan */
+    #main-content-view {
+        margin-left: 256px; /* Lebar sidebar (w-64 = 16rem = 256px) */
+    }
+} /* <--- Pastikan kurung kurawal ini ada dan benar */
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* space-x-3 */
+    padding: 0.75rem 1rem; /* py-3 px-4 */
+    border-radius: 0.5rem; /* rounded-lg */
+    font-weight: 500;
+    color: #334155; /* slate-700 - Kembalikan warna teks default */
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+.sidebar-link:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+/* State aktif untuk link sidebar */
+.sidebar-link.active {
+    background-color: var(--primary-color);
+    color: white; /* <-- Warna teks putih HANYA saat aktif */
+}
+.sidebar-link svg {
+    width: 20px; /* w-5 */
+    height: 20px; /* h-5 */
+    flex-shrink: 0;
+}
+/* ===== Bottom Nav (Mobile) ===== */
+#bottom-nav {
+    display: flex; /* Menggunakan flexbox untuk menyusun item */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border-top: 1px solid #e2e8f0; /* slate-200 */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    z-index: 40;
+    justify-content: space-around; /* Menyebar link secara merata */
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.bottom-nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* Agar setiap link mengambil ruang yang sama */
+    padding: 0.25rem 0.5rem; /* py-1 px-2 */
+    font-size: 0.75rem; /* text-xs */
+    color: #475569; /* slate-600 */
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.bottom-nav-link svg {
+    width: 24px; /* w-6 */
+    height: 24px; /* h-6 */
+    margin-bottom: 0.125rem; /* mb-0.5 */
+}
+
+/* State aktif untuk link bottom-nav */
+.bottom-nav-link.active {
+    color: var(--primary-color); /* Warna teal-500 */
+    font-weight: 600;
+}
+
+/* Sembunyikan di desktop (md: 768px) */
+@media (min-width: 768px) {
+    #bottom-nav {
+        display: none;
+    }
+}
+@media (max-width: 767px) {
+    #main-content-view {
+    padding-bottom: 4rem;
+    }
 }
