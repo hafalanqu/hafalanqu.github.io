@@ -10,6 +10,13 @@
     <title>HafalanQu</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="css/output.css"> <link rel="stylesheet" href="css/style.css">
+    <style>
+    @media (min-width: 768px) {
+        #menu-lainnya-mobile {
+        display: none !important;
+        }
+    }
+    </style>
     <meta name="description" content="Jurnal Progres Hafalan Qur'an">
     <script>
       // Skrip ini berjalan sangat cepat sebelum halaman di-render
@@ -70,7 +77,7 @@
             <div class="space-y-2">
                 <a href="#" data-page="ringkasan" class="sidebar-link active">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                    <span>Pencapaian</span>
+                    <span>Dashboard</span>
                 </a>
                 <a href="#" data-page="siswa" class="sidebar-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -161,6 +168,24 @@
                                 </div>
                             </form>
                         </div>
+                        <div id="menu-lainnya-mobile" class="card p-4 md:hidden">
+                        <h2 class="text-xl font-semibold text-slate-800 mb-4">Menu Lainnya</h2>
+                        <div class="space-y-1">
+
+                            <a href="#" data-page="kelas" class="block w-full text-left py-3 px-4 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition-colors">
+                                Manajemen Kelas
+                            </a>
+
+                            <a href="#" data-page="pengaturan" class="block w-full text-left py-3 px-4 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition-colors">
+                                Pengaturan
+                            </a>
+
+                            <a href="#" data-page="tentang" class="block w-full text-left py-3 px-4 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition-colors">
+                                Tentang
+                            </a>
+
+                        </div>
+                    </div>
                     </div>
                 </div>
                 <div id="ringkasan-page" class="page hidden">

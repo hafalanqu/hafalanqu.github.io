@@ -131,7 +131,7 @@ const ui = {
     bottomNav: document.getElementById('bottom-nav'),   // Opsional, jika perlu
     sidebarLinks: document.querySelectorAll('#sidebar-nav .sidebar-link'),
     bottomNavLinks: document.querySelectorAll('#bottom-nav .bottom-nav-link'),
-    profileMenuLinks: document.querySelectorAll('.profile-menu-link'), // Link di dalam profil
+    profileMenuLinks: document.querySelectorAll('#profil-page .card a[data-page]'), // Link di dalam profil
 
     mainContentView: document.getElementById('main-content-view'),
     homeBtn: document.getElementById('home-btn'), // Tetap ada, meski mungkin disembunyikan
@@ -331,7 +331,7 @@ function _showPageImpl(pageId) {
     });
 
     // Update judul halaman (logika ini tetap sama)
-    const pageTitles = { profil: "Profil Saya", ringkasan: "Pencapaian", kelas: "Manajemen Kelas", siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan" };
+    const pageTitles = { profil: "Profil Saya", ringkasan: "Dashboard", kelas: "Manajemen Kelas", siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan" };
     ui.pageTitle.textContent = pageTitles[pageId] || "Pencapaian"; // Default ke Pencapaian jika tidak ada judul
 
     // --- BARU: Panggil helper untuk update status 'active' di menu ---
