@@ -27,8 +27,74 @@ window.appState = {
     hafalanSubmissionData: null, // To temporarily hold form data for PIN verification
     bulkHafalanStudentIds: [],
     currentDetailStudentId: null,
+    currentDetailHistoryView: 'setoran',
+    currentDetailHistoryPage: 1,
+    currentDetailJuzView: 1,
 };
 const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, nama: "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, nama: "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
+// --- TAMBAHAN BARU: Data Juz Global ---
+
+// Data ini mendefinisikan ayat pertama dari setiap juz
+const juzBoundaries = [
+    { juz: 1, start: { s: 1, a: 1 } },   { juz: 2, start: { s: 2, a: 142 } }, { juz: 3, start: { s: 2, a: 253 } },
+    { juz: 4, start: { s: 3, a: 93 } },  { juz: 5, start: { s: 4, a: 24 } },  { juz: 6, start: { s: 4, a: 148 } },
+    { juz: 7, start: { s: 5, a: 82 } },  { juz: 8, start: { s: 6, a: 111 } }, { juz: 9, start: { s: 7, a: 88 } },
+    { juz: 10, start: { s: 8, a: 41 } }, { juz: 11, start: { s: 9, a: 93 } }, { juz: 12, start: { s: 11, a: 6 } },
+    { juz: 13, start: { s: 12, a: 53 } },{ juz: 14, start: { s: 15, a: 1 } }, { juz: 15, start: { s: 17, a: 1 } },
+    { juz: 16, start: { s: 18, a: 75 } },{ juz: 17, start: { s: 21, a: 1 } }, { juz: 18, start: { s: 23, a: 1 } },
+    { juz: 19, start: { s: 25, a: 21 } },{ juz: 20, start: { s: 27, a: 56 } },{ juz: 21, start: { s: 29, a: 46 } },
+    { juz: 22, start: { s: 33, a: 31 } },{ juz: 23, start: { s: 36, a: 28 } },{ juz: 24, start: { s: 39, a: 32 } },
+    { juz: 25, start: { s: 41, a: 47 } },{ juz: 26, start: { s: 46, a: 1 } },  { juz: 27, start: { s: 51, a: 31 } },
+    { juz: 28, start: { s: 58, a: 1 } },  { juz: 29, start: { s: 67, a: 1 } }, { juz: 30, start: { s: 78, a: 1 } }
+];
+
+/**
+ * Helper untuk menentukan juz dari surah dan ayat
+ */
+function getJuzForAyat(surahNo, ayatNo) {
+    for (let i = juzBoundaries.length - 1; i >= 0; i--) {
+        if (surahNo > juzBoundaries[i].start.s || (surahNo === juzBoundaries[i].start.s && ayatNo >= juzBoundaries[i].start.a)) {
+            return juzBoundaries[i].juz;
+        }
+    }
+    return 0; // Seharusnya tidak terjadi
+}
+
+/**
+ * Membuat peta <juzNo, Array<surahInfo>>
+ * Ini akan berisi surah apa saja yang ada di tiap juz, beserta rentang ayatnya.
+ */
+const juzToSurahMap = new Map();
+for (let juz = 1; juz <= 30; juz++) {
+    juzToSurahMap.set(juz, []);
+}
+
+// Loop semua surah dan semua ayat untuk membangun peta
+surahList.forEach(surah => {
+    for (let ayat = 1; ayat <= surah.ayat; ayat++) {
+        let juz = getJuzForAyat(surah.no, ayat);
+        if (juz > 0) {
+            let surahInJuzList = juzToSurahMap.get(juz);
+            let surahEntry = surahInJuzList.find(s => s.surahNo === surah.no);
+
+            if (!surahEntry) {
+                // Jika ini ayat pertama dari surah ini di juz ini
+                surahEntry = { 
+                    surahNo: surah.no, 
+                    nama: surah.nama, 
+                    totalAyatSurah: surah.ayat, // Total ayat di surah (untuk referensi)
+                    ayatDari: ayat, // Ayat mulai di juz ini
+                    ayatSampai: ayat // Ayat selesai di juz ini
+                };
+                surahInJuzList.push(surahEntry);
+            } else {
+                // Perbarui ayat terakhir
+                surahEntry.ayatSampai = ayat;
+            }
+        }
+    }
+});
+// --- AKHIR TAMBAHAN BARU ---
 document.addEventListener('DOMContentLoaded', () => {
     window.quranCache = {};    
     try {
@@ -473,25 +539,110 @@ window.addEventListener('popstate', (event) => {
         </div>
         <div class="card p-3 bg-amber-50 text-center">
             <p class="text-2xl font-bold text-amber-700">${avgTes}%</p>
-            <p class="text-sm text-amber-600">Rata2 Tes</p>
+            <p class="text-sm text-amber-600">Rata-rata Tes</p>
         </div>
     `;
 }
 
+// --- FUNGSI BARU (MENGGANTIKAN renderStudentDetailHistory) ---
+
 /**
- * Mengambil dan merender riwayat hafalan & tes untuk satu siswa
+ * Membuat tombol paginasi untuk riwayat di halaman detail.
  */
-function renderStudentDetailHistory(studentId) {
-    const hafalanList = document.getElementById('detail-hafalan-list');
-    const tesList = document.getElementById('detail-tes-list');
-    if (!hafalanList || !tesList) return;
+function renderStudentDetailHistoryPagination(totalItems, itemsPerPage) {
+    const paginationContainer = document.getElementById('detail-history-pagination');
+    if (!paginationContainer) return;
 
-    const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === studentId);
-    studentHafalan.sort((a, b) => b.timestamp - a.timestamp); // Urutkan terbaru di atas
+    paginationContainer.innerHTML = '';
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    hafalanList.innerHTML = '';
-    tesList.innerHTML = '';
+    if (totalPages <= 1) return; // Tidak perlu paginasi jika hanya 1 halaman
 
+    const currentPage = window.appState.currentDetailHistoryPage;
+
+    const createButton = (text, page, isDisabled = false, isActive = false) => {
+        const button = document.createElement('button');
+        button.innerHTML = text;
+        button.disabled = isDisabled;
+        button.className = `btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}`;
+        if (!isDisabled && page) {
+            button.onclick = () => {
+                window.appState.currentDetailHistoryPage = page;
+                renderStudentDetailHistoryList(); // Panggil render list
+                // Scroll ke atas list
+                document.getElementById('detail-history-list')?.scrollIntoView({ behavior: 'smooth' });
+            };
+        }
+        return button;
+    };
+
+    const createEllipsis = () => {
+        const span = document.createElement('span');
+        span.textContent = '...';
+        span.className = 'flex items-center justify-center px-2 py-1 text-slate-500 font-bold';
+        return span;
+    };
+    
+    paginationContainer.appendChild(createButton('‹', currentPage - 1, currentPage === 1));
+
+    const pagesToShow = new Set();
+    pagesToShow.add(1);
+    pagesToShow.add(totalPages);
+    if (currentPage > 2) pagesToShow.add(currentPage - 1);
+    pagesToShow.add(currentPage);
+    if (currentPage < totalPages - 1) pagesToShow.add(currentPage + 1);
+
+    const sortedPages = Array.from(pagesToShow).sort((a, b) => a - b);
+    let lastPage = 0;
+
+    for (const page of sortedPages) {
+        if (page > lastPage + 1) {
+            paginationContainer.appendChild(createEllipsis());
+        }
+        paginationContainer.appendChild(createButton(page, page, false, page === currentPage));
+        lastPage = page;
+    }
+
+    paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
+}
+
+
+/**
+ * Mengambil dan merender riwayat hafalan ATAU tes untuk satu siswa dengan paginasi.
+ */
+function renderStudentDetailHistoryList() {
+    const studentId = window.appState.currentDetailStudentId;
+    const historyList = document.getElementById('detail-history-list');
+    if (!historyList || !studentId) return;
+
+    const view = window.appState.currentDetailHistoryView; // 'setoran' or 'tes'
+    const currentPage = window.appState.currentDetailHistoryPage;
+    const ITEMS_PER_PAGE = 50; // Sesuai permintaan Anda
+
+    // 1. Filter semua entri untuk siswa ini
+    const allStudentHafalan = window.appState.allHafalan.filter(h => h.studentId === studentId);
+
+    // 2. Filter berdasarkan view (setoran atau tes)
+    let filteredEntries;
+    if (view === 'setoran') {
+        filteredEntries = allStudentHafalan.filter(h => h.jenis === 'ziyadah' || h.jenis === 'murajaah');
+    } else { // view === 'tes'
+        filteredEntries = allStudentHafalan.filter(h => h.jenis === 'tes');
+    }
+
+    // 3. Urutkan terbaru di atas
+    filteredEntries.sort((a, b) => b.timestamp - a.timestamp);
+
+    // 4. Hitung paginasi
+    const totalItems = filteredEntries.length;
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedItems = filteredEntries.slice(startIndex, endIndex);
+
+    // 5. Render item
+    historyList.innerHTML = ''; // Kosongkan list
+
+    // Maps untuk tampilan
     const surahNameMap = new Map(surahList.map(s => [s.no, s.nama]));
     const kualitasDisplayMap = { 
         'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
@@ -499,82 +650,162 @@ function renderStudentDetailHistory(studentId) {
         'sangat-tidak-lancar': 'Sangat Tidak Lancar'
     };
 
-    let hafalanCount = 0;
-    let tesCount = 0;
-
-    studentHafalan.forEach(entry => {
-        const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-
-        if (entry.jenis === 'tes') {
-            tesCount++;
+    if (paginatedItems.length === 0) {
+        const message = view === 'setoran' ? 'Belum ada riwayat setoran.' : 'Belum ada riwayat tes.';
+        historyList.innerHTML = `<p class="text-sm text-slate-400 text-center p-4">${message}</p>`;
+    } else {
+        paginatedItems.forEach(entry => {
+            const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             const item = document.createElement('div');
             item.className = 'text-sm p-2 bg-white rounded';
-            item.innerHTML = `
-                <p class="font-medium text-purple-700">${entry.catatan}</p>
-                <p class="text-xs text-slate-500">${date}</p>
-            `;
-            tesList.appendChild(item);
-        } else {
-            hafalanCount++;
-            const surahName = surahNameMap.get(entry.surahNo) || `Surah ${entry.surahNo}`;
-            const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
-            const jenisLabel = entry.jenis === 'ziyadah' ? 'Ziyadah' : 'Muraja\'ah';
-            const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
 
-            const item = document.createElement('div');
-            item.className = 'text-sm p-2 bg-white rounded';
-            item.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
-                    <span class="text-xs text-slate-500">${date}</span>
-                </div>
-                <p class="font-medium text-slate-700">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</p>
-                <p class="text-xs text-slate-500 italic">${kualitasText}</p>
-            `;
-            hafalanList.appendChild(item);
-        }
-    });
+            if (entry.jenis === 'tes') {
+                item.innerHTML = `
+                    <p class="font-medium text-purple-700">${entry.catatan}</p>
+                    <p class="text-xs text-slate-500">${date}</p>
+                `;
+            } else {
+                const surahName = surahNameMap.get(entry.surahNo) || `Surah ${entry.surahNo}`;
+                const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
+                const jenisLabel = entry.jenis === 'ziyadah' ? 'Ziyadah' : 'Muraja\'ah';
+                const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
 
-    if (hafalanCount === 0) hafalanList.innerHTML = '<p class="text-sm text-slate-400 text-center p-4">Belum ada riwayat setoran.</p>';
-    if (tesCount === 0) tesList.innerHTML = '<p class="text-sm text-slate-400 text-center p-4">Belum ada riwayat tes.</p>';
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
+                        <span class="text-xs text-slate-500">${date}</span>
+                    </div>
+                    <p class="font-medium text-slate-700">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</p>
+                    <p class="text-xs text-slate-500 italic">${kualitasText}</p>
+                `;
+            }
+            historyList.appendChild(item);
+        });
+    }
+
+    // 6. Render paginasi
+    renderStudentDetailHistoryPagination(totalItems, ITEMS_PER_PAGE);
+}
+// --- FUNGSI BARU (PENGGANTI renderStudentMemorizationDetails) ---
+
+/**
+ * Mengisi dropdown filter Juz 1-30 di halaman detail siswa
+ */
+function populateJuzFilterDropdown() {
+    const select = document.getElementById('detail-juz-filter');
+    if (!select) return;
+    select.innerHTML = '';
+    for (let i = 1; i <= 30; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Juz ${i}`;
+        select.appendChild(option);
+    }
 }
 
 /**
- * Menghitung surah apa saja yang sudah dihafal (ziyadah)
+ * Merender rincian hafalan per JUZ yang dipilih (dengan progress bar dan bubbles)
  */
-function renderStudentMemorizationDetails(studentId) {
-    const container = document.getElementById('detail-surah-list');
-    if (!container) return;
+function renderStudentJuzDetails() {
+    const studentId = window.appState.currentDetailStudentId;
+    const selectedJuz = parseInt(window.appState.currentDetailJuzView);
 
+    // Ambil elemen UI
+    const container = document.getElementById('detail-juz-surah-list');
+    const summaryLabel = document.getElementById('detail-juz-summary-label');
+    const summaryPercentageEl = document.getElementById('detail-juz-summary-percentage');
+    const summaryBar = document.getElementById('detail-juz-summary-bar');
+
+    if (!container || !studentId || !summaryLabel || !summaryBar || !summaryPercentageEl) {
+        console.warn("Elemen UI untuk detail Juz tidak ditemukan.");
+        return;
+    }
+
+    // 1. Dapatkan semua setoran ZIYADAH (logika ini sama seperti fungsi lama)
     const ziyadahEntries = window.appState.allHafalan.filter(h => 
         h.studentId === studentId && h.jenis === 'ziyadah'
     );
 
-    if (ziyadahEntries.length === 0) {
-        container.innerHTML = '<p class="text-sm text-slate-400 p-2">Belum ada hafalan ziyadah.</p>';
+    // 2. Buat Peta unik hafalan: Map<surahNo, Set<ayatNo>>
+    const memorizedVersesMap = new Map();
+    ziyadahEntries.forEach(h => {
+        const surahNo = parseInt(h.surahNo);
+        const ayatDari = parseInt(h.ayatDari);
+        const ayatSampai = parseInt(h.ayatSampai);
+
+        if (isNaN(surahNo) || isNaN(ayatDari) || isNaN(ayatSampai)) return;
+
+        if (!memorizedVersesMap.has(surahNo)) {
+            memorizedVersesMap.set(surahNo, new Set());
+        }
+        const surahSet = memorizedVersesMap.get(surahNo);
+        // Handle setoran terbalik (misal: 5-1)
+        const [start, end] = [Math.min(ayatDari, ayatSampai), Math.max(ayatDari, ayatSampai)];
+        for (let i = start; i <= end; i++) {
+            surahSet.add(i);
+        }
+    });
+
+    // 3. Ambil daftar surah untuk Juz yang dipilih
+    const surahsInJuz = juzToSurahMap.get(selectedJuz);
+    if (!surahsInJuz || surahsInJuz.length === 0) {
+        container.innerHTML = `<p class="text-sm text-slate-400">Tidak ada data surah untuk juz ${selectedJuz}.</p>`;
         return;
     }
 
-    const surahNameMap = new Map(surahList.map(s => [s.no, s.nama]));
+    let totalAyatInJuz = 0;
+    let totalMemorizedInJuz = 0;
+    const bubbleHTML = [];
+    const bubbleClass = "inline-block text-sm font-medium px-3 py-1 rounded-full";
 
-    // Buat Set berisi nomor surah yang unik
-    const memorizedSurahNumbers = new Set(ziyadahEntries.map(h => parseInt(h.surahNo)));
+    // 4. Iterasi HANYA surah dalam juz ini
+    for (const surah of surahsInJuz) {
+        const memorizedSet = memorizedVersesMap.get(surah.surahNo);
 
-    // Ubah Set menjadi array, urutkan, dan buat HTML
-    const surahListHTML = Array.from(memorizedSurahNumbers)
-        .sort((a, b) => a - b) // Urutkan berdasarkan nomor surah
-        .map(surahNo => {
-            const surahName = surahNameMap.get(surahNo) || `Surah ${surahNo}`;
-            return `<span class="inline-block bg-teal-100 text-teal-800 text-sm font-medium px-3 py-1 rounded-full">${surahName}</span>`;
-        })
-        .join(' ');
+        // Hitung total ayat dari surah ini yang ada di juz ini
+        const ayatCountInJuz = (surah.ayatSampai - surah.ayatDari + 1);
+        totalAyatInJuz += ayatCountInJuz;
 
-    container.innerHTML = `<div class="flex flex-wrap gap-2">${surahListHTML}</div>`;
+        // Hitung berapa ayat yang sudah dihafal di rentang juz ini
+        let memorizedCountInJuz = 0;
+        if (memorizedSet) {
+            for (let ayat = surah.ayatDari; ayat <= surah.ayatSampai; ayat++) {
+                if (memorizedSet.has(ayat)) {
+                    memorizedCountInJuz++;
+                }
+            }
+        }
+        totalMemorizedInJuz += memorizedCountInJuz;
+
+        // Hitung persentase HANYA untuk bagian surah di juz ini
+        let percentage = (ayatCountInJuz > 0) ? (memorizedCountInJuz / ayatCountInJuz) * 100 : 0;
+
+        // 5. Buat bubble (logika sama seperti fungsi lama)
+        let bubble = '';
+        const bubbleText = `${surah.nama} (${memorizedCountInJuz}/${ayatCountInJuz})`;
+
+        if (percentage === 1) {
+            bubble = `<span class="${bubbleClass} bg-red-100 text-red-700">${bubbleText}</span>`;
+        } else if (percentage >= 100) {
+            bubble = `<span class="${bubbleClass} bg-teal-100 text-teal-800">${bubbleText}</span>`;
+        } else {
+            const gradientStyle = `background: linear-gradient(to right, #a7f3d0 ${percentage}%, #fecaca ${percentage}%); color: #334155; border: 1px solid #cbd5e1;`;
+            bubble = `<span class="${bubbleClass}" style="${gradientStyle}">${bubbleText}</span>`;
+        }
+        bubbleHTML.push(bubble);
+    }
+
+    // 6. Render Ringkasan Juz (Progress Bar)
+    const juzPercentage = (totalAyatInJuz > 0) ? (totalMemorizedInJuz / totalAyatInJuz) * 100 : 0;
+    summaryLabel.textContent = `Juz ${selectedJuz} (${totalMemorizedInJuz} / ${totalAyatInJuz} ayat)`;
+    summaryPercentageEl.textContent = `${juzPercentage.toFixed(0)}%`;
+    summaryBar.style.width = `${juzPercentage}%`;
+
+    // 7. Render Bubbles
+    container.innerHTML = bubbleHTML.join(' ');
 }
-
-
 /**
- * Fungsi utama untuk menampilkan modal
+ * Fungsi utama untuk menampilkan halaman detail siswa
  */
 function renderStudentDetailPage() { 
     const studentId = window.appState.currentDetailStudentId;
@@ -587,12 +818,52 @@ function renderStudentDetailPage() {
         return;
     }
 
-    const studentClass = window.appState.allClasses.find(c => c.id === student.classId);
+    // --- BLOK INI DIUBAH TOTAL ---
+    
+    // 1. Reset state untuk RIWAYAT
+    window.appState.currentDetailHistoryView = 'setoran';
+    window.appState.currentDetailHistoryPage = 1;
+    const historyFilter = document.getElementById('detail-history-filter');
+    if (historyFilter) {
+        historyFilter.value = 'setoran';
+    }
 
-    // 2. Panggil fungsi-fungsi untuk mengisi data (ini tidak berubah)
+    // --- LOGIKA BARU UNTUK JUZ ---
+    // 2. Tentukan Juz default berdasarkan setoran terakhir
+    let defaultJuz = 1; // Default ke Juz 1
+
+    // Cari setoran terakhir (bukan tes)
+    const lastDeposit = window.appState.allHafalan
+        .filter(h => h.studentId === studentId && (h.jenis === 'ziyadah' || h.jenis === 'murajaah'))
+        .sort((a, b) => b.timestamp - a.timestamp)[0]; // Ambil yang terbaru
+
+    if (lastDeposit) {
+        const surahNo = parseInt(lastDeposit.surahNo);
+        const ayatNo = parseInt(lastDeposit.ayatDari); // Gunakan ayat 'dari'
+        
+        if (!isNaN(surahNo) && !isNaN(ayatNo)) {
+            // Panggil helper global yang sudah ada
+            const calculatedJuz = getJuzForAyat(surahNo, ayatNo); 
+            if (calculatedJuz >= 1 && calculatedJuz <= 30) {
+                defaultJuz = calculatedJuz;
+            }
+        }
+    }
+    
+    // Terapkan Juz default ke state dan UI
+    window.appState.currentDetailJuzView = defaultJuz;
+    const juzFilter = document.getElementById('detail-juz-filter');
+    if (juzFilter) {
+        juzFilter.value = defaultJuz;
+    }
+    // --- AKHIR LOGIKA JUZ BARU ---
+
+    // 3. Panggil fungsi-fungsi untuk mengisi data
     renderStudentDetailStats(studentId);
-    renderStudentMemorizationDetails(studentId);
-    renderStudentDetailHistory(studentId);
+    renderStudentJuzDetails(); // Ini sekarang akan membaca defaultJuz dari state
+    renderStudentDetailHistoryList();
+    
+    // --- AKHIR PERUBAHAN ---
 }
     // --- BARU: Tambahkan listener untuk SEMUA link navigasi baru ---
 const allNavLinks = [
@@ -3861,7 +4132,29 @@ if (ui.settings.quranScopeForm) {
             if (settingsLogoutBtn) {
                 settingsLogoutBtn.addEventListener('click', handleLogout);
             }
+
+// --- TAMBAHAN BARU: Listener untuk filter riwayat DAN JUZ ---
+            const mainContentView = document.getElementById('main-content-view');
+            if (mainContentView) {
+                mainContentView.addEventListener('change', (e) => {
+                    // Listener untuk Riwayat (sudah ada)
+                    if (e.target.id === 'detail-history-filter') {
+                        window.appState.currentDetailHistoryView = e.target.value;
+                        window.appState.currentDetailHistoryPage = 1; 
+                        renderStudentDetailHistoryList(); 
+                    }
+                    
+                    // --- TAMBAHKAN BLOK 'IF' INI ---
+                    if (e.target.id === 'detail-juz-filter') {
+                        window.appState.currentDetailJuzView = e.target.value;
+                        renderStudentJuzDetails(); // Panggil fungsi render juz
+                    }
+                    // --- AKHIR TAMBAHAN ---
+                });
+            }
+
             populateTestSelectors();
+            populateJuzFilterDropdown();
             testUI.nextStepBtn.addEventListener('click', () => {
                 testUI.step1_type_view.classList.add('hidden');
                 testUI.step2_scope_view.classList.remove('hidden');

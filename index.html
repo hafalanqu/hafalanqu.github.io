@@ -286,26 +286,44 @@
                     <div class="max-w-4xl mx-auto space-y-6">
 
                         <div class="card p-6">
-                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Statistik (30 Hari Terakhir)</h3>
+                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Jumlah Setoran (30 Hari Terakhir)</h3>
                             <div id="detail-stats-container" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 </div>
                         </div>
 
                         <div class="card p-6">
-                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Rincian Hafalan (Ziyadah)</h3>
-                            <div id="detail-surah-list" class="space-y-2">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-3">
+                                <h3 class="text-lg font-semibold text-slate-700">Rincian Hafalan per Juz</h3>
+                                <select id="detail-juz-filter" class="form-select w-full sm:w-auto">
+                                    </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex justify-between text-sm font-medium text-slate-600 mb-1">
+                                    <span id="detail-juz-summary-label">Memuat...</span>
+                                    <span id="detail-juz-summary-percentage">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                                    <div id="detail-juz-summary-bar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div id="detail-juz-surah-list" class="flex flex-wrap gap-2">
                                 </div>
                         </div>
 
                         <div class="card p-6">
-                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Riwayat Setoran (Ziyadah & Muraja'ah)</h3>
-                            <div id="detail-hafalan-list" class="space-y-2 max-h-96 overflow-y-auto pr-2 border rounded-lg p-2 bg-slate-50">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3 gap-3">
+                                <h3 class="text-lg font-semibold text-slate-700">Riwayat</h3>
+                                <select id="detail-history-filter" class="form-select w-full sm:w-auto">
+                                    <option value="setoran">Tampilkan: Riwayat Setoran</option>
+                                    <option value="tes">Tampilkan: Riwayat Tes</option>
+                                </select>
+                            </div>
+                            
+                            <div id="detail-history-list" class="space-y-2 max-h-96 overflow-y-auto pr-2 border rounded-lg p-2 bg-slate-50">
                                 </div>
-                        </div>
-
-                        <div class="card p-6">
-                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Riwayat Tes</h3>
-                            <div id="detail-tes-list" class="space-y-2 max-h-96 overflow-y-auto pr-2 border rounded-lg p-2 bg-slate-50">
+                            <div id="detail-history-pagination" class="flex flex-wrap justify-center items-center gap-2 mt-4">
                                 </div>
                         </div>
 
