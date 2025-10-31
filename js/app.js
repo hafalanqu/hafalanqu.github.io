@@ -260,6 +260,25 @@ const ui = {
         ayatSampaiSelect: document.getElementById('bulk-ayat-sampai-select'),
     },
 };
+/**
+ * Helper untuk menampilkan modal dan mengunci scroll body.
+ * @param {HTMLElement} modalElement - Elemen modal yang ingin ditampilkan.
+ */
+function showModal(modalElement) {
+    if (!modalElement) return;
+    modalElement.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Kunci scroll body
+}
+
+/**
+ * Helper untuk menyembunyikan modal dan mengembalikan scroll body.
+ * @param {HTMLElement} modalElement - Elemen modal yang ingin disembunyikan.
+ */
+function hideModal(modalElement) {
+    if (!modalElement) return;
+    modalElement.classList.add('hidden');
+    document.body.style.overflow = ''; // Kembalikan scroll body
+}
 
     const togglePasswordBtn = document.getElementById('toggle-password');
     if (togglePasswordBtn) {
@@ -943,8 +962,8 @@ ui.homeBtn.addEventListener('click', (e) => {
     e.preventDefault();
     showPage('ringkasan'); // Selalu kembali ke halaman ringkasan
 });
-    ui.addStudentModalBtn.addEventListener('click', () => ui.addStudentModal.classList.remove('hidden'));
-    ui.cancelAddStudentBtn.addEventListener('click', () => ui.addStudentModal.classList.add('hidden'));
+    ui.addStudentModalBtn.addEventListener('click', () => showModal(ui.addStudentModal));
+    ui.cancelAddStudentBtn.addEventListener('click', () => hideModal(ui.addStudentModal));
 
 // (Pastikan parameter fungsi startApp Anda sesuai, contoh: function startApp(role, lembagaId, uid))
 function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
@@ -1331,7 +1350,7 @@ function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
                 }
 
                 // Tampilkan modal
-                modal.el.classList.remove('hidden');
+                showModal(modal.el);
             } else {
                 // Sembunyikan modal jika profil sudah lengkap
                 modal.el.classList.add('hidden');
@@ -1360,26 +1379,27 @@ function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
             }
         }
 
-        function showConfirmModal({ title, message, okText, onConfirm }) {
-            ui.confirmModal.title.textContent = title || 'Konfirmasi';
-            ui.confirmModal.text.textContent = message;
-            ui.confirmModal.okBtn.textContent = okText || 'Ya, Hapus';
-            ui.confirmModal.el.classList.remove('hidden');
+function showConfirmModal({ title, message, okText, onConfirm }) {
+    ui.confirmModal.title.textContent = title || 'Konfirmasi';
+    ui.confirmModal.text.textContent = message;
+    ui.confirmModal.okBtn.textContent = okText || 'Ya, Hapus';
+    showModal(ui.confirmModal.el); // Tampilkan modal
 
-            const handleOk = () => {
-                onConfirm();
-                hideModal();
-            };
-            
-            const hideModal = () => {
-                ui.confirmModal.el.classList.add('hidden');
-                ui.confirmModal.okBtn.removeEventListener('click', handleOk);
-                ui.confirmModal.cancelBtn.removeEventListener('click', hideModal);
-            };
-            
-            ui.confirmModal.okBtn.addEventListener('click', handleOk);
-            ui.confirmModal.cancelBtn.addEventListener('click', hideModal);
-        }
+    // Ganti nama 'hideModal' lokal menjadi 'closeAndCleanup' untuk menghindari konflik
+    const closeAndCleanup = () => {
+        hideModal(ui.confirmModal.el); // Panggil helper GLOBAL untuk menutup
+        ui.confirmModal.okBtn.removeEventListener('click', handleOk);
+        ui.confirmModal.cancelBtn.removeEventListener('click', closeAndCleanup); // <-- Panggil nama baru
+    };
+
+    const handleOk = () => {
+        onConfirm();
+        closeAndCleanup(); // <-- Panggil nama baru (untuk OK/Hapus)
+    };
+    
+    ui.confirmModal.okBtn.addEventListener('click', handleOk);
+    ui.confirmModal.cancelBtn.addEventListener('click', closeAndCleanup); // <-- Panggil nama baru (untuk Batal)
+}
 
         // --- DATA FUNCTIONS ---
         function isToday(timestamp) {
@@ -1475,7 +1495,7 @@ function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
                         await Promise.all(batches.map(batch => batch.commit()));
                     }
                     
-                    ui.addStudentModal.classList.add('hidden');
+                    hideModal(ui.addStudentModal);
                     
                     let message = `${newStudentsCount} siswa baru`;
                     if (newClassesCount > 0) message += ` & ${newClassesCount} kelas baru`;
@@ -2507,25 +2527,98 @@ item.innerHTML = `
         /**
          * Menampilkan daftar siswa yang dipilih di modal setoran massal.
          */
-        function renderSelectedStudentsForBulkHafalan() {
-            ui.bulkHafalanModal.selectedStudentsList.innerHTML = '';
-            const selectedIds = window.appState.bulkHafalanStudentIds;
+/**
+ * Menampilkan daftar siswa yang dipilih DAN riwayat terbaru mereka
+ * di modal setoran massal.
+ */
+function renderSelectedStudentsForBulkHafalan() {
+    const tagList = ui.bulkHafalanModal.selectedStudentsList;
+    const historyContainer = document.getElementById('bulk-history-container');
+    const historyList = document.getElementById('bulk-selected-students-history-list');
+    
+    if (!tagList || !historyContainer || !historyList) return;
 
-            if (selectedIds.length === 0) return;
+    tagList.innerHTML = '';
+    historyList.innerHTML = '';
+    
+    const selectedIds = window.appState.bulkHafalanStudentIds;
 
-            selectedIds.forEach(studentId => {
-                const student = window.appState.allStudents.find(s => s.id === studentId);
-                if (student) {
-                    const tag = document.createElement('div');
-                    tag.className = 'flex items-center gap-2 bg-teal-100 text-teal-800 text-sm font-medium px-2.5 py-1 rounded-full';
-                    tag.innerHTML = `
-                        <span>${student.name}</span>
-                        <button data-action="remove-student-bulk" data-id="${student.id}" class="text-teal-500 hover:text-teal-700">&times;</button>
-                    `;
-                    ui.bulkHafalanModal.selectedStudentsList.appendChild(tag);
-                }
-            });
+    if (selectedIds.length === 0) {
+        historyContainer.classList.add('hidden'); // Sembunyikan container jika tidak ada siswa
+        return;
+    }
+
+    // Helper maps
+    const surahNameMap = new Map(surahList.map(s => [s.no, s.nama]));
+    const kualitasDisplayMap = { 
+        'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
+        'cukup-lancar': 'Cukup Lancar', 'tidak-lancar': 'Tidak Lancar',
+        'sangat-tidak-lancar': 'Sangat Tidak Lancar'
+    };
+
+    let combinedHistoryEntries = [];
+
+    // 1. Loop untuk buat tag dan kumpulkan riwayat
+    selectedIds.forEach(studentId => {
+        const student = window.appState.allStudents.find(s => s.id === studentId);
+        if (student) {
+            // Render Tag (Logic lama)
+            const tag = document.createElement('div');
+            tag.className = 'inline-flex items-center gap-2 bg-teal-100 text-teal-800 text-sm font-medium px-2.5 py-1 rounded-full';
+            tag.innerHTML = `
+                <span>${student.name}</span>
+                <button data-action="remove-student-bulk" data-id="${student.id}" class="text-teal-500 hover:text-teal-700">&times;</button>
+            `;
+            tagList.appendChild(tag);
+
+            // Kumpulkan Riwayat (Logic baru)
+            const studentHistory = window.appState.allHafalan
+                .filter(h => h.studentId === studentId && (h.jenis === 'ziyadah' || h.jenis === 'murajaah'))
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, 2)
+                .map(entry => ({ ...entry, studentName: student.name })); // Tambahkan nama siswa
+            
+            combinedHistoryEntries.push(...studentHistory);
         }
+    });
+
+    // 2. Sort gabungan riwayat berdasarkan timestamp (terbaru di atas)
+    combinedHistoryEntries.sort((a, b) => b.timestamp - a.timestamp);
+
+    // 3. Render riwayat
+    if (combinedHistoryEntries.length > 0) {
+        combinedHistoryEntries.forEach(entry => {
+            const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'short'});
+            const surahName = surahNameMap.get(entry.surahNo) || `Surah ${entry.surahNo}`;
+            const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
+            const jenisLabel = entry.jenis === 'ziyadah' ? 'Ziyadah' : 'Muraja\'ah';
+            const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
+
+            const item = document.createElement('div');
+            item.className = 'text-xs text-slate-500 bg-white p-2 rounded group';
+            
+            // ▼▼▼ NAMA SISWA DITAMBAHKAN DI SINI ▼▼▼
+            item.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-slate-700">${entry.studentName}</span>
+                    <span class="font-medium">${date}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
+                        <span class="font-semibold text-slate-600">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</span>
+                        <span class="italic">(${kualitasText})</span>
+                    </div>
+                </div>
+            `;
+            historyList.appendChild(item);
+        });
+        historyContainer.classList.remove('hidden'); // Tampilkan container
+    } else {
+        historyList.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Belum ada riwayat setoran untuk siswa yang dipilih.</p>`;
+        historyContainer.classList.remove('hidden'); // Tampilkan container (dengan pesan "belum ada")
+    }
+}
 
         /**
          * Mencari siswa untuk ditambahkan ke daftar setoran massal.
@@ -3520,7 +3613,7 @@ window.populateSettingsForms = function() {
                 setButtonLoading(ui.addStudentSubmitBtn, true);
                 await onlineDB.add('students', { name, classId, lembagaId: window.appState.lembagaId });
                 ui.addStudentForm.reset(); 
-                document.getElementById('add-student-modal').classList.add('hidden'); 
+                hideModal(ui.addStudentModal); 
                     showToast("Siswa baru berhasil ditambahkan.");
                 setButtonLoading(ui.addStudentSubmitBtn, false);
             });
@@ -3849,14 +3942,14 @@ if (ui.addBulkHafalanBtn) {
                     populateBulkHafalanSurah();
                     
                     // 3. Tampilkan modal
-                    ui.bulkHafalanModal.el.classList.remove('hidden');
+                    showModal(ui.bulkHafalanModal.el);
                 });
             }
 
             // Batalkan/Tutup modal Setoran Massal
             if (ui.bulkHafalanModal.cancelBtn) {
                 ui.bulkHafalanModal.cancelBtn.addEventListener('click', () => {
-                    ui.bulkHafalanModal.el.classList.add('hidden');
+                    hideModal(ui.bulkHafalanModal.el);
                 });
             }
 
@@ -4029,13 +4122,23 @@ if (quranScope === 'juz30') {
                         totalEntries++;
                     }
                 }
+                await batch.commit();
 
-                        await batch.commit();
+                showToast(`Setoran (${totalEntries} entri) berhasil disimpan untuk ${selectedStudentIds.length} siswa.`, "success");
+                
+                // ▼▼▼ PERUBAHAN DI SINI ▼▼▼
 
-                        showToast(`Setoran (${totalEntries} entri) berhasil disimpan untuk ${selectedStudentIds.length} siswa.`, "success");
-                        ui.bulkHafalanModal.el.classList.add('hidden'); // Sembunyikan modal
+                // 1. HAPUS/KOMENTARI BARIS INI:
+                // ui.bulkHafalanModal.el.classList.add('hidden'); // Sembunyikan modal
 
-                    } catch (error) {
+                // 2. TAMBAHKAN 3 BARIS INI:
+                ui.bulkHafalanModal.form.reset(); // Reset form (surah, kualitas, dll)
+                populateBulkHafalanSurah(); // Isi ulang dropdown surah (penting setelah reset)
+                renderSelectedStudentsForBulkHafalan(); // Muat ulang riwayat terbaru
+
+                // ▲▲▲ AKHIR PERUBAHAN ▲▲▲
+
+                } catch (error) {
                         showToast(error.message, "error");
                     } finally {
                         setButtonLoading(ui.bulkHafalanModal.submitBtn, false);
@@ -4067,7 +4170,7 @@ if (quranScope === 'juz30') {
                     try {
                         await db.collection('users').doc(uid).update(updatedData);
                         showToast("Profil berhasil disimpan.", "success");
-                        ui.profileSetupModal.el.classList.add('hidden'); // Sembunyikan jika berhasil
+                        hideModal(ui.profileSetupModal.el);
                     } catch (error) {
                         console.error("Gagal update profil dari modal setup:", error);
                         showToast("Gagal menyimpan perubahan.", "error");
