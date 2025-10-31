@@ -371,6 +371,15 @@ function setupUIForRole(role) {
 }
 // --- BARU: Fungsi helper untuk menyinkronkan status aktif di semua menu ---
 function updateNavActiveState(pageId) {
+    // ▼▼▼ TAMBAHKAN LOGIKA INI ▼▼▼
+    // Tentukan link mana yang harus 'aktif'.
+    // Jika kita di 'detail_siswa', anggap 'ringkasan' (Dashboard) yang aktif.
+    let activePageLink = pageId;
+    if (pageId === 'detail_siswa') {
+        activePageLink = 'ringkasan';
+    }
+    // ▲▲▲ AKHIR TAMBAHAN ▲▲▲
+
     const allLinks = [
         ...ui.sidebarLinks,
         ...ui.bottomNavLinks,
@@ -378,7 +387,8 @@ function updateNavActiveState(pageId) {
     ];
 
     allLinks.forEach(link => {
-        if (link.dataset.page === pageId) {
+        // ▼▼▼ UBAH 'pageId' MENJADI 'activePageLink' ▼▼▼
+        if (link.dataset.page === activePageLink) { 
             link.classList.add('active'); // Kelas 'active' dari CSS baru
         } else {
             link.classList.remove('active');
@@ -398,14 +408,33 @@ function _showPageImpl(pageId) {
         if (pageId === 'profil' && typeof window.populateProfileForm === 'function') {
     window.populateProfileForm();
 }
-if (pageId === 'detail_siswa') { // <-- TAMBAHKAN 7 BARIS INI
-    if (window.appState.currentDetailStudentId) {
+if (pageId === 'detail_siswa') { 
+    
+    // 1. Coba ambil ID dari state memori (navigasi normal)
+    let studentId = window.appState.currentDetailStudentId;
+    
+    // 2. Jika tidak ada (karena refresh), coba ambil dari session storage
+    if (!studentId) {
+        studentId = sessionStorage.getItem('currentDetailStudentId');
+        if (studentId) {
+            // 3. Jika dapat, pulihkan ke state memori
+            window.appState.currentDetailStudentId = studentId;
+        }
+    }
+
+    // 4. Setelah semua usaha, cek apakah ID berhasil didapatkan
+    if (studentId) {
         renderStudentDetailPage(); // Panggil fungsi render
     } else {
-        // Ini terjadi jika pengguna me-refresh halaman detail
+        // 5. Jika ID tetap tidak ada, baru tampilkan error dan kembali
         showToast("Gagal memuat detail, silakan kembali.", "error");
         showPage('ringkasan');
     }
+} else {
+    // Jika pindah ke halaman LAIN (bukan detail_siswa),
+    // bersihkan ID siswa dari memori dan session storage
+    sessionStorage.removeItem('currentDetailStudentId');
+    window.appState.currentDetailStudentId = null;
 }
     });
 
@@ -487,9 +516,19 @@ if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
     }
     
 window.addEventListener('popstate', (event) => {
-    // Jika tidak ada state halaman (misalnya saat pertama kali load atau navigasi manual),
-    // default ke halaman 'ringkasan'.
-    const page = event.state?.page || 'ringkasan';
+    // Cek hash URL sebagai fallback utama
+    let page = window.location.hash.substring(1);
+
+    // Jika hash kosong, DAN state juga kosong, baru default ke ringkasan
+    if (!page && !event.state?.page) {
+        page = 'ringkasan';
+    } 
+    // Jika state ada, prioritaskan state (navigasi back/fwd normal)
+    else if (event.state?.page) {
+        page = event.state.page;
+    }
+    // Jika tidak ada kondisi di atas, 'page' sudah diisi dari hash URL.
+
     _showPageImpl(page);
 });
 
@@ -809,17 +848,44 @@ function renderStudentJuzDetails() {
  */
 function renderStudentDetailPage() { 
     const studentId = window.appState.currentDetailStudentId;
-    const student = window.appState.allStudents.find(s => s.id === studentId);
+    const student = window.appState.allStudents.find(s => s.id === studentId); // Cari siswa
     const pageContainer = document.getElementById('detail_siswa-page');
 
-    if (!student || !pageContainer) {
-        showToast("Gagal memuat detail siswa.", "error");
-        showPage('ringkasan'); // Kembali jika data siswa hilang
+    if (!pageContainer) return; // Seharusnya tidak terjadi
+
+    // Jika ID-nya tidak ada (misal: session clear atau navigasi buruk)
+    if (!studentId) {
+        // Ini adalah error yang Anda lihat
+        showToast("Gagal memuat detail, silakan kembali.", "error"); 
+        showPage('ringkasan');
         return;
     }
 
-    // --- BLOK INI DIUBAH TOTAL ---
+    // --- PERBAIKAN UTAMA RACE CONDITION ---
+    // Jika ID-nya ADA, tapi data siswa BELUM SIAP (array allStudents masih kosong)
+    if (!student) {
+        // Jangan redirect! Cukup tunggu data dari onSnapshot.
+        console.warn("renderStudentDetailPage: Data siswa belum siap (menunggu snapshot 'students')...");
+        // Set judul ke "Memuat..." agar konsisten
+        ui.pageTitle.textContent = "Memuat Detail Siswa...";
+        return; // Hentikan eksekusi fungsi untuk saat ini
+    }
     
+    // --- JIKA LOLOS, ARTINYA 'student' ADA ---
+
+    // Cek data kelas untuk judul, mungkin juga belum siap
+    const studentClass = window.appState.allClasses.find(c => c.id === student.classId);
+    
+    if (!studentClass && student.classId) { // classId ada tapi datanya belum dimuat
+         console.warn("renderStudentDetailPage: Data kelas belum siap (menunggu snapshot 'classes')...");
+         ui.pageTitle.textContent = `${student.name} (Memuat kelas...)`;
+         // Lanjutkan render sisa halaman, judul akan diperbarui oleh listener 'classes'
+    } else {
+        // Data siswa DAN kelas sudah siap
+        const className = studentClass ? studentClass.name : 'Tanpa Kelas';
+        ui.pageTitle.textContent = `${student.name} (${className})`;
+    }
+
     // 1. Reset state untuk RIWAYAT
     window.appState.currentDetailHistoryView = 'setoran';
     window.appState.currentDetailHistoryPage = 1;
@@ -828,11 +894,8 @@ function renderStudentDetailPage() {
         historyFilter.value = 'setoran';
     }
 
-    // --- LOGIKA BARU UNTUK JUZ ---
     // 2. Tentukan Juz default berdasarkan setoran terakhir
     let defaultJuz = 1; // Default ke Juz 1
-
-    // Cari setoran terakhir (bukan tes)
     const lastDeposit = window.appState.allHafalan
         .filter(h => h.studentId === studentId && (h.jenis === 'ziyadah' || h.jenis === 'murajaah'))
         .sort((a, b) => b.timestamp - a.timestamp)[0]; // Ambil yang terbaru
@@ -842,7 +905,6 @@ function renderStudentDetailPage() {
         const ayatNo = parseInt(lastDeposit.ayatDari); // Gunakan ayat 'dari'
         
         if (!isNaN(surahNo) && !isNaN(ayatNo)) {
-            // Panggil helper global yang sudah ada
             const calculatedJuz = getJuzForAyat(surahNo, ayatNo); 
             if (calculatedJuz >= 1 && calculatedJuz <= 30) {
                 defaultJuz = calculatedJuz;
@@ -856,14 +918,11 @@ function renderStudentDetailPage() {
     if (juzFilter) {
         juzFilter.value = defaultJuz;
     }
-    // --- AKHIR LOGIKA JUZ BARU ---
 
     // 3. Panggil fungsi-fungsi untuk mengisi data
     renderStudentDetailStats(studentId);
-    renderStudentJuzDetails(); // Ini sekarang akan membaca defaultJuz dari state
+    renderStudentJuzDetails();
     renderStudentDetailHistoryList();
-    
-    // --- AKHIR PERUBAHAN ---
 }
     // --- BARU: Tambahkan listener untuk SEMUA link navigasi baru ---
 const allNavLinks = [
@@ -3767,8 +3826,13 @@ if (ui.summary.studentProgressList) {
     ui.summary.studentProgressList.addEventListener('click', (e) => {
         const studentItem = e.target.closest('.student-progress-item');
         if (studentItem && studentItem.dataset.studentId) {
-            // ▼▼▼ UBAH LOGIKA DI SINI ▼▼▼
-            window.appState.currentDetailStudentId = studentItem.dataset.studentId;
+            // ▼▼▼ PERBAIKAN DI SINI ▼▼▼
+            const studentId = studentItem.dataset.studentId;
+            window.appState.currentDetailStudentId = studentId;
+            
+            // TAMBAHKAN BARIS INI:
+            sessionStorage.setItem('currentDetailStudentId', studentId); 
+            
             showPage('detail_siswa');
         }
     });
@@ -4271,27 +4335,57 @@ if (ui.settings.quranScopeForm) {
                     showToast(`Gagal memuat data dari ${collectionName}. Periksa izin.`, "error");
                 };
 
-                db.collection('classes').where('lembagaId', '==', lembagaId)
+                    db.collection('classes').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allClasses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                        // ▼▼▼ TAMBAHKAN BLOK INI ▼▼▼
+                        const activePage = document.querySelector('.page.page-active');
+                        // Hanya panggil jika kita di halaman detail DAN data siswa sudah ada
+                        // (untuk memperbarui nama kelas di judul)
+                        if (activePage && activePage.id === 'detail_siswa-page' && window.appState.currentDetailStudentId && window.appState.allStudents.length > 0) {
+                            console.log("Classes snapshot, re-rendering detail page (for title update).");
+                            renderStudentDetailPage(); 
+                        }
+                        // ▲▲▲ AKHIR TAMBAHAN ▲▲▲
+
                         renderAll();
                     }, error => commonErrorHandler(error, 'classes'));
 
-                db.collection('students').where('lembagaId', '==', lembagaId)
+                    db.collection('students').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allStudents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        
+                        // ▼▼▼ TAMBAHKAN BLOK INI ▼▼▼
+                        const activePage = document.querySelector('.page.page-active');
+                        // Jika kita di halaman detail, panggil renderStudentDetailPage
+                        // Ini akan berhasil sekarang karena allStudents sudah diisi.
+                        if (activePage && activePage.id === 'detail_siswa-page' && window.appState.currentDetailStudentId) {
+                            console.log("Students snapshot, re-rendering detail page.");
+                            renderStudentDetailPage(); // Panggil render
+                        }
+                        // ▲▲▲ AKHIR TAMBAHAN ▲▲▲
+
                         renderAll();
                     }, error => commonErrorHandler(error, 'students'));
 
-                    db.collection('hafalan').where('lembagaId', '==', lembagaId)
-                    .onSnapshot(snapshot => {
-                        window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        
-                        // CUKUP PANGGIL renderAll()
-                        // Dia akan menunggu data lain selesai dimuat.
-                        renderAll();
+                db.collection('hafalan').where('lembagaId', '==', lembagaId)
+                .onSnapshot(snapshot => {
+                    window.appState.allHafalan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // ▼▼▼ TAMBAHKAN BLOK INI ▼▼▼
+                    const activePage = document.querySelector('.page.page-active');
+                    // Jika kita di halaman detail, panggil renderStudentDetailPage LAGI.
+                    // Ini akan mengisi ulang stats, juz, dan riwayat dengan data hafalan yang baru tiba.
+                    if (activePage && activePage.id === 'detail_siswa-page' && window.appState.currentDetailStudentId) {
+                        console.log("Hafalan snapshot, me-render ulang komponen detail.");
+                        renderStudentDetailPage(); // Panggil fungsi render utama lagi
+                    }
+                    // ▲▲▲ AKHIR TAMBAHAN ▲▲▲
 
-                    }, error => commonErrorHandler(error, 'hafalan'));
+                    renderAll(); // Tetap panggil renderAll untuk update summary di Dashboard, dll.
+
+                }, error => commonErrorHandler(error, 'hafalan'));
                                 db.collection('users').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
