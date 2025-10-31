@@ -112,6 +112,62 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.classList.remove('show');
         }, 3000);
     }
+ /**
+ * Menganimasikan angka dari nilai saat ini ke nilai target.
+ * @param {HTMLElement} el - Elemen HTML yang akan dianimasikan.
+ * @param {number} target - Angka akhir.
+ * @param {number} duration - Durasi animasi dalam milidetik.
+ * @param {boolean} isFloat - Apakah ini angka desimal (float)?
+ */
+function animateCountUp(el, target, duration = 1000, isFloat = false) {
+    if (!el) return;
+
+    let start;
+    if (isFloat) {
+        // Ubah "0,5" (string) menjadi 0.5 (angka)
+        start = parseFloat(el.textContent.replace(/[^0-9,-]/g, '').replace(',', '.')) || 0;
+    } else {
+        // Angka bulat biasa
+        start = parseInt(el.textContent.replace(/[^0-9-]/g, ''), 10) || 0;
+    }
+
+    if (isNaN(start)) {
+        start = 0;
+    }
+
+    // Jika nilai sudah sama, atur teks yang benar dan hentikan
+    if (start === target) {
+        el.textContent = isFloat ? target.toString().replace('.', ',') : target;
+        return;
+    }
+
+    let startTime = null;
+
+    const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3); // Efek easeOut
+
+        let current;
+        if (isFloat) {
+            current = (easedProgress * (target - start) + start);
+            // Ubah 0.5 (angka) kembali menjadi "0,5" (string)
+            el.textContent = current.toFixed(1).replace('.', ',');
+        } else {
+            current = Math.floor(easedProgress * (target - start) + start);
+            el.textContent = current;
+        }
+
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            // Pastikan nilai akhir tepat
+            el.textContent = isFloat ? target.toFixed(1).replace('.', ',') : target;
+        }
+    };
+
+    requestAnimationFrame(step);
+}
     let debounceTimeout;
     function debounce(func, delay = 100) {
         return function(...args) {
@@ -1522,82 +1578,100 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
             renderRiwayatList();
         }
         const renderAll = debounce(_renderAllImpl, 50);
-        function renderSummary() {
-            if(ui.summary.totalSiswa) ui.summary.totalSiswa.textContent = window.appState.allStudents.length;
-            if(ui.summary.totalKelas) ui.summary.totalKelas.textContent = window.appState.allClasses.length;
+function renderSummary() {
+    // --- 1. Siswa & Kelas ---
+    // Targetnya adalah <p> tag, jadi kita bisa langsung panggil
+    if (ui.summary.totalSiswa) {
+        animateCountUp(ui.summary.totalSiswa, window.appState.allStudents.length, 1000);
+    }
+    if (ui.summary.totalKelas) {
+        animateCountUp(ui.summary.totalKelas, window.appState.allClasses.length, 1000);
+    }
 
-            const now = new Date();
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-            const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+    // --- 2. Kalkulasi Data (Tidak berubah) ---
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
 
-            let ziyadahMonth = 0, ziyadahLastMonth = 0;
-            let murajaahMonth = 0, murajaahLastMonth = 0;
+    let ziyadahMonth = 0, ziyadahLastMonth = 0;
+    let murajaahMonth = 0, murajaahLastMonth = 0;
 
-            window.appState.allHafalan.forEach(h => {
-                const ayatCount = (parseInt(h.ayatSampai) - parseInt(h.ayatDari) + 1);
-                const timestamp = h.timestamp;
-                
-                const updateCounters = (type) => {
-                        if (timestamp >= monthStart) {
-                        if(type === 'ziyadah') ziyadahMonth += ayatCount; else murajaahMonth += ayatCount;
-                        } else if (timestamp >= lastMonthStart && timestamp < monthStart) {
-                            if(type === 'ziyadah') ziyadahLastMonth += ayatCount; else murajaahLastMonth += ayatCount;
-                        }
-                };
+    window.appState.allHafalan.forEach(h => {
+        const ayatCount = (parseInt(h.ayatSampai) - parseInt(h.ayatDari) + 1);
+        const timestamp = h.timestamp;
+        
+        const updateCounters = (type) => {
+                if (timestamp >= monthStart) {
+                if(type === 'ziyadah') ziyadahMonth += ayatCount; else murajaahMonth += ayatCount;
+                } else if (timestamp >= lastMonthStart && timestamp < monthStart) {
+                    if(type === 'ziyadah') ziyadahLastMonth += ayatCount; else murajaahLastMonth += ayatCount;
+                }
+        };
 
-                if (h.jenis === 'ziyadah') updateCounters('ziyadah');
-                else if (h.jenis === 'murajaah') updateCounters('murajaah');
-            });
-            
-            let totalMutqinScore = 0;
-            const scoreMap = getMutqinScores();
+        if (h.jenis === 'ziyadah') updateCounters('ziyadah');
+        else if (h.jenis === 'murajaah') updateCounters('murajaah');
+    });
+    
+    let totalMutqinScore = 0;
+    const scoreMap = getMutqinScores();
 
-            if (window.appState.allHafalan.length > 0) {
-                const totalScore = window.appState.allHafalan.reduce((sum, entry) => {
-                    return sum + (scoreMap[entry.kualitas] || 0);
-                }, 0);
-                totalMutqinScore = Math.round(totalScore / window.appState.allHafalan.length);
-            }
-            
-            const mutqinElement = document.getElementById('summary-mutqin-score');
-            if (mutqinElement) {
-                mutqinElement.innerHTML = `<span class="text-teal-700">${totalMutqinScore}%</span>`;
-            }
+    if (window.appState.allHafalan.length > 0) {
+        const totalScore = window.appState.allHafalan.reduce((sum, entry) => {
+            return sum + (scoreMap[entry.kualitas] || 0);
+        }, 0);
+        totalMutqinScore = Math.round(totalScore / window.appState.allHafalan.length);
+    }
+    
+    // --- 3. Render Skor Mutqin (BARU) ---
+    // Target elemen <span> khusus angka
+    const mutqinCountEl = document.getElementById('summary-mutqin-count');
+    if (mutqinCountEl) {
+        animateCountUp(mutqinCountEl, totalMutqinScore, 1000);
+    }
 
-            const calculateTrend = (current, previous) => {
-                if (previous > 0) return Math.round(((current - previous) / previous) * 100);
-                if (current > 0) return 100;
-                return 0;
-            };
+    // --- 4. Kalkulasi Trend (Tidak berubah) ---
+    const calculateTrend = (current, previous) => {
+        if (previous > 0) return Math.round(((current - previous) / previous) * 100);
+        if (current > 0) return 100;
+        return 0;
+    };
 
-            const formatTrendText = (trend) => {
-                if (trend === 0) return `<span class="text-lg font-medium text-slate-500">/ 0%</span>`;
-                const colorClass = trend > 0 ? 'text-green-500' : 'text-red-500';
-                const sign = trend > 0 ? '+' : '';
-                return `<span class="text-lg font-medium ${colorClass}">/ ${sign}${trend}%</span>`;
-            };
+    const formatTrendText = (trend) => {
+        if (trend === 0) return `<span class="text-lg font-medium text-slate-500">/ 0%</span>`;
+        const colorClass = trend > 0 ? 'text-green-500' : 'text-red-500';
+        const sign = trend > 0 ? '+' : '';
+        return `<span class="text-lg font-medium ${colorClass}">/ ${sign}${trend}%</span>`;
+    };
 
-            const ziyadahTrend = calculateTrend(ziyadahMonth, ziyadahLastMonth);
-            const murajaahTrend = calculateTrend(murajaahMonth, murajaahLastMonth);
+    const ziyadahTrend = calculateTrend(ziyadahMonth, ziyadahLastMonth);
+    const murajaahTrend = calculateTrend(murajaahMonth, murajaahLastMonth);
 
-            const ziyadahCombinedEl = document.getElementById('summary-ziyadah-combined');
-            if (ziyadahCombinedEl) {
-                ziyadahCombinedEl.innerHTML = `
-                    <span>${ziyadahMonth}</span>
-                    <span class="text-lg font-medium text-slate-500">Ayat</span>
-                    ${formatTrendText(ziyadahTrend)}
-                `;
-            }
+    // --- 5. Render Ziyadah (BARU) ---
+    const ziyadahCountEl = document.getElementById('summary-ziyadah-count');
+    const ziyadahSuffixEl = document.getElementById('summary-ziyadah-suffix-container');
+    if (ziyadahCountEl && ziyadahSuffixEl) {
+        // Animasikan angkanya
+        animateCountUp(ziyadahCountEl, ziyadahMonth, 1000);
+        // Set sisa HTML-nya (teks "Ayat" dan trend)
+        ziyadahSuffixEl.innerHTML = `
+            <span class="text-lg font-medium text-slate-500">Ayat</span>
+            ${formatTrendText(ziyadahTrend)}
+        `;
+    }
 
-            const murajaahCombinedEl = document.getElementById('summary-murajaah-combined');
-            if (murajaahCombinedEl) {
-                    murajaahCombinedEl.innerHTML = `
-                    <span>${murajaahMonth}</span>
-                    <span class="text-lg font-medium text-slate-500">Ayat</span>
-                    ${formatTrendText(murajaahTrend)}
-                `;
-            }
-        }
+    // --- 6. Render Muraja'ah (BARU) ---
+    const murajaahCountEl = document.getElementById('summary-murajaah-count');
+    const murajaahSuffixEl = document.getElementById('summary-murajaah-suffix-container');
+    if (murajaahCountEl && murajaahSuffixEl) {
+        // Animasikan angkanya
+        animateCountUp(murajaahCountEl, murajaahMonth, 1000);
+        // Set sisa HTML-nya (teks "Ayat" dan trend)
+        murajaahSuffixEl.innerHTML = `
+            <span class="text-lg font-medium text-slate-500">Ayat</span>
+            ${formatTrendText(murajaahTrend)}
+        `;
+    }
+}
         function renderPencapaianPagination(totalItems) {
             const paginationContainer = document.getElementById('pencapaian-pagination-controls');
             if (!paginationContainer) return;
@@ -1670,49 +1744,14 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
                 
                 return `<div class="text-xs font-semibold ${colorClass} flex items-center justify-end gap-1 mt-1">${icon}<span>${Math.abs(trend)}% 7 hari terakhir</span></div>`;
             }
-        function renderStudentProgressList() {
-            if (!ui.summary.studentProgressList) return;
-            
-            // --- DATA STRUKTUR AL-QUR'AN (UNTUK PERHITUNGAN AKURAT) ---
-            const surahInfo = [
-                { no: 1, ayat: 7, nama: "Al-Fatihah" }, { no: 2, ayat: 286, nama: "Al-Baqarah" }, { no: 3, ayat: 200, nama: "Ali 'Imran" },
-                { no: 4, ayat: 176, nama: "An-Nisa'" }, { no: 5, ayat: 120, nama: "Al-Ma'idah" }, { no: 6, ayat: 165, nama: "Al-An'am" },
-                { no: 7, ayat: 206, nama: "Al-A'raf" }, { no: 8, ayat: 75, nama: "Al-Anfal" }, { no: 9, ayat: 129, nama: "At-Taubah" },
-                { no: 10, ayat: 109, nama: "Yunus" }, { no: 11, ayat: 123, nama: "Hud" }, { no: 12, ayat: 111, nama: "Yusuf" },
-                { no: 13, ayat: 43, nama: "Ar-Ra'd" }, { no: 14, ayat: 52, nama: "Ibrahim" }, { no: 15, ayat: 99, nama: "Al-Hijr" },
-                { no: 16, ayat: 128, nama: "An-Nahl" }, { no: 17, ayat: 111, nama: "Al-Isra'" }, { no: 18, ayat: 110, nama: "Al-Kahf" },
-                { no: 19, ayat: 98, nama: "Maryam" }, { no: 20, ayat: 135, nama: "Taha" }, { no: 21, ayat: 112, nama: "Al-Anbiya'" },
-                { no: 22, ayat: 78, nama: "Al-Hajj" }, { no: 23, ayat: 118, nama: "Al-Mu'minun" }, { no: 24, ayat: 64, nama: "An-Nur" },
-                { no: 25, ayat: 77, nama: "Al-Furqan" }, { no: 26, ayat: 227, nama: "Asy-Syu'ara'" }, { no: 27, ayat: 93, nama: "An-Naml" },
-                { no: 28, ayat: 88, nama: "Al-Qasas" }, { no: 29, ayat: 69, nama: "Al-'Ankabut" }, { no: 30, ayat: 60, nama: "Ar-Rum" },
-                { no: 31, ayat: 34, nama: "Luqman" }, { no: 32, ayat: 30, nama: "As-Sajdah" }, { no: 33, ayat: 73, nama: "Al-Ahzab" },
-                { no: 34, ayat: 54, nama: "Saba'" }, { no: 35, ayat: 45, nama: "Fatir" }, { no: 36, ayat: 83, nama: "Yasin" },
-                { no: 37, ayat: 182, nama: "As-Saffat" }, { no: 38, ayat: 88, nama: "Sad" }, { no: 39, ayat: 75, nama: "Az-Zumar" },
-                { no: 40, ayat: 85, nama: "Ghafir" }, { no: 41, ayat: 54, nama: "Fussilat" }, { no: 42, ayat: 53, nama: "Asy-Syura" },
-                { no: 43, ayat: 89, nama: "Az-Zukhruf" }, { no: 44, ayat: 59, nama: "Ad-Dukhan" }, { no: 45, ayat: 37, nama: "Al-Jasiyah" },
-                { no: 46, ayat: 35, nama: "Al-Ahqaf" }, { no: 47, ayat: 38, nama: "Muhammad" }, { no: 48, ayat: 29, nama: "Al-Fath" },
-                { no: 49, ayat: 18, nama: "Al-Hujurat" }, { no: 50, ayat: 45, nama: "Qaf" }, { no: 51, ayat: 60, nama: "Az-Zariyat" },
-                { no: 52, ayat: 49, nama: "At-Tur" }, { no: 53, ayat: 62, nama: "An-Najm" }, { no: 54, ayat: 55, nama: "Al-Qamar" },
-                { no: 55, ayat: 78, nama: "Ar-Rahman" }, { no: 56, ayat: 96, nama: "Al-Waqi'ah" }, { no: 57, ayat: 29, nama: "Al-Hadid" },
-                { no: 58, ayat: 22, nama: "Al-Mujadalah" }, { no: 59, ayat: 24, nama: "Al-Hasyr" }, { no: 60, ayat: 13, nama: "Al-Mumtahanah" },
-                { no: 61, ayat: 14, nama: "As-Saff" }, { no: 62, ayat: 11, nama: "Al-Jumu'ah" }, { no: 63, ayat: 11, nama: "Al-Munafiqun" },
-                { no: 64, ayat: 18, nama: "At-Tagabun" }, { no: 65, ayat: 12, nama: "At-Talaq" }, { no: 66, ayat: 12, nama: "At-Tahrim" },
-                { no: 67, ayat: 30, nama: "Al-Mulk" }, { no: 68, ayat: 52, nama: "Al-Qalam" }, { no: 69, ayat: 52, nama: "Al-Haqqah" },
-                { no: 70, ayat: 44, nama: "Al-Ma'arij" }, { no: 71, ayat: 28, nama: "Nuh" }, { no: 72, ayat: 28, nama: "Al-Jinn" },
-                { no: 73, ayat: 20, nama: "Al-Muzzammil" }, { no: 74, ayat: 56, nama: "Al-Muddassir" }, { no: 75, ayat: 40, nama: "Al-Qiyamah" },
-                { no: 76, ayat: 31, nama: "Al-Insan" }, { no: 77, ayat: 50, nama: "Al-Mursalat" }, { no: 78, ayat: 40, nama: "An-Naba'" },
-                { no: 79, ayat: 46, nama: "An-Nazi'at" }, { no: 80, ayat: 42, nama: "'Abasa" }, { no: 81, ayat: 29, nama: "At-Takwir" },
-                { no: 82, ayat: 19, nama: "Al-Infitar" }, { no: 83, ayat: 36, nama: "Al-Mutaffifin" }, { no: 84, ayat: 25, nama: "Al-Insyiqaq" },
-                { no: 85, ayat: 22, nama: "Al-Buruj" }, { no: 86, ayat: 17, nama: "At-Tariq" }, { no: 87, ayat: 19, nama: "Al-A'la" },
-                { no: 88, ayat: 26, nama: "Al-Gasyiyah" }, { no: 89, ayat: 30, nama: "Al-Fajr" }, { no: 90, ayat: 20, nama: "Al-Balad" },
-                { no: 91, ayat: 15, nama: "Asy-Syams" }, { no: 92, ayat: 21, nama: "Al-Lail" }, { no: 93, ayat: 11, nama: "Ad-Duha" },
-                { no: 94, ayat: 8, nama: "Asy-Syarh" }, { no: 95, ayat: 8, nama: "At-Tin" }, { no: 96, ayat: 19, nama: "Al-'Alaq" },
-                { no: 97, ayat: 5, nama: "Al-Qadr" }, { no: 98, ayat: 8, nama: "Al-Bayyinah" }, { no: 99, ayat: 8, nama: "Az-Zalzalah" },
-                { no: 100, ayat: 11, nama: "Al-'Adiyat" }, { no: 101, ayat: 11, nama: "Al-Qari'ah" }, { no: 102, ayat: 8, nama: "At-Takasur" },
-                { no: 103, ayat: 3, nama: "Al-'Asr" }, { no: 104, ayat: 9, nama: "Al-Humazah" }, { no: 105, ayat: 5, nama: "Al-Fil" },
-                { no: 106, ayat: 4, nama: "Quraisy" }, { no: 107, ayat: 7, nama: "Al-Ma'un" }, { no: 108, ayat: 3, nama: "Al-Kausar" },
-                { no: 109, ayat: 6, nama: "Al-Kafirun" }, { no: 110, ayat: 3, nama: "An-Nasr" }, { no: 111, ayat: 5, nama: "Al-Masad" },
-                { no: 112, ayat: 4, nama: "Al-Ikhlas" }, { no: 113, ayat: 5, nama: "Al-Falaq" }, { no: 114, ayat: 6, nama: "An-Nas" }
+/**
+ * GANTI SELURUH FUNGSI renderStudentProgressList DENGAN INI
+ */
+function renderStudentProgressList() {
+    if (!ui.summary.studentProgressList) return;
+    
+    // --- DATA STRUKTUR AL-QUR'AN (TETAP SAMA) ---
+    const surahInfo = [ { no: 1, ayat: 7, nama: "Al-Fatihah" }, { no: 2, ayat: 286, nama: "Al-Baqarah" }, { no: 3, ayat: 200, nama: "Ali 'Imran" }, { no: 4, ayat: 176, nama: "An-Nisa'" }, { no: 5, ayat: 120, nama: "Al-Ma'idah" }, { no: 6, ayat: 165, nama: "Al-An'am" }, { no: 7, ayat: 206, nama: "Al-A'raf" }, { no: 8, ayat: 75, nama: "Al-Anfal" }, { no: 9, ayat: 129, nama: "At-Taubah" }, { no: 10, ayat: 109, nama: "Yunus" }, { no: 11, ayat: 123, nama: "Hud" }, { no: 12, ayat: 111, nama: "Yusuf" }, { no: 13, ayat: 43, nama: "Ar-Ra'd" }, { no: 14, ayat: 52, nama: "Ibrahim" }, { no: 15, ayat: 99, nama: "Al-Hijr" }, { no: 16, ayat: 128, nama: "An-Nahl" }, { no: 17, ayat: 111, nama: "Al-Isra'" }, { no: 18, ayat: 110, nama: "Al-Kahf" }, { no: 19, ayat: 98, nama: "Maryam" }, { no: 20, ayat: 135, nama: "Taha" }, { no: 21, ayat: 112, nama: "Al-Anbiya'" }, { no: 22, ayat: 78, nama: "Al-Hajj" }, { no: 23, ayat: 118, nama: "Al-Mu'minun" }, { no: 24, ayat: 64, nama: "An-Nur" }, { no: 25, ayat: 77, nama: "Al-Furqan" }, { no: 26, ayat: 227, nama: "Asy-Syu'ara'" }, { no: 27, ayat: 93, nama: "An-Naml" }, { no: 28, ayat: 88, nama: "Al-Qasas" }, { no: 29, ayat: 69, nama: "Al-'Ankabut" }, { no: 30, ayat: 60, nama: "Ar-Rum" }, { no: 31, ayat: 34, nama: "Luqman" }, { no: 32, ayat: 30, nama: "As-Sajdah" }, { no: 33, ayat: 73, nama: "Al-Ahzab" }, { no: 34, ayat: 54, nama: "Saba'" }, { no: 35, ayat: 45, nama: "Fatir" }, { no: 36, ayat: 83, nama: "Yasin" }, { no: 37, ayat: 182, nama: "As-Saffat" }, { no: 38, ayat: 88, nama: "Sad" }, { no: 39, ayat: 75, nama: "Az-Zumar" }, { no: 40, ayat: 85, nama: "Ghafir" }, { no: 41, ayat: 54, nama: "Fussilat" }, { no: 42, ayat: 53, nama: "Asy-Syura" }, { no: 43, ayat: 89, nama: "Az-Zukhruf" }, { no: 44, ayat: 59, nama: "Ad-Dukhan" }, { no: 45, ayat: 37, nama: "Al-Jasiyah" }, { no: 46, ayat: 35, nama: "Al-Ahqaf" }, { no: 47, ayat: 38, nama: "Muhammad" }, { no: 48, ayat: 29, nama: "Al-Fath" }, { no: 49, ayat: 18, nama: "Al-Hujurat" }, { no: 50, ayat: 45, nama: "Qaf" }, { no: 51, ayat: 60, nama: "Az-Zariyat" }, { no: 52, ayat: 49, nama: "At-Tur" }, { no: 53, ayat: 62, nama: "An-Najm" }, { no: 54, ayat: 55, nama: "Al-Qamar" }, { no: 55, ayat: 78, nama: "Ar-Rahman" }, { no: 56, ayat: 96, nama: "Al-Waqi'ah" }, { no: 57, ayat: 29, nama: "Al-Hadid" }, { no: 58, ayat: 22, nama: "Al-Mujadalah" }, { no: 59, ayat: 24, nama: "Al-Hasyr" }, { no: 60, ayat: 13, nama: "Al-Mumtahanah" }, { no: 61, ayat: 14, nama: "As-Saff" }, { no: 62, ayat: 11, nama: "Al-Jumu'ah" }, { no: 63, ayat: 11, nama: "Al-Munafiqun" }, { no: 64, ayat: 18, nama: "At-Tagabun" }, { no: 65, ayat: 12, nama: "At-Talaq" }, { no: 66, ayat: 12, nama: "At-Tahrim" }, { no: 67, ayat: 30, nama: "Al-Mulk" }, { no: 68, ayat: 52, nama: "Al-Qalam" }, { no: 69, ayat: 52, nama: "Al-Haqqah" }, { no: 70, ayat: 44, nama: "Al-Ma'arij" }, { no: 71, ayat: 28, nama: "Nuh" }, { no: 72, ayat: 28, nama: "Al-Jinn" }, { no: 73, ayat: 20, nama: "Al-Muzzammil" }, { no: 74, ayat: 56, nama: "Al-Muddassir" }, { no: 75, ayat: 40, nama: "Al-Qiyamah" }, { no: 76, ayat: 31, nama: "Al-Insan" }, { no: 77, ayat: 50, nama: "Al-Mursalat" }, { no: 78, ayat: 40, nama: "An-Naba'" }, { no: 79, ayat: 46, nama: "An-Nazi'at" }, { no: 80, ayat: 42, nama: "'Abasa" }, { no: 81, ayat: 29, nama: "At-Takwir" }, { no: 82, ayat: 19, nama: "Al-Infitar" }, { no: 83, ayat: 36, nama: "Al-Mutaffifin" }, { no: 84, ayat: 25, nama: "Al-Insyiqaq" }, { no: 85, ayat: 22, nama: "Al-Buruj" }, { no: 86, ayat: 17, nama: "At-Tariq" }, { no: 87, ayat: 19, nama: "Al-A'la" }, { no: 88, ayat: 26, nama: "Al-Gasyiyah" }, { no: 89, ayat: 30, nama: "Al-Fajr" }, { no: 90, ayat: 20, nama: "Al-Balad" }, { no: 91, ayat: 15, nama: "Asy-Syams" }, { no: 92, ayat: 21, nama: "Al-Lail" }, { no: 93, ayat: 11, nama: "Ad-Duha" }, { no: 94, ayat: 8, nama: "Asy-Syarh" }, { no: 95, ayat: 8, nama: "At-Tin" }, { no: 96, ayat: 19, nama: "Al-'Alaq" }, { no: 97, ayat: 5, nama: "Al-Qadr" }, { no: 98, ayat: 8, nama: "Al-Bayyinah" }, { no: 99, ayat: 8, nama: "Az-Zalzalah" }, { no: 100, ayat: 11, nama: "Al-'Adiyat" }, { no: 101, ayat: 11, nama: "Al-Qari'ah" }, { no: 102, ayat: 8, nama: "At-Takasur" }, { no: 103, ayat: 3, nama: "Al-'Asr" }, { no: 104, ayat: 9, nama: "Al-Humazah" }, { no: 105, ayat: 5, nama: "Al-Fil" }, { no: 106, ayat: 4, nama: "Quraisy" }, { no: 107, ayat: 7, nama: "Al-Ma'un" }, { no: 108, ayat: 3, nama: "Al-Kausar" }, { no: 109, ayat: 6, nama: "Al-Kafirun" }, { no: 110, ayat: 3, nama: "An-Nasr" }, { no: 111, ayat: 5, nama: "Al-Masad" }, { no: 112, ayat: 4, nama: "Al-Ikhlas" }, { no: 113, ayat: 5, nama: "Al-Falaq" }, { no: 114, ayat: 6, nama: "An-Nas" }
             ];
 
             const juzBoundaries = [
@@ -1742,6 +1781,7 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
                 }
             });
 
+            // --- KALKULASI SKOR (TETAP SAMA) ---
             const ITEMS_PER_PAGE = 36;
             const filterClassId = ui.summary.rankFilterClass ? ui.summary.rankFilterClass.value : '';
             const searchTerm = ui.summary.searchStudent ? ui.summary.searchStudent.value.toLowerCase() : '';
@@ -1827,14 +1867,15 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
                     id: student.id,
                     name: student.name, 
                     className: studentClass ? studentClass.name : 'Tanpa Kelas', 
-                    totalJuz: totalJuz,
-                    totalJuzFormatted: totalJuzFormatted,
-                    testScore: averageTestScore,
-                    mutqinScore, 
-                    trend: calculateTrend(last7DaysTotal, previous7DaysTotal) 
+                    totalJuz: totalJuz, // Angka (e.g., 0.5)
+                    totalJuzFormatted: totalJuzFormatted, // String (e.g., "0,5")
+                    testScore: averageTestScore, // Angka (e.g., 80)
+                    mutqinScore, // Angka (e.g., 81)
+                    trend: calculateTrend(last7DaysTotal, previous7DaysTotal) // Angka (e.g., -60)
                 };
             });
 
+            // --- PENGURUTAN (TETAP SAMA) ---
             const totalMutqinKeseluruhan = studentScores.reduce((sum, student) => sum + student.mutqinScore, 0);
 
             if (totalMutqinKeseluruhan === 0) {
@@ -1851,12 +1892,13 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
                 });
             }
 
+            // --- PAGINASI (TETAP SAMA) ---
             const currentPage = window.appState.currentPagePencapaian;
             const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
             const endIndex = startIndex + ITEMS_PER_PAGE;
             const paginatedScores = studentScores.slice(startIndex, endIndex);
 
-            ui.summary.studentProgressList.innerHTML = ''; 
+            // --- ▼▼▼ LOGIKA RENDER BARU ▼▼▼ ---
 
             if (studentScores.length === 0) {
                 ui.summary.studentProgressList.innerHTML = `<p class="text-center text-slate-500 py-4">Belum ada data siswa.</p>`;
@@ -1864,48 +1906,125 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
                 return;
             }
             
+            const listContainer = ui.summary.studentProgressList;
+            
+            // 1. Simpan item yang ada di DOM
+            const existingItems = new Map();
+            listContainer.querySelectorAll('.student-progress-item').forEach(item => {
+                existingItems.set(item.dataset.studentId, item);
+            });
+
             const fragment = document.createDocumentFragment();
+            const currentItemIds = new Set(); // Lacak item yang masih ada di halaman ini
+
             paginatedScores.forEach((student, index) => {
                 const rank = startIndex + index + 1;
-                const item = document.createElement('div');
-                item.className = 'student-progress-item flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer hover:bg-slate-100';
-                item.dataset.studentId = student.id;
-                
+                const studentId = student.id;
+                currentItemIds.add(studentId);
+
+                // Siapkan data non-animasi
+                const trendHTML = renderStudentTrend(student.trend);
                 let rankDisplay = `<span class="font-bold text-slate-500 text-lg w-6 text-center">-</span>`;
+                let rankClass = 'bg-slate-50';
+                
                 if (totalMutqinKeseluruhan > 0) {
                     rankDisplay = `<span class="font-bold text-slate-500 text-lg w-6 text-center">${rank}</span>`;
-                    if (rank === 1) item.classList.add('bg-amber-100');
-                    else if (rank === 2) item.classList.add('bg-slate-200');
-                    else if (rank === 3) item.classList.add('bg-orange-100');
-                    else item.classList.add('bg-slate-50');
-                } else {
-                    item.classList.add('bg-slate-50');
+                    if (rank === 1) rankClass = 'bg-amber-100';
+                    else if (rank === 2) rankClass = 'bg-slate-200';
+                    else if (rank === 3) rankClass = 'bg-orange-100';
                 }
-            
-                // ▼▼▼ BARIS DI BAWAH INI TELAH DIUBAH ▼▼▼
-                item.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        ${rankDisplay}
-                        <div>
-                            <p class="font-semibold text-slate-700">${student.name}</p>
-                            <p class="text-sm text-slate-500">${student.className}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="flex justify-end gap-3 sm:gap-4 text-center">
-                            <div><p class="font-bold text-teal-600">${student.totalJuzFormatted}</p><p class="text-xs text-slate-500">Juz</p></div>
-                            <div><p class="font-bold text-teal-600">${student.testScore}</p><p class="text-xs text-slate-500">Tes</p></div>
-                            <div><p class="font-bold text-teal-600">${student.mutqinScore}%</p><p class="text-xs text-slate-500">Mutqin</p></div>
-                        </div>
-                        ${renderStudentTrend(student.trend)}
-                    </div>
-                `;
-                // ▲▲▲ AKHIR PERUBAHAN ▲▲▲
 
-                fragment.appendChild(item);
+                // Cek apakah item sudah ada di DOM
+                if (existingItems.has(studentId)) {
+                    // --- 2. JIKA SUDAH ADA, UPDATE ---
+                    const item = existingItems.get(studentId);
+                    
+                    // Update Class (peringkat bisa berubah)
+                    item.className = `student-progress-item flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer hover:bg-slate-100 ${rankClass}`;
+                    
+                    // Update Peringkat
+                    const rankEl = item.querySelector('[data-target="rank"]');
+                    if (rankEl) rankEl.innerHTML = rankDisplay;
+
+                    // Update Angka dengan Animasi
+                    const juzEl = item.querySelector('[data-target="juz"]');
+                    const tesEl = item.querySelector('[data-target="tes"]');
+                    const mutqinEl = item.querySelector('[data-target="mutqin"]');
+
+                    // Panggil animateCountUp(element, target, duration, isFloat)
+                    animateCountUp(juzEl, student.totalJuz, 800, true);
+                    animateCountUp(tesEl, student.testScore, 800, false);
+                    animateCountUp(mutqinEl, student.mutqinScore, 800, false);
+
+                    // Update Trend (tanpa animasi)
+                    const trendEl = item.querySelector('[data-target="trend"]');
+                    if (trendEl && trendEl.innerHTML !== trendHTML) {
+                        trendEl.innerHTML = trendHTML;
+                    }
+                    
+                    // Update Nama/Kelas (jika berubah, misal pindah kelas)
+                    const nameEl = item.querySelector('[data-target="name"]');
+                    if (nameEl && nameEl.textContent !== student.name) nameEl.textContent = student.name;
+                    const classEl = item.querySelector('[data-target="class"]');
+                    if (classEl && classEl.textContent !== student.className) classEl.textContent = student.className;
+                    
+                    fragment.appendChild(item); // Pindahkan item ke fragment untuk diurutkan ulang
+
+} else {
+                    // --- 3. JIKA ITEM BARU, BUAT (DENGAN ANIMASI) ---
+                    const item = document.createElement('div');
+                    item.className = `student-progress-item flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer hover:bg-slate-100 ${rankClass}`;
+                    item.dataset.studentId = student.id;
+                
+                    // Buat HTML dengan ANGKA AWAL "0"
+                    item.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <span data-target="rank">${rankDisplay}</span>
+                            <div>
+                                <p data-target="name" class="font-semibold text-slate-700">${student.name}</p>
+                                <p data-target="class" class="text-sm text-slate-500">${student.className}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex justify-end gap-3 sm:gap-4 text-center">
+                                <div><p class="font-bold text-teal-600"><span data-target="juz">0,0</span></p><p class="text-xs text-slate-500">Juz</p></div>
+                                <div><p class="font-bold text-teal-600"><span data-target="tes">0</span></p><p class="text-xs text-slate-500">Tes</p></div>
+                                <div><p class="font-bold text-teal-600"><span data-target="mutqin">0</span>%</p><p class="text-xs text-slate-500">Mutqin</p></div>
+                            </div>
+                            <div data-target="trend">${trendHTML}</div>
+                        </div>
+                    `;
+
+                    // Tambahkan ke fragment
+                    fragment.appendChild(item);
+
+                    // SEKARANG, temukan elemen di item BARU ini dan panggil animasi
+                    const juzEl = item.querySelector('[data-target="juz"]');
+                    const tesEl = item.querySelector('[data-target="tes"]');
+                    const mutqinEl = item.querySelector('[data-target="mutqin"]');
+
+                    // Panggil animateCountUp(element, target, duration, isFloat)
+                    // Kita buat durasinya sedikit lebih lama untuk load awal agar terlihat
+                    animateCountUp(juzEl, student.totalJuz, 1200, true);
+                    animateCountUp(tesEl, student.testScore, 1200, false);
+                    animateCountUp(mutqinEl, student.mutqinScore, 1200, false);
+                }
             });
-            ui.summary.studentProgressList.appendChild(fragment);
 
+            // --- 4. HAPUS ITEM LAMA DARI DOM ---
+            existingItems.forEach((item, id) => {
+                if (!currentItemIds.has(id)) {
+                    item.remove();
+                }
+            });
+            
+            // --- 5. RENDER KE DOM ---
+            // Hapus isi container, lalu tambahkan fragment
+            // Ini memastikan urutan item selalu benar
+            listContainer.innerHTML = ''; 
+            listContainer.appendChild(fragment);
+
+            // Render Paginasi (tetap sama)
             renderPencapaianPagination(studentScores.length);
         }
         function renderRiwayatPagination(totalItems) {
