@@ -417,6 +417,7 @@ function updateNavActiveState(pageId) {
     // --- Navigation and History Management ---
 
 function _showPageImpl(pageId) {
+    window.scrollTo(0, 0)
     // --- Logika Baru: Ganti halaman dengan toggle kelas .page-active ---
     ui.pages.forEach(p => {
         if (p.id === `${pageId}-page`) {
