@@ -1579,8 +1579,7 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
         }
         const renderAll = debounce(_renderAllImpl, 50);
 function renderSummary() {
-    // --- 1. Siswa & Kelas ---
-    // Targetnya adalah <p> tag, jadi kita bisa langsung panggil
+    // --- 1. Siswa & Kelas (Tidak berubah) ---
     if (ui.summary.totalSiswa) {
         animateCountUp(ui.summary.totalSiswa, window.appState.allStudents.length, 1000);
     }
@@ -1588,7 +1587,7 @@ function renderSummary() {
         animateCountUp(ui.summary.totalKelas, window.appState.allClasses.length, 1000);
     }
 
-    // --- 2. Kalkulasi Data (Tidak berubah) ---
+    // --- 2. Kalkulasi Data (Perbaikan Bug Ayat Terbalik) ---
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
@@ -1597,15 +1596,23 @@ function renderSummary() {
     let murajaahMonth = 0, murajaahLastMonth = 0;
 
     window.appState.allHafalan.forEach(h => {
-        const ayatCount = (parseInt(h.ayatSampai) - parseInt(h.ayatDari) + 1);
+        const ayatDari = parseInt(h.ayatDari);
+        const ayatSampai = parseInt(h.ayatSampai);
+        
+        // Cek jika NaN (bukan angka)
+        if (isNaN(ayatDari) || isNaN(ayatSampai)) return; 
+        
+        // PERBAIKAN: Hitung jumlah ayat dengan benar, bahkan jika data terbalik (e.g., 5-1)
+        const ayatCount = Math.abs(ayatSampai - ayatDari) + 1;
+
         const timestamp = h.timestamp;
         
         const updateCounters = (type) => {
-                if (timestamp >= monthStart) {
+            if (timestamp >= monthStart) {
                 if(type === 'ziyadah') ziyadahMonth += ayatCount; else murajaahMonth += ayatCount;
-                } else if (timestamp >= lastMonthStart && timestamp < monthStart) {
-                    if(type === 'ziyadah') ziyadahLastMonth += ayatCount; else murajaahLastMonth += ayatCount;
-                }
+            } else if (timestamp >= lastMonthStart && timestamp < monthStart) {
+                if(type === 'ziyadah') ziyadahLastMonth += ayatCount; else murajaahLastMonth += ayatCount;
+            }
         };
 
         if (h.jenis === 'ziyadah') updateCounters('ziyadah');
@@ -1622,8 +1629,7 @@ function renderSummary() {
         totalMutqinScore = Math.round(totalScore / window.appState.allHafalan.length);
     }
     
-    // --- 3. Render Skor Mutqin (BARU) ---
-    // Target elemen <span> khusus angka
+    // --- 3. Render Skor Mutqin (Tidak berubah) ---
     const mutqinCountEl = document.getElementById('summary-mutqin-count');
     if (mutqinCountEl) {
         animateCountUp(mutqinCountEl, totalMutqinScore, 1000);
@@ -1635,42 +1641,66 @@ function renderSummary() {
         if (current > 0) return 100;
         return 0;
     };
-
-    const formatTrendText = (trend) => {
-        if (trend === 0) return `<span class="text-lg font-medium text-slate-500">/ 0%</span>`;
-        const colorClass = trend > 0 ? 'text-green-500' : 'text-red-500';
-        const sign = trend > 0 ? '+' : '';
-        return `<span class="text-lg font-medium ${colorClass}">/ ${sign}${trend}%</span>`;
-    };
-
+    
     const ziyadahTrend = calculateTrend(ziyadahMonth, ziyadahLastMonth);
     const murajaahTrend = calculateTrend(murajaahMonth, murajaahLastMonth);
 
+    // --- FUNGSI HELPER BARU (di dalam renderSummary) ---
+    // Fungsi ini akan mengatur warna dan tanda, lalu memanggil animasi
+    const renderTrendAnimation = (trendValue, containerId, signId, numberId) => {
+        const containerEl = document.getElementById(containerId);
+        const signEl = document.getElementById(signId);
+        const numberEl = document.getElementById(numberId);
+
+        if (!containerEl || !signEl || !numberEl) return;
+
+        let colorClass = 'text-slate-500'; // Default
+        let signText = '';
+
+        if (trendValue > 0) {
+            colorClass = 'text-green-500';
+            signText = '+'; // Tanda plus
+        } else if (trendValue < 0) {
+            colorClass = 'text-red-500';
+            // Tanda minus akan otomatis dari angkanya
+        }
+
+        // Terapkan warna ke seluruh container trend
+        containerEl.className = `inline-block font-medium ${colorClass}`;
+        
+        // Atur tanda
+        signEl.textContent = signText;
+
+        // Panggil animasi untuk angkanya
+        // (parameter ke-4 false, karena persen adalah angka bulat)
+        animateCountUp(numberEl, trendValue, 1000, false);
+    };
+
     // --- 5. Render Ziyadah (BARU) ---
     const ziyadahCountEl = document.getElementById('summary-ziyadah-count');
-    const ziyadahSuffixEl = document.getElementById('summary-ziyadah-suffix-container');
-    if (ziyadahCountEl && ziyadahSuffixEl) {
-        // Animasikan angkanya
+    if (ziyadahCountEl) {
         animateCountUp(ziyadahCountEl, ziyadahMonth, 1000);
-        // Set sisa HTML-nya (teks "Ayat" dan trend)
-        ziyadahSuffixEl.innerHTML = `
-            <span class="text-lg font-medium text-slate-500">Ayat</span>
-            ${formatTrendText(ziyadahTrend)}
-        `;
     }
+    // Panggil helper trend baru
+    renderTrendAnimation(
+        ziyadahTrend,
+        'summary-ziyadah-trend-container',
+        'summary-ziyadah-trend-sign',
+        'summary-ziyadah-trend-number'
+    );
 
     // --- 6. Render Muraja'ah (BARU) ---
     const murajaahCountEl = document.getElementById('summary-murajaah-count');
-    const murajaahSuffixEl = document.getElementById('summary-murajaah-suffix-container');
-    if (murajaahCountEl && murajaahSuffixEl) {
-        // Animasikan angkanya
+    if (murajaahCountEl) {
         animateCountUp(murajaahCountEl, murajaahMonth, 1000);
-        // Set sisa HTML-nya (teks "Ayat" dan trend)
-        murajaahSuffixEl.innerHTML = `
-            <span class="text-lg font-medium text-slate-500">Ayat</span>
-            ${formatTrendText(murajaahTrend)}
-        `;
     }
+    // Panggil helper trend baru
+    renderTrendAnimation(
+        murajaahTrend,
+        'summary-murajaah-trend-container',
+        'summary-murajaah-trend-sign',
+        'summary-murajaah-trend-number'
+    );
 }
         function renderPencapaianPagination(totalItems) {
             const paginationContainer = document.getElementById('pencapaian-pagination-controls');
