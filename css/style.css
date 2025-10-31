@@ -113,19 +113,22 @@
     /* Posisi tetap di kanan atas */
     position: fixed;
     top: 2rem;
-    right: 2rem;
+    /* State awal: sembunyi di luar layar (max-width 350px + buffer 50px) */
+    right: -400px; 
     z-index: 9999;
     width: auto;
     max-width: 350px;
 
-    /* State awal: sembunyi di sebelah kanan layar */
-    transform: translateX(calc(100% + 2rem)); /* Geser ke kanan penuh + jarak */
-    transition: transform 0.3s ease-in-out;
+    /* Ganti transisi dari 'transform' ke 'right' */
+    transition: right 0.3s ease-in-out;
+    
+    /* Hapus transform agar tidak bentrok */
+    transform: none;
 }
 
 #toast-notification.show {
     /* State aktif: tampil di posisi yang ditentukan */
-    transform: translateX(0);
+    right: 2rem;
 }
 
 /* Sisa kode Anda tidak perlu diubah */
