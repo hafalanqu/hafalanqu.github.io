@@ -395,17 +395,30 @@ function hideModal(modalElement) {
             initializeAppLogic(lembagaId, uid); 
         }
 
-    function handleLogout() {
-        auth.signOut().then(() => {
-            sessionStorage.removeItem('loggedInRole');
-            sessionStorage.removeItem('lembagaId');
-            sessionStorage.removeItem('currentUserUID');
-            window.location.reload();
-        }).catch(error => {
-            console.error("Logout Gagal:", error);
-            window.location.reload();
-        });
-    }
+function handleLogout() {
+    auth.signOut().then(() => {
+        sessionStorage.removeItem('loggedInRole');
+        sessionStorage.removeItem('lembagaId');
+        sessionStorage.removeItem('currentUserUID');
+
+        // --- ▼▼▼ TAMBAHKAN BARIS INI ▼▼▼ ---
+        // Bersihkan hash URL (misal: #pengaturan) sebelum reload.
+        // Ini akan memaksa app untuk memuat halaman default ('ringkasan')
+        history.pushState("", document.title, window.location.pathname + window.location.search);
+        // --- ▲▲▲ AKHIR TAMBAHAN ▲▲▲ ---
+
+        window.location.reload();
+
+    }).catch(error => {
+        console.error("Logout Gagal:", error);
+
+        // --- ▼▼▼ TAMBAHKAN JUGA DI SINI (JAGA-JAGA) ▼▼▼ ---
+        history.pushState("", document.title, window.location.pathname + window.location.search);
+        // --- ▲▲▲ AKHIR TAMBAHAN ▲▲▲ ---
+
+        window.location.reload();
+    });
+}
     
 function setupUIForRole(role) {
     // --- BARU: Gabungkan semua link navigasi ---
@@ -415,10 +428,19 @@ function setupUIForRole(role) {
         ...ui.profileMenuLinks // Termasuk link di dalam profil
     ];
     // Halaman yang boleh diakses siswa (termasuk yang ada di menu profil)
-    const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan', 'kelas'];
+    const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan'];
+
+    // Halaman yang boleh diakses admin
+    const adminAllowedPages = ['profil', 'manajemen_akun', 'tentang', 'kelas'];
 
     if (role === 'siswa') {
         allMenuLinks.forEach(link => {
+            // Sembunyikan link khusus admin
+            if (link.dataset.role === 'admin_lembaga') {
+                link.classList.add('hidden');
+                return;
+            }
+
             const page = link.dataset.page;
             // Sembunyikan link jika halaman tidak diizinkan untuk siswa
             if (page && !siswaAllowedPages.includes(page)) {
@@ -431,18 +453,58 @@ function setupUIForRole(role) {
         // Sembunyikan tombol spesifik guru
         if (ui.addStudentModalBtn) ui.addStudentModalBtn.classList.add('hidden');
         if (ui.addBulkHafalanBtn) ui.addBulkHafalanBtn.classList.add('hidden');
+        // Sembunyikan filter & search di halaman "Input Hafalan"
+        const siswaSearch = document.getElementById('siswa-search-student');
+        const siswaFilter = document.getElementById('student-filter-class');
+        if (siswaSearch) siswaSearch.classList.add('hidden');
+        if (siswaFilter) siswaFilter.classList.add('hidden');
+        const siswaPageCardHeader = document.querySelector('#siswa-page .card > .flex.justify-between'); 
+        if (siswaPageCardHeader) siswaPageCardHeader.classList.add('hidden');
 
-    } else { // Jika guru
-        // Tampilkan semua link navigasi
-        allMenuLinks.forEach(link => link.classList.remove('hidden'));
+        } else if (role === 'guru') { 
+            // Tampilkan semua link KECUALI link admin DAN link 'kelas'
+            allMenuLinks.forEach(link => {
+                const page = link.dataset.page;
+                if (link.dataset.role === 'admin_lembaga' || page === 'kelas') { // <-- TAMBAHKAN || page === 'kelas'
+                    link.classList.add('hidden');
+                } else {
+                    link.classList.remove('hidden');
+                }
+            });
 
         // Tampilkan tombol spesifik guru
         if (ui.addStudentModalBtn) ui.addStudentModalBtn.classList.remove('hidden');
         if (ui.addBulkHafalanBtn) ui.addBulkHafalanBtn.classList.remove('hidden');
-    }
+        // --- ▼▼▼ TAMBAHKAN BLOK INI (untuk memastikan terlihat) ▼▼▼ ---
+        const siswaSearch = document.getElementById('siswa-search-student');
+        const siswaFilter = document.getElementById('student-filter-class');
+        if (siswaSearch) siswaSearch.classList.remove('hidden');
+        if (siswaFilter) siswaFilter.classList.remove('hidden');
+        const siswaPageCardHeader = document.querySelector('#siswa-page .card > .flex.justify-between');
+        if (siswaPageCardHeader) siswaPageCardHeader.classList.remove('hidden');
+    
+    } else if (role === 'admin_lembaga') {
+        // Logika baru untuk Admin
+        allMenuLinks.forEach(link => {
+            // Tampilkan link admin
+            if (link.dataset.role === 'admin_lembaga') {
+                link.classList.remove('hidden');
+                return;
+            }
+            
+            // Sembunyikan link jika tidak diizinkan untuk admin
+            const page = link.dataset.page;
+            if (page && !adminAllowedPages.includes(page)) {
+                link.classList.add('hidden');
+            } else {
+                link.classList.remove('hidden');
+            }
+        });
 
-    // Tampilkan/Sembunyikan menu profil tambahan hanya berdasarkan ukuran layar (CSS sudah menangani ini via md:hidden)
-    // Tidak perlu logika JS tambahan di sini untuk menu profil tambahan.
+        // Sembunyikan tombol spesifik guru
+        if (ui.addStudentModalBtn) ui.addStudentModalBtn.classList.add('hidden');
+        if (ui.addBulkHafalanBtn) ui.addBulkHafalanBtn.classList.add('hidden');
+    }
 }
 // --- BARU: Fungsi helper untuk menyinkronkan status aktif di semua menu ---
 function updateNavActiveState(pageId) {
@@ -515,8 +577,13 @@ if (pageId === 'detail_siswa') {
     });
 
     // Update judul halaman (logika ini tetap sama)
-    const pageTitles = { profil: "Profil Saya", ringkasan: "Dashboard", kelas: "Manajemen Kelas", siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan", detail_siswa: "Detail Siswa" };
-let title = pageTitles[pageId] || "Pencapaian";
+    const pageTitles = { 
+        profil: "Profil Saya", ringkasan: "Dashboard", kelas: "Manajemen Kelas", 
+        siswa: "Input Hafalan", riwayat: "Riwayat", tentang: "Tentang Aplikasi", 
+        pengaturan: "Pengaturan", tes_hafalan: "Tes Hafalan", 
+        detail_siswa: "Detail Siswa", manajemen_akun: "Manajemen Akun" // <-- TAMBAHKAN INI
+    };
+let title = pageTitles[pageId] || "Dashboard";
         if (pageId === 'detail_siswa') {
             const studentId = window.appState.currentDetailStudentId;
             const student = studentId ? window.appState.allStudents.find(s => s.id === studentId) : null;
@@ -1036,16 +1103,25 @@ function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
     let initialPage = window.location.hash.substring(1);
     const validPageElement = initialPage ? document.getElementById(`${initialPage}-page`) : null;
 
-    if (!initialPage || !validPageElement) {
-        initialPage = 'ringkasan'; // Default ke ringkasan
+if (!initialPage || !validPageElement) {
+    // Jika HASH KOSONG (login baru), tentukan halaman default berdasarkan peran
+    if (role === 'admin_lembaga') {
+        initialPage = 'manajemen_akun'; // Default untuk Admin
+    } else {
+        initialPage = 'ringkasan'; // Default untuk Guru/Siswa
     }
+}
 
     // Validasi akses untuk siswa
-    const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan', 'kelas'];
+    const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan'];
     if(role === 'siswa' && !siswaAllowedPages.includes(initialPage)){
         initialPage = 'ringkasan'; // Paksa ke ringkasan jika siswa mencoba akses halaman terlarang
     }
-
+    const adminAllowedPages = ['profil', 'manajemen_akun', 'tentang', 'kelas', 'siswa'];
+    if(role === 'admin_lembaga' && !adminAllowedPages.includes(initialPage)){
+         // Jika admin me-refresh di halaman yang tidak diizinkan (spt #pengaturan atau #siswa)
+         initialPage = 'manajemen_akun'; // Paksa kembali ke default admin
+    }
     // Atur history dan tampilkan halaman awal
     history.replaceState({ page: initialPage }, '', `#${initialPage}`);
     _showPageImpl(initialPage);
@@ -1087,8 +1163,9 @@ function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
 
             const role = userData.role;
             const lembagaId = userData.lembagaId;
+            
 
-            if (role && lembagaId) {
+            if (role && lembagaId && (role === 'guru' || role === 'siswa' || role === 'admin_lembaga')) {
                 sessionStorage.setItem('loggedInRole', role);
                 sessionStorage.setItem('lembagaId', lembagaId);
                 sessionStorage.setItem('currentUserUID', user.uid);
@@ -1379,6 +1456,546 @@ function startApp(role, lembagaId, uid) { // Tambahkan uid jika ada
                 quranScopeSelect: document.getElementById('quran-scope-setting'),
             }
         }
+        // --- FUNGSI-FUNGSI BARU UNTUK ADMIN ---
+
+    const adminUI = {
+        addAkunModal: document.getElementById('add-akun-modal'),
+        addAkunModalBtn: document.getElementById('add-akun-modal-btn'),
+        cancelAddAkunBtn: document.getElementById('cancel-add-akun'),
+        addAkunForm: document.getElementById('add-akun-form'),
+        addAkunSubmitBtn: document.getElementById('add-akun-submit-btn'),
+        addAkunModalTitle: document.getElementById('add-akun-modal-title'),
+        akunEditId: document.getElementById('akun-edit-id'),
+        akunNama: document.getElementById('akun-nama'),
+        akunEmail: document.getElementById('akun-email'),
+        akunRole: document.getElementById('akun-role'),
+        akunPasswordContainer: document.getElementById('akun-password-container'),
+        akunPassword: document.getElementById('akun-password'),
+        akunNamaContainer: document.getElementById('akun-nama-container'),
+        akunStudentSelectContainer: document.getElementById('akun-student-select-container'),
+        akunStudentSelect: document.getElementById('akun-student-select'),
+        akunList: document.getElementById('akun-list'),
+        akunSearch: document.getElementById('akun-search'),
+        akunFilterRole: document.getElementById('akun-filter-role'),
+        bulkAddAkunBtn: document.getElementById('bulk-add-akun-btn'),
+        bulkAddAkunModal: document.getElementById('bulk-add-akun-modal'),
+        bulkAkunForm: document.getElementById('bulk-add-akun-form'),
+        bulkAkunCsv: document.getElementById('bulk-akun-csv'),
+        bulkAkunInputContainer: document.getElementById('bulk-add-input-container'),
+        bulkAkunProgressContainer: document.getElementById('bulk-add-progress-container'),
+        bulkAkunProgressLog: document.getElementById('bulk-add-progress-log'),
+        bulkProgressCounter: document.getElementById('bulk-progress-counter'),
+        bulkAkunCancelBtn: document.getElementById('cancel-bulk-add-akun'),
+        bulkAkunSubmitBtn: document.getElementById('submit-bulk-add-akun')
+    };
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+function populateUnlinkedStudentsSelect() {
+        if (!adminUI.akunStudentSelect) return;
+
+        // Filter siswa yang belum punya akun
+        const unlinkedStudents = window.appState.allStudents
+            .filter(s => !s.userId) 
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        
+        adminUI.akunStudentSelect.innerHTML = ''; // Kosongkan dulu
+        
+        if (unlinkedStudents.length === 0) {
+            adminUI.akunStudentSelect.innerHTML = '<option value="">(Tidak ada siswa tanpa akun)</option>';
+            adminUI.akunStudentSelect.disabled = true;
+            return;
+        }
+
+        adminUI.akunStudentSelect.disabled = false;
+        // Tambahkan opsi default
+        adminUI.akunStudentSelect.appendChild(new Option('-- Pilih siswa yang ada --', ''));
+
+        // Isi dengan siswa yang ditemukan
+        unlinkedStudents.forEach(student => {
+            const option = new Option(student.name, student.id); // Teks: Nama, Value: ID Dokumen Siswa
+            adminUI.akunStudentSelect.appendChild(option);
+        });
+    }
+    /**
+     * Fungsi utama untuk me-render daftar akun di halaman manajemen.
+     */
+    function renderManajemenAkunList() {
+        if (!adminUI.akunList) return;
+
+        const searchTerm = (adminUI.akunSearch.value || '').toLowerCase();
+        const roleFilter = adminUI.akunFilterRole.value;
+
+        let filteredUsers = window.appState.allUsers.filter(user => {
+            // Jangan tampilkan admin lembaga lain atau admin super
+            if (user.role === 'admin_lembaga') return false;
+
+            const nameMatch = (user.namaLengkap || '').toLowerCase().includes(searchTerm);
+            const emailMatch = (user.email || '').toLowerCase().includes(searchTerm);
+            const roleMatch = !roleFilter || user.role === roleFilter;
+
+            return (nameMatch || emailMatch) && roleMatch;
+        });
+
+        filteredUsers.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+
+        adminUI.akunList.innerHTML = '';
+        if (filteredUsers.length === 0) {
+            adminUI.akunList.innerHTML = '<p class="text-center text-slate-500 py-4">Tidak ada akun yang ditemukan.</p>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        filteredUsers.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'p-3 bg-slate-50 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3';
+            item.dataset.userId = user.id;
+            item.dataset.userName = user.namaLengkap;
+            item.dataset.userEmail = user.email;
+
+            const roleText = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+            const roleColor = user.role === 'guru' ? 'bg-sky-100 text-sky-800' : 'bg-green-100 text-green-800';
+
+            item.innerHTML = `
+                <div class="flex-grow">
+                    <p class="font-semibold text-slate-800">${user.namaLengkap}</p>
+                    <p class="text-sm text-slate-500">${user.email}</p>
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full ${roleColor}">${roleText}</span>
+                </div>
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <button data-action="edit-akun" class="btn btn-sm btn-secondary">Edit Nama</button>
+                    <button data-action="reset-password-akun" class="btn btn-sm btn-secondary">Reset Password</button>
+                    <button data-action="delete-akun" class="btn btn-sm btn-danger">Hapus</button>
+                </div>
+            `;
+            fragment.appendChild(item);
+        });
+        adminUI.akunList.appendChild(fragment);
+    }
+
+    /**
+     * Fungsi utama untuk menangani pembuatan/update akun.
+     * Ini adalah "alternatif" yang Anda minta.
+     */
+async function handleGenerateAccount(e) {
+        e.preventDefault();
+        setButtonLoading(adminUI.addAkunSubmitBtn, true);
+        
+        const role = adminUI.akunRole.value;
+        const email = adminUI.akunEmail.value;
+        const password = adminUI.akunPassword.value;
+        const editId = adminUI.akunEditId.value; // UID dari koleksi 'users'
+        const lembagaId = window.appState.lembagaId;
+
+        // --- Mode EDIT ---
+        if (editId) {
+            // Logika edit tidak berubah, hanya update nama
+            const nama = adminUI.akunNama.value;
+            try {
+                await db.collection('users').doc(editId).update({
+                    namaLengkap: nama
+                });
+
+                // Jika yang diedit adalah siswa, update juga nama di collection 'students'
+                const userRole = adminUI.akunRole.value; // Ambil role dari dropdown (yang di-disable)
+                if (userRole === 'siswa') {
+                    const studentQuery = await db.collection('students').where('userId', '==', editId).limit(1).get();
+                    if (!studentQuery.empty) {
+                        const studentDocId = studentQuery.docs[0].id;
+                        await db.collection('students').doc(studentDocId).update({ name: nama });
+                    }
+                }
+                showToast("Nama akun berhasil diperbarui.");
+                hideModal(adminUI.addAkunModal);
+            } catch (error) {
+                console.error("Gagal update akun:", error);
+                showToast("Gagal update akun. " + error.message, "error");
+            } finally {
+                setButtonLoading(adminUI.addAkunSubmitBtn, false);
+            }
+            return; // Selesai untuk mode edit
+        }
+
+        // --- Mode TAMBAH BARU (Generate Akun) ---
+        // ▼▼▼ BLOK INI BERUBAH TOTAL ▼▼▼
+        let tempAuthApp = null;
+        try {
+            // 1. Tentukan NamaLengkap dan ID Siswa (jika ada)
+            let namaLengkap;
+            let selectedStudentId = null; // Ini adalah ID dokumen dari koleksi 'students'
+
+            if (role === 'siswa') {
+                selectedStudentId = adminUI.akunStudentSelect.value;
+                if (!selectedStudentId) {
+                    throw new Error("Silakan pilih siswa yang akan ditautkan.");
+                }
+                // Ambil nama dari data siswa yang sudah ada
+                const selectedStudent = window.appState.allStudents.find(s => s.id === selectedStudentId);
+                if (!selectedStudent) {
+                    throw new Error("Data siswa tidak ditemukan. Coba muat ulang.");
+                }
+                namaLengkap = selectedStudent.name; // Nama diambil dari database student
+
+            } else { // role === 'guru'
+                namaLengkap = adminUI.akunNama.value; // Nama diambil dari input form
+                if (!namaLengkap) {
+                    throw new Error("Nama Lengkap Guru harus diisi.");
+                }
+            }
+
+            // 2. Inisialisasi Firebase temporer (Sama)
+            tempAuthApp = firebase.initializeApp(firebaseConfig, 'tempAppInstance');
+
+            // 3. Buat pengguna di Firebase Auth (Sama)
+            const userCredential = await tempAuthApp.auth().createUserWithEmailAndPassword(email, password);
+            const newUid = userCredential.user.uid; // Ini adalah ID Auth
+
+            // 4. Sign out dan hapus app temporer (Sama)
+            await tempAuthApp.auth().signOut();
+            await tempAuthApp.delete();
+            
+            // 5. Buat dokumen di Firestore 'users'
+            const userDocData = {
+                email: email,
+                namaLengkap: namaLengkap, // Menggunakan namaLengkap yang sudah disiapkan
+                role: role,
+                lembagaId: lembagaId,
+                pin: "",
+                ttl: "",
+                fotoProfilUrl: ""
+            };
+            // Simpan dokumen 'users' dengan ID Auth yang baru
+            await db.collection('users').doc(newUid).set(userDocData);
+
+            // 6. TAUTKAN/UPDATE dokumen 'students' (jika role siswa)
+            if (role === 'siswa' && selectedStudentId) {
+                
+                // BUKAN 'add', tapi 'update' dokumen siswa yang tadi dipilih
+                await db.collection('students').doc(selectedStudentId).update({
+                    userId: newUid // Ini adalah TAUTAN PENTING
+                });
+            }
+            // Jika role 'guru', tidak ada aksi ke koleksi 'students' (ini sudah benar)
+
+            showToast(`Akun ${role} baru berhasil dibuat dan ditautkan.`);
+            hideModal(adminUI.addAkunModal);
+
+        } catch (error) {
+            console.error("Gagal generate akun:", error);
+            let msg = error.message; // Langsung gunakan pesan error
+            if (error.code === 'auth/email-already-in-use') {
+                msg = "Email ini sudah digunakan oleh akun lain.";
+            } else if (error.code === 'auth/weak-password') {
+                msg = "Password terlalu lemah. Minimal 6 karakter.";
+            }
+            showToast(msg, "error");
+            
+            // Cleanup app temporer jika terjadi error
+            if (tempAuthApp) {
+                await tempAuthApp.delete();
+            }
+        } finally {
+            setButtonLoading(adminUI.addAkunSubmitBtn, false);
+        }
+        // ▲▲▲ AKHIR BLOK PERUBAHAN ▲▲▲
+    }
+/**
+     * Fungsi untuk memproses pembuatan akun massal dari <textarea>.
+     */
+    async function handleBulkGenerateAccounts(e) {
+        e.preventDefault();
+
+        const csvData = adminUI.bulkAkunCsv.value;
+        let lines = csvData.trim().split('\n');
+        
+        if (lines.length > 100) {
+            showToast("Error: Maksimal 100 akun sekaligus.", "error");
+            return;
+        }
+if (lines.length > 0) {
+        const firstLine = lines[0].toLowerCase().trim();
+        // Cek apakah baris pertama mengandung kata-kata kunci header
+        if (firstLine.includes('email') && firstLine.includes('nama') && firstLine.includes('role')) {
+            lines.shift(); // Hapus baris pertama (header)
+            log("Baris header terdeteksi dan diabaikan.", "info");
+        }
+    }
+const accountsToCreate = lines
+    .map(line => line.trim().split(','))
+    // ▼ UBAH DARI 3 MENJADI 4 ▼
+    .filter(parts => parts.length >= 4) // Minimal harus ada 4 kolom
+    .map(parts => {
+        // Logika baru untuk menangani koma di nama
+        const email = (parts[0] || '').trim();
+        const password = (parts[parts.length - 1] || '').trim(); // Ambil dari PALING AKHIR
+        const role = (parts[parts.length - 2] || '').trim().toLowerCase(); // Ambil dari KEDUA DARI AKHIR
+
+        // Sisanya adalah nama, gabungkan kembali jika ada koma
+        const nama = parts.slice(1, parts.length - 2).join(',').trim(); 
+
+        return { email, nama, role, password };
+    });
+
+        if (accountsToCreate.length === 0) {
+            showToast("Data tidak ditemukan. Pastikan formatnya benar.", "error");
+            return;
+        }
+
+        // Siapkan UI untuk progress
+        adminUI.bulkAkunInputContainer.classList.add('hidden');
+        adminUI.bulkAkunProgressContainer.classList.remove('hidden');
+        adminUI.bulkAkunSubmitBtn.disabled = true;
+        adminUI.bulkAkunCancelBtn.disabled = true;
+        adminUI.bulkAkunProgressLog.innerHTML = ''; // Kosongkan log
+
+const log = (message, status = 'info') => {
+    const entry = document.createElement('div');
+    entry.className = 'flex items-start gap-2'; // items-start agar teks panjang rapi
+
+    let icon = '';
+    let colorClass = '';
+
+    switch (status) {
+        case 'success':
+            // Ikon Ceklis
+            icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+            colorClass = 'text-green-600'; // Hijau tua
+            break;
+        case 'error':
+            // Ikon Silang
+            icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+            colorClass = 'text-red-600'; // Merah tua
+            break;
+        default: // 'info'
+            icon = ''; // Tidak ada ikon untuk info/proses
+            colorClass = 'text-slate-500'; // Abu-abu
+            break;
+    }
+
+    // Tambahkan div kosong untuk alignment jika tidak ada ikon
+    const iconContainer = `<div class="mt-0.5 flex-shrink-0 w-4">${icon}</div>`;
+
+    entry.innerHTML = `${iconContainer} <span>${message}</span>`;
+    entry.classList.add(colorClass);
+
+    adminUI.bulkAkunProgressLog.appendChild(entry);
+    // Auto-scroll ke bawah
+    adminUI.bulkAkunProgressLog.scrollTop = adminUI.bulkAkunProgressLog.scrollHeight;
+};
+
+        const lembagaId = window.appState.lembagaId;
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (let i = 0; i < accountsToCreate.length; i++) {
+            const account = accountsToCreate[i];
+            const counterText = `(${(i + 1)}/${accountsToCreate.length})`;
+            adminUI.bulkProgressCounter.textContent = counterText;
+
+            if (!account.email || !account.nama || (account.role !== 'guru' && account.role !== 'siswa') || !account.password || account.password.length < 6) {
+            let errorMsg = "Baris tidak valid.";
+            if (!account.password || account.password.length < 6) {
+                errorMsg = "Password kosong atau kurang dari 6 karakter.";
+            }
+            log(`${counterText} GAGAL: ${account.email} - ${errorMsg}`, "error");
+            errorCount++;
+            continue; // Lanjut ke baris berikutnya
+        }
+
+            log(`${counterText} Memulai ${account.email}...`, "info");
+            let tempAuthApp = null;
+            try {
+let namaLengkap;
+    let studentDocId = null; // ID dokumen dari koleksi 'students'
+
+    if (account.role === 'guru') {
+        // Untuk GURU, nama diambil langsung dari input
+        namaLengkap = account.nama;
+    } else { 
+        // Untuk SISWA, cari siswa yang ada di database
+        const studentName = (account.nama || '').toLowerCase();
+        const matchingStudents = window.appState.allStudents.filter(
+            s => (s.name || '').toLowerCase() === studentName && !s.userId
+        );
+
+        // Validasi pencarian siswa
+        if (matchingStudents.length === 0) {
+            throw new Error(`Siswa "${account.nama}" tidak ditemukan atau sudah punya akun.`);
+        }
+        if (matchingStudents.length > 1) {
+            throw new Error(`Ditemukan >1 siswa "${account.nama}" tanpa akun. Proses ambigu.`);
+        }
+
+        // Sukses: Ditemukan 1 siswa yang cocok
+        const studentToLink = matchingStudents[0];
+        studentDocId = studentToLink.id;
+        namaLengkap = studentToLink.name; // Ambil nama asli dari DB
+    }
+
+    // 1. Inisialisasi Firebase temporer
+    tempAuthApp = firebase.initializeApp(firebaseConfig, `tempBulkApp_${i}`);
+
+    // 2. Buat pengguna di Firebase Auth
+            const userCredential = await tempAuthApp.auth().createUserWithEmailAndPassword(account.email, account.password); // <-- Gunakan password dari akun
+            const newUid = userCredential.user.uid;
+
+    // 3. Sign out dan hapus app temporer
+    await tempAuthApp.auth().signOut();
+    await tempAuthApp.delete();
+
+    // 4. Buat dokumen di Firestore 'users'
+    const userDocData = {
+        email: account.email,
+        namaLengkap: namaLengkap, // Gunakan namaLengkap yang sudah divalidasi
+        role: account.role,
+        lembagaId: lembagaId,
+        pin: "", ttl: "", fotoProfilUrl: ""
+    };
+    await db.collection('users').doc(newUid).set(userDocData);
+
+    // 5. Jika 'siswa', UPDATE dokumen 'students' yang ada
+    if (account.role === 'siswa' && studentDocId) {
+        await db.collection('students').doc(studentDocId).update({
+            userId: newUid // Tautkan akun
+        });
+    }
+    // (Jika 'guru', tidak ada aksi ke 'students', ini sudah benar)
+
+    log(`${counterText} BERHASIL: ${account.email} (${namaLengkap})`, "success");
+    successCount++;
+
+            } catch (error) {
+                console.error("Gagal buat akun massal:", error);
+                let msg = error.code || error.message;
+                if (error.code === 'auth/email-already-in-use') msg = "Email sudah ada";
+                
+                log(`${counterText} GAGAL: ${account.email} - ${msg}`, "error");
+                errorCount++;
+                
+                // Cleanup app temporer jika error
+                if (tempAuthApp) {
+                    await tempAuthApp.delete().catch(e => console.warn('Gagal cleanup temp app', e));
+                }
+            }
+            
+            // --- INI ADALAH BAGIAN PALING PENTING ---
+            // Beri jeda 2 detik antar request agar tidak di-block
+            await delay(2000); 
+        }
+
+        // Proses Selesai
+        log("--- PROSES SELESAI ---", "info");
+        log(`Total Berhasil: ${successCount}`, "success");
+        if (errorCount > 0) {
+            log(`Total Gagal: ${errorCount}`, "error");
+        }
+        
+        adminUI.bulkAkunSubmitBtn.disabled = true;
+        adminUI.bulkAkunCancelBtn.disabled = false; // Izinkan tombol 'Batal' (sekarang jadi 'Tutup')
+        adminUI.bulkAkunCancelBtn.textContent = 'Tutup';
+    }
+    /**
+     * Menangani klik tombol pada daftar akun (Edit, Reset, Hapus).
+     */
+    async function handleAkunActions(e) {
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const item = button.closest('[data-user-id]');
+        const userId = item.dataset.userId;
+        const userName = item.dataset.userName;
+        const userEmail = item.dataset.userEmail;
+
+        switch (action) {
+            case 'edit-akun': {
+                // Siapkan modal untuk mode edit
+                adminUI.addAkunModalTitle.textContent = "Edit Nama Akun";
+                adminUI.akunEditId.value = userId;
+                adminUI.akunNama.value = userName;
+                adminUI.akunEmail.value = userEmail;
+                adminUI.akunEmail.disabled = true; // Email tidak bisa diubah
+                adminUI.akunRole.value = window.appState.allUsers.find(u => u.id === userId).role;
+                adminUI.akunRole.disabled = true; // Role tidak bisa diubah
+                adminUI.akunPasswordContainer.classList.add('hidden'); // Sembunyikan password
+                adminUI.akunPassword.required = false;
+                adminUI.addAkunSubmitBtn.textContent = "Simpan Perubahan";
+                if (adminUI.akunNamaContainer) adminUI.akunNamaContainer.classList.remove('hidden');
+                if (adminUI.akunStudentSelectContainer) adminUI.akunStudentSelectContainer.classList.add('hidden');
+                if (adminUI.akunNama) adminUI.akunNama.required = true;
+                if (adminUI.akunStudentSelect) adminUI.akunStudentSelect.required = false;
+                showModal(adminUI.addAkunModal);
+                break;
+            }
+
+            case 'reset-password-akun': {
+                showConfirmModal({
+                    title: "Reset Password?",
+                    message: `Anda akan mengirim email reset password ke ${userEmail} (${userName}). Lanjutkan?`,
+                    okText: "Ya, Kirim Email",
+                    onConfirm: async () => {
+                        try {
+                            await auth.sendPasswordResetEmail(userEmail);
+                            showToast("Email reset password berhasil dikirim.");
+                        } catch (error) {
+                            console.error("Gagal kirim email reset:", error);
+                            showToast("Gagal mengirim email. " + error.message, "error");
+                        }
+                    }
+                });
+                break;
+            }
+
+            case 'delete-akun': {
+                const user = window.appState.allUsers.find(u => u.id === userId);
+                if (!user) return;
+
+                showConfirmModal({
+                    title: `Hapus Akun ${user.role}?`,
+                    message: `Yakin ingin menghapus ${userName}? Ini akan menghapus login mereka. Jika ini siswa, SEMUA RIWAYAT HAFALAN mereka juga akan terhapus permanen.`,
+                    okText: "Ya, Hapus Permanen",
+                    onConfirm: async () => {
+                        try {
+                            // Hapus dokumen 'users'
+                            await db.collection('users').doc(userId).delete();
+                            
+                            // Jika siswa, hapus juga 'students' dan 'hafalan'
+                            if (user.role === 'siswa') {
+                                // 1. Cari dokumen 'students'
+                                const studentQuery = await db.collection('students').where('userId', '==', userId).get();
+                                
+                                if (!studentQuery.empty) {
+                                    const studentDoc = studentQuery.docs[0];
+                                    const studentDocId = studentDoc.id;
+
+                                    // 2. Hapus semua 'hafalan' yang terkait
+                                    const hafalanQuery = await db.collection('hafalan').where('studentId', '==', studentDocId).get();
+                                    
+                                    const deleteBatch = db.batch();
+                                    hafalanQuery.forEach(doc => {
+                                        deleteBatch.delete(doc.ref);
+                                    });
+                                    
+                                    // 3. Hapus dokumen 'students'
+                                    deleteBatch.delete(studentDoc.ref);
+                                    
+                                    await deleteBatch.commit();
+                                }
+                            }
+                            
+                            showToast(`Akun ${userName} berhasil dihapus.`);
+                            // Catatan: Akun Auth-nya masih ada (orphaned), 
+                            // tapi tidak bisa login karena dokumen 'users' sudah dihapus.
+                            // Ini adalah batasan dari "tanpa Firebase Functions".
+
+                        } catch (error) {
+                            console.error("Gagal hapus akun:", error);
+                            showToast("Gagal menghapus akun. " + error.message, "error");
+                        }
+                    }
+                });
+                break;
+            }
+        }
+    }
     function checkUserProfileCompletion() {
             const currentUserUID = window.appState.currentUserUID;
             const role = window.appState.loggedInRole;
@@ -1576,6 +2193,9 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
             renderStudentList();
             renderStudentProgressList();
             renderRiwayatList();
+            if (window.appState.loggedInRole === 'admin_lembaga') {
+                renderManajemenAkunList();
+            }
         }
         const renderAll = debounce(_renderAllImpl, 50);
 function renderSummary() {
@@ -2354,262 +2974,310 @@ function renderStudentProgressList() {
 
             paginationContainer.appendChild(createButton('›', currentPage + 1, currentPage === totalPages));
         }
-        async function renderStudentList() {
-            const openFormsState = new Map();
-if (ui.studentList) {
-                ui.studentList.querySelectorAll('.student-item').forEach(item => {
-                    const formContainer = item.querySelector('.hafalan-form-container');
-                    if (formContainer && !formContainer.classList.contains('hidden')) {
-                        const studentId = item.dataset.studentId;
-                        
-                        // Jaga kode yang ada di DALAM if, tapi hapus 'if'-nya
-                        const form = item.querySelector('form');
-                        const isJuzAmma = getQuranScope() === 'juz30';
-                        
-                        const surahSampaiSelect = form.querySelector('.surah-sampai-select'); 
+/**
+ * GANTI SELURUH FUNGSI INI
+ */
+async function renderStudentList() {
+    // State untuk form yang terbuka (hanya relevan untuk guru)
+    const openFormsState = new Map();
+    if (ui.studentList && window.appState.loggedInRole !== 'siswa') {
+        ui.studentList.querySelectorAll('.student-item').forEach(item => {
+            const formContainer = item.querySelector('.hafalan-form-container');
+            if (formContainer && !formContainer.classList.contains('hidden')) {
+                const studentId = item.dataset.studentId;
+                const form = item.querySelector('form');
+                const isJuzAmma = getQuranScope() === 'juz30';
+                const surahSampaiSelect = form.querySelector('.surah-sampai-select'); 
 
-                        const state = {
-                            surah: form.surah.value,
-                            kualitas: form.kualitas.value,
-                            ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
-                            ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null,
-                            surahSampai: (isJuzAmma && surahSampaiSelect) ? surahSampaiSelect.value : null
-                        };
-                        openFormsState.set(studentId, state);
-                    }
-                });
-            }
-
-            const SISWA_PER_PAGE = 36;
-            const openStudentIds = new Set();
-            if (ui.studentList) {
-                ui.studentList.querySelectorAll('.student-item').forEach(item => {
-                    const form = item.querySelector('.hafalan-form-container');
-                    if (form && !form.classList.contains('hidden')) {
-                        openStudentIds.add(item.dataset.studentId);
-                    }
-                });
-            }
-            if (window.appState.lastSubmittedStudentId) {
-                openStudentIds.add(window.appState.lastSubmittedStudentId);
-                window.appState.lastSubmittedStudentId = null;
-            }
-
-            const filterId = ui.studentFilterClass.value;
-            const searchTerm = ui.siswa && ui.siswa.searchStudent ? ui.siswa.searchStudent.value.toLowerCase() : '';
-
-            let filteredStudents = filterId ? window.appState.allStudents.filter(s => s.classId === filterId) : [...window.appState.allStudents];
-            if (searchTerm) {
-                filteredStudents = filteredStudents.filter(s => s.name.toLowerCase().includes(searchTerm));
-            }
-            filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
-
-            const currentPage = window.appState.currentPageSiswa;
-            const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
-            const endIndex = startIndex + SISWA_PER_PAGE;
-            const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
-
-            ui.studentList.innerHTML = '';
-            const quranScope = getQuranScope();
-            const isJuzAmma = quranScope === 'juz30';
-            let surahsForForm;
-            const pilihanSurahNumbers = [18, 36, 55, 56, 67];
-            if (quranScope === 'juz30') { surahsForForm = surahList.filter(s => s.no >= 78); }
-            else if (quranScope === 'pilihan') { surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no)); }
-            else { surahsForForm = surahList; }
-            const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
-
-            if (paginatedStudents.length === 0) {
-                const message = filteredStudents.length > 0 ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>` : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
-                ui.studentList.innerHTML = message;
-                renderSiswaPagination(filteredStudents.length);
-                return;
-            }
-
-            const ayatInputsHTML = isJuzAmma 
-                            ? `<div>
-                                <label class="block text-sm font-medium mb-1">Sampai Surah</label>
-                                <select name="surahSampai" class="form-select surah-sampai-select" required>${surahOptionsHTML}</select>
-                            </div>`
-                            : `<div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
-                                <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
-                            </div>`;
-            
-            // Kembali menggunakan Dropdown untuk Kualitas
-            const kualitasInputsHTML = `
-            <div>
-                <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
-                <select name="kualitas" class="form-select">
-                    <option value="sangat-lancar" selected>Sangat Lancar</option>
-                    <option value="lancar">Lancar</option>
-                    <option value="cukup-lancar">Cukup Lancar</option>
-                    <option value="tidak-lancar">Tidak Lancar</option>
-                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
-                </select>
-            </div>
-            `;
-
-            let pinInputHTML = '';
-            if (window.appState.loggedInRole === 'siswa') {
-                pinInputHTML = `...`; // Kode PIN tidak perlu diubah
-pinInputHTML = `
-                <div>
-                    <label class="block text-sm font-medium mb-1">PIN Guru</label>
-                    <div class="relative">
-                        <input type="password" name="pin" class="form-input pr-10" placeholder="Masukkan 6 Digit" required pattern="\\d{6}" maxlength="6" autocomplete="one-time-code">
-                        <button type="button" class="toggle-pin-btn absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
-                            <svg class="eye-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                            <svg class="eye-off-icon h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
-                        </button>
-                    </div>
-                </div>
-                `;
-            }
-
-            for (const student of paginatedStudents) {
-                const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
-                const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp) && h.jenis !== 'tes');
-                const item = document.createElement('div');
-                item.className = 'student-item bg-slate-50 rounded-lg';
-                item.dataset.studentId = student.id;
-
-                const deleteButtonHTML = window.appState.loggedInRole === 'guru'
-                    ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>`
-                    : '';
-
-                    const recentHafalan = studentHafalan
-                    .filter(entry => entry.jenis !== 'tes')
-                    // Kembalikan ke pengurutan murni berdasarkan timestamp
-                    .sort((a, b) => b.timestamp - a.timestamp)
-                    .slice(0, 5);
-                
-                const kualitasDisplayMap = { 
-                    'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
-                    'cukup-lancar': 'Cukup Lancar', 'tidak-lancar': 'Tidak Lancar',
-                    'sangat-tidak-lancar': 'Sangat Tidak Lancar'
+                const state = {
+                    surah: form.surah.value,
+                    kualitas: form.kualitas.value,
+                    ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
+                    ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null,
+                    surahSampai: (isJuzAmma && surahSampaiSelect) ? surahSampaiSelect.value : null
                 };
-                
-                let historyHTML = '';
-                if (recentHafalan.length > 0) {
-                    historyHTML = recentHafalan.map(entry => {
-                        const surahInfo = surahList.find(s => s.no == entry.surahNo);
-                        const surahName = surahInfo ? surahInfo.nama : `Surah ${entry.surahNo}`;
-                        const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short'});
-                        const jenisLabel = entry.jenis.charAt(0).toUpperCase() + entry.jenis.slice(1);
-                        const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
-                        const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
-                        const historyDeleteBtn = window.appState.loggedInRole === 'guru'
-                            ? `<button data-action="delete-inline-riwayat" data-id="${entry.id}" class="delete-inline-riwayat-btn text-slate-400 hover:text-red-600 p-1 rounded-full -mr-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                            </button>`
-                            : '';
-                        return `
-                            <div class="text-xs text-slate-500 flex justify-between items-center bg-slate-100 p-2 rounded group">
-                                <div class="flex-grow">
-                                    <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
-                                    <span class="font-semibold text-slate-700">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</span>
-                                    <span class="italic">(${kualitasText})</span>
-                                </div>
-                                <div class="flex items-center flex-shrink-0 ml-2">
-                                    <span class="font-medium mr-1">${date}</span>
-                                    ${historyDeleteBtn}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    historyHTML = '<p class="text-xs text-slate-400 text-center py-2">Belum ada riwayat setoran.</p>';
-                }
-
-item.innerHTML = `
-                    <div class="student-header flex items-center justify-between p-3 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors">
-                        <div class="flex items-center flex-grow mr-2">
-                            <span class="font-medium">${student.name}</span>
-                            <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none ${hasSubmitted ? 'ml-3' : 'hidden'}" ${hasSubmitted ? 'checked' : ''}>
-                        </div>
-                        ${deleteButtonHTML}
-                    </div>
-                    <div class="hafalan-form-container hidden p-4 border-t border-slate-200">
-                        <form class="hafalan-form space-y-4">
-                            <input type="hidden" name="studentId" value="${student.id}">
-                            
-                            <div class="${isJuzAmma ? 'grid grid-cols-2 gap-4' : ''}"> <div>
-                                    <label class="block text-sm font-medium mb-1">${isJuzAmma ? 'Dari Surah' : 'Surah'}</label> <select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select>
-                                </div>
-                                ${isJuzAmma ? ayatInputsHTML : ''} </div>
-                            ${!isJuzAmma ? ayatInputsHTML : ''} ${kualitasInputsHTML} 
-                            ${pinInputHTML}
-                            <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
-                        </form>
-                        <div class="mt-6 pt-4 border-t">
-                            <h4 class="text-sm font-semibold text-slate-600 mb-2">Riwayat Terbaru</h4>
-                            <div class="student-history-list space-y-2 max-h-48 overflow-y-auto pr-2">
-                                ${historyHTML}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                ui.studentList.appendChild(item);
-
-                const actualHafalanEntries = studentHafalan.filter(h => h.jenis !== 'tes');
-                let lastEntry = null;
-                if (actualHafalanEntries.length > 0) { lastEntry = actualHafalanEntries.sort((a, b) => b.timestamp - a.timestamp)[0]; }
-
-                const form = item.querySelector('.hafalan-form');
-                const surahSelect = form.querySelector('.surah-select');
-                const ayatDariSelect = form.querySelector('.ayat-dari-select');
-                const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
-                
-                const setKualitasDropdown = (kualitasValue) => {
-                    const kualitasSelect = form.querySelector('select[name="kualitas"]');
-                    if (kualitasSelect) {
-                        kualitasSelect.value = kualitasValue;
-                    }
-                };
-
-                const previouslyOpenState = openFormsState.get(student.id);
-
-                if (previouslyOpenState) {
-                    setKualitasDropdown(previouslyOpenState.kualitas);
-                    surahSelect.value = previouslyOpenState.surah;
-                    if (ayatDariSelect && ayatSampaiSelect) {
-                        await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                        ayatDariSelect.value = previouslyOpenState.ayatDari;
-                        ayatSampaiSelect.value = previouslyOpenState.ayatSampai;
-                    }
-                    const surahSampaiSelect = form.querySelector('.surah-sampai-select');
-                    if (surahSampaiSelect && previouslyOpenState.surahSampai) {
-                        surahSampaiSelect.value = previouslyOpenState.surahSampai;
-                    }
-                } else if (lastEntry) {
-                    setKualitasDropdown(lastEntry.kualitas);
-                    surahSelect.value = lastEntry.surahNo;
-                    if (ayatDariSelect && ayatSampaiSelect) {
-                        await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                        ayatDariSelect.value = lastEntry.ayatDari;
-                        ayatSampaiSelect.value = lastEntry.ayatSampai;
-                    }
-                } else {
-                    if (!isJuzAmma) {
-                        populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
-                    }
-                }
+                openFormsState.set(studentId, state);
             }
+        });
+    }
 
-            renderSiswaPagination(filteredStudents.length);
-            openStudentIds.forEach(studentId => {
-                const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
-                if (studentItem) {
-                    const formContainer = studentItem.querySelector('.hafalan-form-container');
-                    if (formContainer) {
-                        formContainer.classList.remove('hidden');
-                    }
+    const role = window.appState.loggedInRole;
+    const SISWA_PER_PAGE = 36;
+    
+    let paginatedStudents = [];
+    let totalFilteredStudents = 0;
+
+    if (role === 'siswa') {
+        // --- LOGIKA BARU UNTUK SISWA ---
+        const currentUserUID = window.appState.currentUserUID;
+        const student = window.appState.allStudents.find(s => s.userId === currentUserUID);
+        
+        if (student) {
+            paginatedStudents = [student]; // Buat array dengan satu siswa
+        }
+        totalFilteredStudents = paginatedStudents.length;
+        
+        // Sembunyikan pagination
+        const paginationContainer = document.getElementById('student-pagination-controls');
+        if (paginationContainer) paginationContainer.innerHTML = '';
+
+    } else {
+        // --- LOGIKA LAMA UNTUK GURU/ADMIN ---
+        const openStudentIds = new Set();
+        if (ui.studentList) {
+            ui.studentList.querySelectorAll('.student-item').forEach(item => {
+                const form = item.querySelector('.hafalan-form-container');
+                if (form && !form.classList.contains('hidden')) {
+                    openStudentIds.add(item.dataset.studentId);
                 }
             });
         }
+        if (window.appState.lastSubmittedStudentId) {
+            openStudentIds.add(window.appState.lastSubmittedStudentId);
+            window.appState.lastSubmittedStudentId = null;
+        }
+
+        const filterId = ui.studentFilterClass.value;
+        const searchTerm = ui.siswa && ui.siswa.searchStudent ? ui.siswa.searchStudent.value.toLowerCase() : '';
+
+        let filteredStudents = filterId ? window.appState.allStudents.filter(s => s.classId === filterId) : [...window.appState.allStudents];
+        if (searchTerm) {
+            filteredStudents = filteredStudents.filter(s => s.name.toLowerCase().includes(searchTerm));
+        }
+        filteredStudents.sort((a, b) => a.name.localeCompare(b.name));
+
+        totalFilteredStudents = filteredStudents.length;
+        
+        const currentPage = window.appState.currentPageSiswa;
+        const startIndex = (currentPage - 1) * SISWA_PER_PAGE;
+        const endIndex = startIndex + SISWA_PER_PAGE;
+        paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+    }
+    
+    // --- LOGIKA RENDER BERSAMA ---
+    ui.studentList.innerHTML = '';
+    
+    // Persiapan data form
+    const quranScope = getQuranScope();
+    const isJuzAmma = quranScope === 'juz30';
+    let surahsForForm;
+    const pilihanSurahNumbers = [18, 36, 55, 56, 67];
+    if (quranScope === 'juz30') { surahsForForm = surahList.filter(s => s.no >= 78); }
+    else if (quranScope === 'pilihan') { surahsForForm = surahList.filter(s => pilihanSurahNumbers.includes(s.no)); }
+    else { surahsForForm = surahList; }
+    const surahOptionsHTML = surahsForForm.map(s => `<option value="${s.no}" data-max-ayat="${s.ayat}">${s.no}. ${s.nama}</option>`).join('');
+
+    const ayatInputsHTML = isJuzAmma 
+                    ? `<div>
+                        <label class="block text-sm font-medium mb-1">Sampai Surah</label>
+                        <select name="surahSampai" class="form-select surah-sampai-select" required>${surahOptionsHTML}</select>
+                    </div>`
+                    : `<div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium mb-1">Dari Ayat</label><select name="ayatDari" class="form-select ayat-dari-select" required></select></div>
+                        <div><label class="block text-sm font-medium mb-1">Sampai Ayat</label><select name="ayatSampai" class="form-select ayat-sampai-select" required></select></div>
+                    </div>`;
+    
+    const kualitasInputsHTML = `
+    <div>
+        <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
+        <select name="kualitas" class="form-select">
+            <option value="sangat-lancar" selected>Sangat Lancar</option>
+            <option value="lancar">Lancar</option>
+            <option value="cukup-lancar">Cukup Lancar</option>
+            <option value="tidak-lancar">Tidak Lancar</option>
+            <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
+        </select>
+    </div>
+    `;
+
+    const pinInputHTML = (role === 'siswa')
+        ? `
+        <div>
+            <label class="block text-sm font-medium mb-1">PIN Guru</label>
+            <div class="relative">
+                <input type="password" name="pin" class="form-input pr-10" placeholder="Masukkan 6 Digit" required pattern="\\d{6}" maxlength="6" autocomplete="one-time-code">
+                <button type="button" class="toggle-pin-btn absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                    <svg class="eye-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="eye-off-icon h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+                </button>
+            </div>
+        </div>
+        `
+        : '';
+
+    // Tampilkan pesan jika tidak ada siswa
+    if (paginatedStudents.length === 0) {
+        let message = '';
+        if (role === 'siswa') {
+            message = `<p class="text-center text-sm text-slate-400 p-4">Profil siswa Anda tidak ditemukan atau belum ditautkan.</p>`;
+        } else {
+            message = totalFilteredStudents > 0 ? `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di halaman ini.</p>` : `<p class="text-center text-sm text-slate-400 p-4">Tidak ada siswa di kelas ini.</p>`;
+        }
+        ui.studentList.innerHTML = message;
+        
+        if (role !== 'siswa') {
+            renderSiswaPagination(totalFilteredStudents);
+        }
+        return;
+    }
+
+    // Loop untuk merender kartu siswa
+    for (const student of paginatedStudents) {
+        const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
+        const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp) && h.jenis !== 'tes');
+        const item = document.createElement('div');
+        item.className = 'student-item bg-slate-50 rounded-lg';
+        item.dataset.studentId = student.id;
+
+        const deleteButtonHTML = (role !== 'siswa')
+            ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>`
+            : '';
+
+        const recentHafalan = studentHafalan
+            .filter(entry => entry.jenis !== 'tes')
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 5);
+        
+        const kualitasDisplayMap = { 
+            'sangat-lancar': 'Sangat Lancar', 'lancar': 'Lancar',
+            'cukup-lancar': 'Cukup Lancar', 'tidak-lancar': 'Tidak Lancar',
+            'sangat-tidak-lancar': 'Sangat Tidak Lancar'
+        };
+        
+        let historyHTML = '';
+        if (recentHafalan.length > 0) {
+            historyHTML = recentHafalan.map(entry => {
+                const surahInfo = surahList.find(s => s.no == entry.surahNo);
+                const surahName = surahInfo ? surahInfo.nama : `Surah ${entry.surahNo}`;
+                const date = new Date(entry.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short'});
+                const jenisLabel = entry.jenis.charAt(0).toUpperCase() + entry.jenis.slice(1);
+                const kualitasText = kualitasDisplayMap[entry.kualitas] || entry.kualitas;
+                const jenisColor = entry.jenis === 'ziyadah' ? 'text-teal-600' : 'text-sky-600';
+                
+                const historyDeleteBtn = (role !== 'siswa')
+                    ? `<button data-action="delete-inline-riwayat" data-id="${entry.id}" class="delete-inline-riwayat-btn text-slate-400 hover:text-red-600 p-1 rounded-full -mr-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>`
+                    : '';
+                return `
+                    <div class="text-xs text-slate-500 flex justify-between items-center bg-slate-100 p-2 rounded group">
+                        <div class="flex-grow">
+                            <span class="font-bold ${jenisColor}">${jenisLabel}:</span>
+                            <span class="font-semibold text-slate-700">${surahName} ${entry.ayatDari}-${entry.ayatSampai}</span>
+                            <span class="italic">(${kualitasText})</span>
+                        </div>
+                        <div class="flex items-center flex-shrink-0 ml-2">
+                            <span class="font-medium mr-1">${date}</span>
+                            ${historyDeleteBtn}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            historyHTML = '<p class="text-xs text-slate-400 text-center py-2">Belum ada riwayat setoran.</p>';
+        }
+
+        item.innerHTML = `
+        <div class="student-header flex items-center justify-between p-3 ${role !== 'siswa' ? 'cursor-pointer hover:bg-slate-100' : ''} rounded-lg transition-colors ${role === 'siswa' ? 'hidden' : ''}">
+        <div class="flex items-center flex-grow mr-2">
+                <span class="font-medium">${student.name}</span>
+                    <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 pointer-events-none ${hasSubmitted ? 'ml-3' : 'hidden'}" ${hasSubmitted ? 'checked' : ''}>
+                </div>
+                ${deleteButtonHTML}
+            </div>
+            <div class="hafalan-form-container ${role === 'siswa' ? 'p-4 student-form-view' : 'hidden p-4 border-t border-slate-200'}">
+                <form class="hafalan-form space-y-4">
+                    <input type="hidden" name="studentId" value="${student.id}">
+                    
+                    <div class="${isJuzAmma ? 'grid grid-cols-2 gap-4' : ''}">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">${isJuzAmma ? 'Dari Surah' : 'Surah'}</label>
+                            <select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select>
+                        </div>
+                        ${isJuzAmma ? ayatInputsHTML : ''}
+                    </div>
+                    ${!isJuzAmma ? ayatInputsHTML : ''}
+                    ${kualitasInputsHTML} 
+                    ${pinInputHTML}
+                    <button type="submit" class="btn btn-primary w-full">Simpan Setoran</button>
+                </form>
+                <div class="mt-6 pt-4 border-t">
+                    <h4 class="text-sm font-semibold text-slate-600 mb-2">Riwayat Terbaru</h4>
+                    <div class="student-history-list space-y-2 max-h-48 overflow-y-auto pr-2">
+                        ${historyHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+        ui.studentList.appendChild(item);
+
+        // --- Logika untuk mengisi form ---
+        const actualHafalanEntries = studentHafalan.filter(h => h.jenis !== 'tes');
+        let lastEntry = null;
+        if (actualHafalanEntries.length > 0) { lastEntry = actualHafalanEntries.sort((a, b) => b.timestamp - a.timestamp)[0]; }
+
+        const form = item.querySelector('.hafalan-form');
+        const surahSelect = form.querySelector('.surah-select');
+        const ayatDariSelect = form.querySelector('.ayat-dari-select');
+        const ayatSampaiSelect = form.querySelector('.ayat-sampai-select');
+        
+        const setKualitasDropdown = (kualitasValue) => {
+            const kualitasSelect = form.querySelector('select[name="kualitas"]');
+            if (kualitasSelect) {
+                kualitasSelect.value = kualitasValue;
+            }
+        };
+
+        const previouslyOpenState = openFormsState.get(student.id);
+
+        if (previouslyOpenState) {
+            // ... (logika restore state form, hanya relevan untuk guru)
+        } else if (lastEntry) {
+            setKualitasDropdown(lastEntry.kualitas);
+            surahSelect.value = lastEntry.surahNo;
+            if (ayatDariSelect && ayatSampaiSelect) {
+                await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+                ayatDariSelect.value = lastEntry.ayatDari;
+                ayatSampaiSelect.value = lastEntry.ayatSampai;
+            }
+        } else {
+            if (!isJuzAmma) {
+                populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+            }
+        }
+    }
+
+    // Hanya render pagination dan buka form jika guru
+    if (role !== 'siswa') {
+        renderSiswaPagination(totalFilteredStudents);
+        
+        const openStudentIds = new Set();
+        if (ui.studentList) {
+            ui.studentList.querySelectorAll('.student-item').forEach(item => {
+                const form = item.querySelector('.hafalan-form-container');
+                if (form && !form.classList.contains('hidden')) {
+                    openStudentIds.add(item.dataset.studentId);
+                }
+            });
+        }
+        if (window.appState.lastSubmittedStudentId) {
+            openStudentIds.add(window.appState.lastSubmittedStudentId);
+            window.appState.lastSubmittedStudentId = null;
+        }
+        
+        openStudentIds.forEach(studentId => {
+            const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
+            if (studentItem) {
+                const formContainer = studentItem.querySelector('.hafalan-form-container');
+                if (formContainer) {
+                    formContainer.classList.remove('hidden');
+                }
+            }
+        });
+    }
+}
         // --- FUNGSI-FUNGSI BARU UNTUK SETORAN MASSAL ---
 
         /**
@@ -2881,6 +3549,7 @@ function renderSelectedStudentsForBulkHafalan() {
             juzSelectSampai: document.getElementById('test-juz-select-sampai'),
             backStepBtn: document.getElementById('test-back-step-btn'),
             startBtn: document.getElementById('start-test-btn'),
+            studentSelectLabel: document.getElementById('test-student-select-label'),
 
             // Elemen di Halaman Progres & Hasil
             questionNumber: document.getElementById('current-question-number'),
@@ -2898,6 +3567,11 @@ function renderSelectedStudentsForBulkHafalan() {
             checkReorderBtn: document.getElementById('check-reorder-btn'),
             previousQuestionBtn: document.getElementById('previous-question-btn'),
         };
+        if (window.appState.loggedInRole === 'siswa') {
+            if (testUI.studentSearchContainer) testUI.studentSearchContainer.classList.add('hidden');
+            if (testUI.selectedStudentsList) testUI.selectedStudentsList.classList.add('hidden');
+            if (testUI.studentSelectLabel) testUI.studentSelectLabel.classList.add('hidden');
+        }
 
         // Fungsi untuk mengisi dropdown surah dan juz
         function populateTestSelectors() {
@@ -3599,20 +4273,30 @@ function renderSelectedStudentsForBulkHafalan() {
             }
         }
 
-        window.populateProfileForm = function() {
-            const currentUserUID = window.appState.currentUserUID;
-            const userProfile = window.appState.allUsers.find(u => u.id === currentUserUID);
+window.populateProfileForm = function() {
+    const currentUserUID = window.appState.currentUserUID;
+    const userProfile = window.appState.allUsers.find(u => u.id === currentUserUID);
 
-            if (userProfile) {
-                ui.profile.fullNameInput.value = userProfile.namaLengkap || '';
-                ui.profile.pobInput.value = userProfile.ttl || '';
-                if (userProfile.fotoProfilUrl) {
-                    ui.profile.picturePreview.src = userProfile.fotoProfilUrl;
-                } else {
-                    ui.profile.picturePreview.src = 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Foto';
-                }
-            }
+    if (userProfile) {
+        ui.profile.fullNameInput.value = userProfile.namaLengkap || '';
+        ui.profile.pobInput.value = userProfile.ttl || '';
+        if (userProfile.fotoProfilUrl) {
+            ui.profile.picturePreview.src = userProfile.fotoProfilUrl;
+        } else {
+            ui.profile.picturePreview.src = 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Foto';
         }
+        const role = window.appState.loggedInRole;
+        if (role === 'admin_lembaga') {
+            // Jika admin, pastikan bisa diedit
+            ui.profile.fullNameInput.disabled = false;
+            ui.profile.fullNameInput.placeholder = "Masukkan nama lengkap Anda";
+        } else {
+            // Jika bukan admin (guru/siswa), kunci
+            ui.profile.fullNameInput.disabled = true;
+            ui.profile.fullNameInput.placeholder = "Nama diatur oleh Admin";
+        }
+    }
+}
 
 window.populateSettingsForms = function() {
     // --- 1. Ambil referensi semua kartu pengaturan ---
@@ -3620,17 +4304,24 @@ window.populateSettingsForms = function() {
     const pinCard = ui.guruPinSettings.card;
     const mutqinCard = ui.mutqinSettings.card;
 
-    // --- 2. Atur visibilitas kartu BERDASARKAN PERAN (INI DIPINDAHKAN KE ATAS) ---
-    if (window.appState.loggedInRole === 'guru') {
+    // --- 2. Atur visibilitas kartu BERDASARKAN PERAN ---
+    const role = window.appState.loggedInRole;
+
+    if (role === 'guru') {
         // Jika GURU, tampilkan semuanya
         if (lingkupCard) lingkupCard.classList.remove('hidden');
         if (pinCard) pinCard.classList.remove('hidden');
         if (mutqinCard) mutqinCard.classList.remove('hidden');
-    } else { // Jika SISWA
-        // Tampilkan HANYA kartu lingkup hafalan
-        if (lingkupCard) lingkupCard.classList.remove('hidden');
 
-        // Sembunyikan kartu PIN dan Skor Mutqin
+    } else if (role === 'siswa') {
+        // Jika SISWA, tampilkan HANYA lingkup hafalan
+        if (lingkupCard) lingkupCard.classList.remove('hidden');
+        if (pinCard) pinCard.classList.add('hidden');
+        if (mutqinCard) mutqinCard.classList.add('hidden');
+
+    } else if (role === 'admin_lembaga') {
+        // Jika ADMIN, sembunyikan semuanya
+        if (lingkupCard) lingkupCard.classList.add('hidden');
         if (pinCard) pinCard.classList.add('hidden');
         if (mutqinCard) mutqinCard.classList.add('hidden');
     }
@@ -3680,12 +4371,103 @@ window.populateSettingsForms = function() {
                 }
             });
         }
+        
                 if (loadAndRestoreTestState()) {
             }   
             [ui.addClassBtn, ui.addStudentSubmitBtn, ui.import.importBtn, ui.import.downloadTemplateBtn, ui.profile.saveBtn, ui.pinModal.okBtn].forEach(btn => {
                 if (btn) btn.dataset.originalContent = btn.innerHTML;
             });
+if (adminUI.addAkunModalBtn) {
+        adminUI.addAkunModalBtn.addEventListener('click', () => {
+            // Siapkan modal untuk mode TAMBAH BARU
+            adminUI.addAkunForm.reset();
+            adminUI.addAkunModalTitle.textContent = "Tambah Akun Baru";
+            adminUI.akunEditId.value = "";
+            adminUI.akunEmail.disabled = false;
+            adminUI.akunRole.disabled = false;
+            adminUI.akunPasswordContainer.classList.remove('hidden');
+            adminUI.akunPassword.required = true;
+            adminUI.addAkunSubmitBtn.textContent = "Simpan Akun";
+            // 1. Panggil fungsi baru untuk mengisi dropdown siswa
+            populateUnlinkedStudentsSelect();
+            // 2. Atur tampilan default (role 'guru' adalah default di HTML)
+            if (adminUI.akunNamaContainer) adminUI.akunNamaContainer.classList.remove('hidden');
+            if (adminUI.akunStudentSelectContainer) adminUI.akunStudentSelectContainer.classList.add('hidden');
+            if (adminUI.akunNama) adminUI.akunNama.required = true;
+            if (adminUI.akunStudentSelect) adminUI.akunStudentSelect.required = false;
+            showModal(adminUI.addAkunModal);
+        });
+    }
+
+    if (adminUI.cancelAddAkunBtn) {
+        adminUI.cancelAddAkunBtn.addEventListener('click', () => {
+            hideModal(adminUI.addAkunModal);
+        });
+    }
+
+    if (adminUI.addAkunForm) {
+        adminUI.addAkunForm.addEventListener('submit', handleGenerateAccount);
+    }
+if (adminUI.akunRole) {
+        adminUI.akunRole.addEventListener('change', (e) => {
+            // Jangan jalankan jika dropdown di-disable (mode edit)
+            if (adminUI.akunRole.disabled) return; 
+
+            const role = e.target.value;
+            if (role === 'siswa') {
+                if (adminUI.akunNamaContainer) adminUI.akunNamaContainer.classList.add('hidden');
+                if (adminUI.akunStudentSelectContainer) adminUI.akunStudentSelectContainer.classList.remove('hidden');
+                if (adminUI.akunNama) adminUI.akunNama.required = false;
+                if (adminUI.akunStudentSelect) adminUI.akunStudentSelect.required = true;
+            } else { // 'guru'
+                if (adminUI.akunNamaContainer) adminUI.akunNamaContainer.classList.remove('hidden');
+                if (adminUI.akunStudentSelectContainer) adminUI.akunStudentSelectContainer.classList.add('hidden');
+                if (adminUI.akunNama) adminUI.akunNama.required = true;
+                if (adminUI.akunStudentSelect) adminUI.akunStudentSelect.required = false;
+            }
+        });
+    }    
+    // Helper untuk toggle password di modal admin
+    setupPasswordToggle('toggle-akun-password', 'akun-password', 'akun-eye-icon', 'akun-eye-off-icon');
+
+    // Listener untuk tombol Edit/Reset/Hapus di daftar akun
+    if (adminUI.akunList) {
+        adminUI.akunList.addEventListener('click', handleAkunActions);
+    }
+// --- TAMBAHKAN LISTENER UNTUK MODAL MASSAL ---
+    if (adminUI.bulkAddAkunBtn) {
+        adminUI.bulkAddAkunBtn.addEventListener('click', () => {
+            // Reset modal ke tampilan input
+            adminUI.bulkAkunForm.reset();
+            adminUI.bulkAkunInputContainer.classList.remove('hidden');
+            adminUI.bulkAkunProgressContainer.classList.add('hidden');
+            adminUI.bulkAkunProgressLog.innerHTML = '';
+            adminUI.bulkProgressCounter.textContent = '';
             
+            adminUI.bulkAkunSubmitBtn.disabled = false;
+            adminUI.bulkAkunCancelBtn.disabled = false;
+            adminUI.bulkAkunCancelBtn.textContent = 'Batal'; // Reset teks tombol
+            
+            showModal(adminUI.bulkAddAkunModal);
+        });
+    }
+
+    if (adminUI.bulkAkunCancelBtn) {
+        adminUI.bulkAkunCancelBtn.addEventListener('click', () => {
+            hideModal(adminUI.bulkAddAkunModal);
+        });
+    }
+
+    if (adminUI.bulkAkunForm) {
+        adminUI.bulkAkunForm.addEventListener('submit', handleBulkGenerateAccounts);
+    }
+    // Listener untuk filter di halaman admin
+    if (adminUI.akunSearch) {
+        adminUI.akunSearch.addEventListener('input', debounce(renderManajemenAkunList, 300));
+    }
+    if (adminUI.akunFilterRole) {
+        adminUI.akunFilterRole.addEventListener('change', renderManajemenAkunList);
+    }            
             ui.addClassForm.addEventListener('submit', async e => { 
                 e.preventDefault(); 
                 const name = ui.classNameInput.value.trim(); 
@@ -3829,7 +4611,7 @@ window.populateSettingsForms = function() {
                 const studentId = studentItem.dataset.studentId;
                 
                 const header = e.target.closest('.student-header');
-                if (header) {
+                if (header && window.appState.loggedInRole !== 'siswa') {
                     const formContainer = studentItem.querySelector('.hafalan-form-container');
                     if (formContainer) {
                         formContainer.classList.toggle('hidden');
@@ -4393,9 +5175,13 @@ if (ui.settings.quranScopeForm) {
 
                     setButtonLoading(ui.profile.saveBtn, true);
                     const updatedData = {
-                        namaLengkap: ui.profile.fullNameInput.value.trim(),
                         ttl: ui.profile.pobInput.value.trim(),
                     };
+
+                    // Hanya admin yang boleh update namaLengkap
+                    if (window.appState.loggedInRole === 'admin_lembaga') {
+                        updatedData.namaLengkap = ui.profile.fullNameInput.value.trim();
+                    }
 
                     try {
                         await db.collection('users').doc(currentUserUID).update(updatedData);
@@ -4449,8 +5235,23 @@ if (ui.settings.quranScopeForm) {
             if (settingsLogoutBtn) {
                 settingsLogoutBtn.addEventListener('click', handleLogout);
             }
+            // Listener untuk tombol logout admin di menu utama
+                    const adminLogoutSidebar = document.getElementById('admin-logout-sidebar');
+                    const adminLogoutBottom = document.getElementById('admin-logout-bottom');
 
-// --- TAMBAHAN BARU: Listener untuk filter riwayat DAN JUZ ---
+                    if (adminLogoutSidebar) {
+                        adminLogoutSidebar.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            handleLogout(); // Panggil fungsi logout yang sudah ada
+                        });
+                    }
+                    if (adminLogoutBottom) {
+                        adminLogoutBottom.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            handleLogout(); // Panggil fungsi logout yang sudah ada
+                        });
+                    }
+            // --- TAMBAHAN BARU: Listener untuk filter riwayat DAN JUZ ---
             const mainContentView = document.getElementById('main-content-view');
             if (mainContentView) {
                 mainContentView.addEventListener('change', (e) => {
@@ -4473,6 +5274,17 @@ if (ui.settings.quranScopeForm) {
             populateTestSelectors();
             populateJuzFilterDropdown();
             testUI.nextStepBtn.addEventListener('click', () => {
+                if (window.appState.loggedInRole === 'siswa') {
+            const currentUserUID = window.appState.currentUserUID;
+            const student = window.appState.allStudents.find(s => s.userId === currentUserUID);
+            if (student) {
+                // Otomatis atur siswa yang dites adalah diri sendiri
+                window.appState.currentTest.studentIds = [student.id];
+            } else {
+                showToast("Gagal menemukan profil siswa Anda. Tidak dapat memulai tes.", "error");
+                return; // Hentikan proses jika data siswa tidak ada
+            }
+        }
                 testUI.step1_type_view.classList.add('hidden');
                 testUI.step2_scope_view.classList.remove('hidden');
             });
@@ -4642,8 +5454,12 @@ if (ui.settings.quranScopeForm) {
                                 db.collection('users').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        checkUserProfileCompletion(); // <-- TAMBAHKAN BARIS INI
+                        //checkUserProfileCompletion(); // <-- TAMBAHKAN BARIS INI
                         renderAll();
+                        const activePage = document.querySelector('.page.page-active');
+                        if (activePage && activePage.id === 'profil-page' && typeof window.populateProfileForm === 'function') {
+                            window.populateProfileForm();
+                        }
                     }, error => commonErrorHandler(error, 'users'));
                 db.collection('pengaturan').where('userId', '==', currentUserUID)
                     .onSnapshot(snapshot => {

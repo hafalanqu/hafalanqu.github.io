@@ -93,9 +93,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <span>Riwayat</span>
                 </a>
+                <a href="#" data-page="manajemen_akun" class="sidebar-link hidden" data-role="admin_lembaga">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Manajemen Akun</span>
+                </a>
                 <a href="#" data-page="kelas" class="sidebar-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
-                    <span>Kelas</span>
+                    <span>Manajemen Kelas</span>
                 </a>
                  <a href="#" data-page="profil" class="sidebar-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -108,6 +112,10 @@
                 <a href="#" data-page="tentang" class="sidebar-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     <span>Tentang</span>
+                </a>
+                <a href="#" id="admin-logout-sidebar" class="sidebar-link hidden" data-role="admin_lembaga">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>Keluar</span>
                 </a>
             </div>
         </nav>
@@ -167,10 +175,6 @@
                         <div id="menu-lainnya-mobile" class="card p-4 md:hidden">
                         <h2 class="text-xl font-semibold text-slate-800 mb-4">Menu Lainnya</h2>
                         <div class="space-y-1">
-
-                            <a href="#" data-page="kelas" class="block w-full text-left py-3 px-4 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition-colors">
-                                Manajemen Kelas
-                            </a>
 
                             <a href="#" data-page="pengaturan" class="block w-full text-left py-3 px-4 rounded-lg text-slate-700 font-medium hover:bg-slate-100 transition-colors">
                                 Pengaturan
@@ -351,12 +355,13 @@
 
                     </div>
                 </div>
+                
             <div id="tes_hafalan-page" class="page hidden">
                 <div class="max-w-xl mx-auto">    
                 <div id="test-step-1-type" class="card p-6">
                     <h2 class="text-xl font-semibold text-slate-800 mb-6">Pengaturan Tes</h2>
                     <div>
-                        <p class="block text-sm font-medium text-slate-700 mb-2">Pilih satu atau beberapa siswa jika ingin disimpan hasilnya</p>
+                        <p id="test-student-select-label" class="block text-sm font-medium text-slate-700 mb-2">Pilih satu atau beberapa siswa jika ingin disimpan hasilnya</p>
                         <div id="test-selected-students-list" class="flex flex-wrap gap-2 mb-2"></div>
                         
                         <div id="test-student-search-container">
@@ -610,7 +615,31 @@
                         </div>
                     </div>
                 </div>
+                <div id="manajemen_akun-page" class="page hidden">
+                    <div class="card p-4 sm:p-6">
 
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+                            <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Daftar Akun</h2>
+                            <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="akun-search" class="form-input w-full sm:w-auto" placeholder="Cari nama atau email...">
+                                <select id="akun-filter-role" class="form-select w-full sm:w-auto">
+                                    <option value="">Semua Peran</option>
+                                    <option value="guru">Guru</option>
+                                    <option value="siswa">Siswa</option>
+                                </select>
+                                <button id="add-akun-modal-btn" class="btn btn-primary whitespace-nowrap">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    <span>Tambah Akun</span>
+                                </button><button id="bulk-add-akun-btn" class="btn btn-secondary whitespace-nowrap">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                <span>Tambah Akun Massal</span>
+                            </button>
+                            </div>
+                        </div>
+                        <div id="akun-list" class="space-y-3">
+                            </div>
+                    </div>
+                </div>
                 <div id="tentang-page" class="page hidden">
                     <div class="card p-6 max-w-3xl mx-auto">
                         <h2 class="text-2xl font-bold text-teal-600 mb-4">Tentang HafalanQu</h2>
@@ -662,10 +691,21 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 <span></span>
             </a>
+            <a href="#" data-page="manajemen_akun" class="bottom-nav-link hidden" data-role="admin_lembaga">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span></span>
+            </a>
+            <a href="#" data-page="kelas" class="bottom-nav-link hidden" data-role="admin_lembaga">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+            <span></span>
+            </a>
              <a href="#" data-page="profil" class="bottom-nav-link">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span></span>
             </a>
+            <a href="#" id="admin-logout-bottom" class="bottom-nav-link hidden" data-role="admin_lembaga">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span></span> </a>
         </nav>
     <div id="add-student-modal" class="modal hidden">
         <div class="card w-full max-w-md p-6">
@@ -714,6 +754,78 @@
             </div>
         </div>
     </div>
+    <div id="add-akun-modal" class="modal hidden">
+        <div class="card w-full max-w-md p-6">
+            <h2 id="add-akun-modal-title" class="text-2xl font-semibold mb-6">Tambah Akun Baru</h2>
+            <form id="add-akun-form" class="space-y-4">
+                <input type="hidden" id="akun-edit-id" value="">
+                <div id="akun-nama-container">
+                    <label for="akun-nama" class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="akun-nama" class="form-input" placeholder="Masukkan nama lengkap" required>
+                </div>
+
+                <div id="akun-student-select-container" class="hidden">
+                    <label for="akun-student-select" class="block text-sm font-medium text-slate-700 mb-1">Pilih Siswa (dari database)</label>
+                    <select id="akun-student-select" class="form-select">
+                        <option value="">-- Memuat siswa... --</option>
+                        </select>
+                </div>
+                <div>
+                    <label for="akun-email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                    <input type="email" id="akun-email" class="form-input" placeholder="email@contoh.com" required>
+                </div>
+                <div>
+                    <label for="akun-role" class="block text-sm font-medium text-slate-700 mb-1">Peran (Role)</label>
+                    <select id="akun-role" class="form-select" required>
+                        <option value="guru">Guru</option>
+                        <option value="siswa">Siswa</option>
+                    </select>
+                </div>
+                <div id="akun-password-container">
+                    <label for="akun-password" class="block text-sm font-medium text-slate-700 mb-1">Password Baru</label>
+                    <div class="relative">
+                        <input type="password" id="akun-password" class="form-input pr-10" placeholder="Min. 6 karakter" required autocomplete="new-password">
+                        <button type="button" id="toggle-akun-password" class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+                            <svg id="akun-eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg id="akun-eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 hidden"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancel-add-akun" class="btn btn-secondary">Batal</button>
+                    <button type="submit" id="add-akun-submit-btn" class="btn btn-primary">Simpan Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+                <div id="bulk-add-akun-modal" class="modal hidden">
+                    <div class="card w-full max-w-lg p-6">
+                        <h2 class="text-2xl font-semibold mb-4">Tambah Akun Massal (Maks. 100)</h2>
+                        <form id="bulk-add-akun-form">
+                            <div id="bulk-add-input-container">
+                                <label for="bulk-akun-csv" class="block text-sm font-medium text-slate-700 mb-1">Data Akun</label>
+                                <textarea id="bulk-akun-csv" class="form-input w-full" rows="10" placeholder="Tempel data di sini. Pisahkan dengan koma."></textarea>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Format: <strong>email,nama,role,password</strong> (pisahkan koma, 1 baris per akun).<br>
+                                - <strong>Role 'guru':</strong> Akan membuat akun guru baru dengan nama & password tersebut.<br>
+                                - <strong>Role 'siswa':</strong> Akan mencari nama siswa di database (nama harus sama persis) dan menautkannya dengan email & password tersebut.<br>
+                                <strong class="text-red-600">Peringatan:</strong> Password minimal 6 karakter. Proses 'siswa' akan GAGAL jika nama tidak ditemukan, salah ketik, atau ada duplikat.
+                            </p>
+                            </div>
+
+                            <div id="bulk-add-progress-container" class="hidden">
+                                <p class="font-semibold mb-2">Sedang memproses... <span id="bulk-progress-counter"></span></p>
+                                <div id="bulk-add-progress-log" class="h-64 overflow-y-auto text-sm p-3 rounded-lg border bg-slate-50 space-y-2">
+                                    </div>
+                            </div>
+
+                            <div class="flex justify-end space-x-3 pt-6">
+                                <button type="button" id="cancel-bulk-add-akun" class="btn btn-secondary">Batal</button>
+                                <button type="submit" id="submit-bulk-add-akun" class="btn btn-primary">Mulai Proses</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
     <!-- Modal Setup Guru Baru -->
 <div id="profile-setup-modal" class="modal hidden">
     <div class="card w-full max-w-md p-6">

@@ -156,8 +156,14 @@
         #bulk-student-search-results {
             background-color: #ffffff; /* Warna putih solid */
         }
-        .hafalan-form-container {
-        background-color: #f3fffe;
+        .hafalan-form-container:not(.student-form-view) {
+            background-color: #f3fffe;
+        }
+
+        /* Beri background putih HANYA JIKA siswa */
+        .hafalan-form-container.student-form-view {
+            background-color: #ffffff; /* Putih Solid */
+            padding-top: 0;
         }
         #test-question-text {
             font-family: 'Scheherazade New', serif;
