@@ -30,6 +30,7 @@ window.appState = {
     currentDetailHistoryView: 'setoran',
     currentDetailHistoryPage: 1,
     currentDetailJuzView: 1,
+    adminAkunFilterClassId: null
 };
 const surahList = [ { no: 1, nama: "Al-Fatihah", ayat: 7 }, { no: 2, nama: "Al-Baqarah", ayat: 286 }, { no: 3, nama: "Ali 'Imran", ayat: 200 }, { no: 4, nama: "An-Nisa'", ayat: 176 }, { no: 5, nama: "Al-Ma'idah", ayat: 120 }, { no: 6, nama: "Al-An'am", ayat: 165 }, { no: 7, nama: "Al-A'raf", ayat: 206 }, { no: 8, nama: "Al-Anfal", ayat: 75 }, { no: 9, nama: "At-Taubah", ayat: 129 }, { no: 10, nama: "Yunus", ayat: 109 }, { no: 11, nama: "Hud", ayat: 123 }, { no: 12, nama: "Yusuf", ayat: 111 }, { no: 13, nama: "Ar-Ra'd", ayat: 43 }, { no: 14, nama: "Ibrahim", ayat: 52 }, { no: 15, nama: "Al-Hijr", ayat: 99 }, { no: 16, nama: "An-Nahl", ayat: 128 }, { no: 17, nama: "Al-Isra'", ayat: 111 }, { no: 18, nama: "Al-Kahf", ayat: 110 }, { no: 19, nama: "Maryam", ayat: 98 }, { no: 20, nama: "Taha", ayat: 135 }, { no: 21, nama: "Al-Anbiya'", ayat: 112 }, { no: 22, nama: "Al-Hajj", ayat: 78 }, { no: 23, nama: "Al-Mu'minun", ayat: 118 }, { no: 24, nama: "An-Nur", ayat: 64 }, { no: 25, nama: "Al-Furqan", ayat: 77 }, { no: 26, nama: "Asy-Syu'ara'", ayat: 227 }, { no: 27, nama: "An-Naml", ayat: 93 }, { no: 28, nama: "Al-Qasas", ayat: 88 }, { no: 29, nama: "Al-'Ankabut", ayat: 69 }, { no: 30, nama: "Ar-Rum", ayat: 60 }, { no: 31, nama: "Luqman", ayat: 34 }, { no: 32, nama: "As-Sajdah", ayat: 30 }, { no: 33, nama: "Al-Ahzab", ayat: 73 }, { no: 34, nama: "Saba'", ayat: 54 }, { no: 35, nama: "Fatir", ayat: 45 }, { no: 36, nama: "Yasin", ayat: 83 }, { no: 37, nama: "As-Saffat", ayat: 182 }, { no: 38, nama: "Sad", ayat: 88 }, { no: 39, nama: "Az-Zumar", ayat: 75 }, { no: 40, nama: "Ghafir", ayat: 85 }, { no: 41, nama: "Fussilat", ayat: 54 }, { no: 42, nama: "Asy-Syura", ayat: 53 }, { no: 43, nama: "Az-Zukhruf", ayat: 89 }, { no: 44, nama: "Ad-Dukhan", ayat: 59 }, { no: 45, nama: "Al-Jasiyah", ayat: 37 }, { no: 46, nama: "Al-Ahqaf", ayat: 35 }, { no: 47, nama: "Muhammad", ayat: 38 }, { no: 48, nama: "Al-Fath", ayat: 29 }, { no: 49, nama: "Al-Hujurat", ayat: 18 }, { no: 50, nama: "Qaf", ayat: 45 }, { no: 51, nama: "Az-Zariyat", ayat: 60 }, { no: 52, nama: "At-Tur", ayat: 49 }, { no: 53, nama: "An-Najm", ayat: 62 }, { no: 54, nama: "Al-Qamar", ayat: 55 }, { no: 55, nama: "Ar-Rahman", ayat: 78 }, { no: 56, nama: "Al-Waqi'ah", ayat: 96 }, { no: 57, nama: "Al-Hadid", ayat: 29 }, { no: 58, nama: "Al-Mujadalah", ayat: 22 }, { no: 59, nama: "Al-Hasyr", ayat: 24 }, { no: 60, nama: "Al-Mumtahanah", ayat: 13 }, { no: 61, nama: "As-Saff", ayat: 14 }, { no: 62, nama: "Al-Jumu'ah", ayat: 11 }, { no: 63, nama: "Al-Munafiqun", ayat: 11 }, { no: 64, nama: "At-Tagabun", ayat: 18 }, { no: 65, nama: "At-Talaq", ayat: 12 }, { no: 66, nama: "At-Tahrim", ayat: 12 }, { no: 67, nama: "Al-Mulk", ayat: 30 }, { no: 68, nama: "Al-Qalam", ayat: 52 }, { no: 69, nama: "Al-Haqqah", ayat: 52 }, { no: 70, nama: "Al-Ma'arij", ayat: 44 }, { no: 71, nama: "Nuh", ayat: 28 }, { no: 72, nama: "Al-Jinn", ayat: 28 }, { no: 73, nama: "Al-Muzzammil", ayat: 20 }, { no: 74, nama: "Al-Muddassir", ayat: 56 }, { no: 75, nama: "Al-Qiyamah", ayat: 40 }, { no: 76, nama: "Al-Insan", ayat: 31 }, { no: 77, nama: "Al-Mursalat", ayat: 50 }, { no: 78, nama: "An-Naba'", ayat: 40 }, { no: 79, nama: "An-Nazi'at", ayat: 46 }, { no: 80, nama: "'Abasa", ayat: 42 }, { no: 81, nama: "At-Takwir", ayat: 29 }, { no: 82, nama: "Al-Infitar", ayat: 19 }, { no: 83, nama: "Al-Mutaffifin", ayat: 36 }, { no: 84, nama: "Al-Insyiqaq", ayat: 25 }, { no: 85, nama: "Al-Buruj", ayat: 22 }, { no: 86, nama: "At-Tariq", ayat: 17 }, { no: 87, nama: "Al-A'la", ayat: 19 }, { no: 88, nama: "Al-Gasyiyah", ayat: 26 }, { no: 89, nama: "Al-Fajr", ayat: 30 }, { no: 90, nama: "Al-Balad", ayat: 20 }, { no: 91, nama: "Asy-Syams", ayat: 15 }, { no: 92, nama: "Al-Lail", ayat: 21 }, { no: 93, nama: "Ad-Duha", ayat: 11 }, { no: 94, nama: "Asy-Syarh", ayat: 8 }, { no: 95, nama: "At-Tin", ayat: 8 }, { no: 96, nama: "Al-'Alaq", ayat: 19 }, { no: 97, nama: "Al-Qadr", ayat: 5 }, { no: 98, nama: "Al-Bayyinah", ayat: 8 }, { no: 99, nama: "Az-Zalzalah", ayat: 8 }, { no: 100, nama: "Al-'Adiyat", ayat: 11 }, { no: 101, nama: "Al-Qari'ah", ayat: 11 }, { no: 102, nama: "At-Takasur", ayat: 8 }, { no: 103, nama: "Al-'Asr", ayat: 3 }, { no: 104, nama: "Al-Humazah", ayat: 9 }, { no: 105, nama: "Al-Fil", ayat: 5 }, { no: 106, nama: "Quraisy", ayat: 4 }, { no: 107, nama: "Al-Ma'un", ayat: 7 }, { no: 108, nama: "Al-Kausar", ayat: 3 }, { no: 109, nama: "Al-Kafirun", ayat: 6 }, { no: 110, nama: "An-Nasr", ayat: 3 }, { no: 111, nama: "Al-Masad", ayat: 5 }, { no: 112, nama: "Al-Ikhlas", ayat: 4 }, { no: 113, nama: "Al-Falaq", ayat: 5 }, { no: 114, nama: "An-Nas", ayat: 6 } ];
 // --- TAMBAHAN BARU: Data Juz Global ---
@@ -387,14 +388,6 @@ function hideModal(modalElement) {
             startApp(loggedInRole, lembagaId, currentUserUID);
         }
 
-        function startApp(role, lembagaId, uid) {
-            ui.loginView.classList.add('hidden');
-            ui.app.classList.remove('hidden');
-            window.appState.currentUserUID = uid;
-            setupUIForRole(role);
-            initializeAppLogic(lembagaId, uid); 
-        }
-
 function handleLogout() {
     auth.signOut().then(() => {
         sessionStorage.removeItem('loggedInRole');
@@ -608,7 +601,8 @@ let title = pageTitles[pageId] || "Dashboard";
     headerActions.className = 'w-full sm:w-auto flex items-center justify-end gap-2'; // Reset kelas
 if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
     headerActions.innerHTML = `<button id="export-data-btn" class="btn btn-primary w-full sm:w-auto">
-        ...
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ekspor Hasil Siswa
     </button>`;
 } else if (pageId === 'detail_siswa') { // <-- TAMBAHKAN BLOK 'ELSE IF' INI
 
@@ -621,22 +615,28 @@ if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
             showPage('ringkasan');
         });
     }
-}
-    if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
+        if (pageId === 'ringkasan' && window.appState.loggedInRole === 'guru') {
         headerActions.innerHTML = `<button id="export-data-btn" class="btn btn-primary w-full sm:w-auto">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Ekspor Hasil Siswa</span>
         </button>`;
     }
-
-    // Jalankan fungsi spesifik halaman jika ada
     if (pageId === 'pengaturan' && typeof window.populateSettingsForms === 'function') {
         window.populateSettingsForms();
     }
     if (pageId === 'profil' && typeof window.populateProfileForm === 'function') {
-        window.populateProfileForm();
-    }
+    window.populateProfileForm();
 }
+
+// ▼▼▼ PINDAHKAN BLOK INI KE SINI (DI DALAM FUNGSI) ▼▼▼
+if (pageId === 'manajemen_akun' && typeof renderManajemenAkunList === 'function') {
+    // Panggil render secara manual saat halaman ditunjukkan.
+    // Fungsi ini akan otomatis mengecek window.appState.adminAkunFilterClassId
+    renderManajemenAkunList();
+}
+}
+}
+
     
     function showPage(pageId) {
         const siswaAllowedPages = ['profil', 'ringkasan', 'siswa', 'riwayat', 'tes_hafalan', 'tentang', 'pengaturan'];
@@ -1460,7 +1460,6 @@ if (!initialPage || !validPageElement) {
 
     const adminUI = {
         addAkunModal: document.getElementById('add-akun-modal'),
-        addAkunModalBtn: document.getElementById('add-akun-modal-btn'),
         cancelAddAkunBtn: document.getElementById('cancel-add-akun'),
         addAkunForm: document.getElementById('add-akun-form'),
         addAkunSubmitBtn: document.getElementById('add-akun-submit-btn'),
@@ -1477,6 +1476,7 @@ if (!initialPage || !validPageElement) {
         akunList: document.getElementById('akun-list'),
         akunSearch: document.getElementById('akun-search'),
         akunFilterRole: document.getElementById('akun-filter-role'),
+        akunFilterKelas: document.getElementById('akun-filter-kelas'),
         bulkAddAkunBtn: document.getElementById('bulk-add-akun-btn'),
         bulkAddAkunModal: document.getElementById('bulk-add-akun-modal'),
         bulkAkunForm: document.getElementById('bulk-add-akun-form'),
@@ -1515,61 +1515,154 @@ function populateUnlinkedStudentsSelect() {
             adminUI.akunStudentSelect.appendChild(option);
         });
     }
-    /**
-     * Fungsi utama untuk me-render daftar akun di halaman manajemen.
-     */
-    function renderManajemenAkunList() {
-        if (!adminUI.akunList) return;
+/**
+ * Fungsi utama untuk me-render daftar akun di halaman manajemen.
+ * Versi ini menggabungkan semua user (guru) dan siswa (tertaut/belum)
+ * ke dalam satu daftar yang difilter.
+ */
+function renderManajemenAkunList() {
+    if (!adminUI.akunList) return;
 
-        const searchTerm = (adminUI.akunSearch.value || '').toLowerCase();
-        const roleFilter = adminUI.akunFilterRole.value;
+    adminUI.akunList.innerHTML = ''; // Selalu kosongkan list
 
-        let filteredUsers = window.appState.allUsers.filter(user => {
-            // Jangan tampilkan admin lembaga lain atau admin super
-            if (user.role === 'admin_lembaga') return false;
+    // --- 1. Ambil Nilai Filter ---
+    const roleFilter = adminUI.akunFilterRole.value;
+    const searchTerm = (adminUI.akunSearch.value || '').toLowerCase();
 
-            const nameMatch = (user.namaLengkap || '').toLowerCase().includes(searchTerm);
-            const emailMatch = (user.email || '').toLowerCase().includes(searchTerm);
-            const roleMatch = !roleFilter || user.role === roleFilter;
+    // Tampilkan/Sembunyikan filter kelas berdasarkan peran
+    let kelasFilter = '';
+    if (roleFilter === 'siswa') {
+        adminUI.akunFilterKelas.classList.remove('hidden');
+        kelasFilter = adminUI.akunFilterKelas.value;
+    } else {
+        adminUI.akunFilterKelas.classList.add('hidden');
+    }
 
-            return (nameMatch || emailMatch) && roleMatch;
-        });
+    // --- 2. Siapkan Data ---
+    let itemsToRender = [];
+    const userMap = new Map(window.appState.allUsers.map(u => [u.id, u]));
 
-        filteredUsers.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+    // --- 3. Bangun Daftar Tampilan ---
 
-        adminUI.akunList.innerHTML = '';
-        if (filteredUsers.length === 0) {
-            adminUI.akunList.innerHTML = '<p class="text-center text-slate-500 py-4">Tidak ada akun yang ditemukan.</p>';
-            return;
+    // A. Tambahkan GURU jika filter mengizinkan
+    if (roleFilter === 'guru' || roleFilter === '') {
+        let gurus = window.appState.allUsers.filter(u => u.role === 'guru');
+
+        // Terapkan filter pencarian untuk guru
+        if (searchTerm) {
+            gurus = gurus.filter(user => 
+                (user.namaLengkap || '').toLowerCase().includes(searchTerm) ||
+                (user.email || '').toLowerCase().includes(searchTerm)
+            );
+        }
+        // Ubah format agar konsisten
+        itemsToRender.push(...gurus.map(user => ({ type: 'guru', user, student: null, name: user.namaLengkap })));
+    }
+
+    // B. Tambahkan SISWA jika filter mengizinkan
+    if (roleFilter === 'siswa' || roleFilter === '') {
+        let students = window.appState.allStudents;
+
+        // Terapkan filter kelas untuk siswa
+        if (kelasFilter) {
+            students = students.filter(s => s.classId === kelasFilter);
         }
 
-        const fragment = document.createDocumentFragment();
-        filteredUsers.forEach(user => {
-            const item = document.createElement('div');
-            item.className = 'p-3 bg-slate-50 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3';
-            item.dataset.userId = user.id;
-            item.dataset.userName = user.namaLengkap;
-            item.dataset.userEmail = user.email;
+        // Ubah format siswa (gabungkan dengan data user jika ada)
+        let studentItems = students.map(student => ({
+            type: 'siswa',
+            user: userMap.get(student.userId) || null,
+            student: student,
+            name: student.name
+        }));
 
-            const roleText = user.role.charAt(0).toUpperCase() + user.role.slice(1);
-            const roleColor = user.role === 'guru' ? 'bg-sky-100 text-sky-800' : 'bg-green-100 text-green-800';
+        // Terapkan filter pencarian untuk siswa
+        if (searchTerm) {
+            studentItems = studentItems.filter(item => 
+                (item.student.name || '').toLowerCase().includes(searchTerm) ||
+                (item.user && (item.user.email || '').toLowerCase().includes(searchTerm))
+            );
+        }
 
-            item.innerHTML = `
-                <div class="flex-grow">
-                    <p class="font-semibold text-slate-800">${user.namaLengkap}</p>
-                    <p class="text-sm text-slate-500">${user.email}</p>
-                    <span class="text-xs font-medium px-2 py-0.5 rounded-full ${roleColor}">${roleText}</span>
-                </div>
-                <div class="flex-shrink-0 flex items-center gap-2">
+        itemsToRender.push(...studentItems);
+    }
+
+    // --- 4. Urutkan Daftar Gabungan ---
+    itemsToRender.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    // --- 5. Render ke DOM ---
+    if (itemsToRender.length === 0) {
+        adminUI.akunList.innerHTML = '<p class="text-center text-slate-500 py-4">Tidak ada akun yang ditemukan.</p>';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    itemsToRender.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'p-3 bg-slate-50 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3';
+
+        let detailsHTML = '';
+        let actionsHTML = '';
+
+        if (item.type === 'guru') {
+            // --- Render GURU ---
+            el.dataset.userId = item.user.id;
+            el.dataset.userName = item.user.namaLengkap;
+            el.dataset.userEmail = item.user.email;
+
+            detailsHTML = `
+                <p class="text-sm text-slate-500">${item.user.email}</p>
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">Guru</span>
+            `;
+            actionsHTML = `
+                <button data-action="edit-akun" class="btn btn-sm btn-secondary">Edit Nama</button>
+                <button data-action="reset-password-akun" class="btn btn-sm btn-secondary">Reset Password</button>
+                <button data-action="delete-akun" class="btn btn-sm btn-danger">Hapus</button>
+            `;
+
+        } else if (item.type === 'siswa') {
+            // --- Render SISWA ---
+            if (item.user) {
+                // Siswa PUNYA AKUN
+                el.dataset.userId = item.user.id;
+                el.dataset.userName = item.student.name; // Ambil nama dari data siswa
+                el.dataset.userEmail = item.user.email;
+
+                detailsHTML = `
+                    <p class="text-sm text-slate-500">${item.user.email}</p>
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">Siswa (Aktif)</span>
+                `;
+                actionsHTML = `
                     <button data-action="edit-akun" class="btn btn-sm btn-secondary">Edit Nama</button>
                     <button data-action="reset-password-akun" class="btn btn-sm btn-secondary">Reset Password</button>
                     <button data-action="delete-akun" class="btn btn-sm btn-danger">Hapus</button>
-                </div>
-            `;
-            fragment.appendChild(item);
-        });
-        adminUI.akunList.appendChild(fragment);
-    }
+                `;
+            } else {
+                // Siswa BELUM PUNYA AKUN
+                detailsHTML = `
+                    <p class="text-sm text-slate-500">Akun belum dibuat.</p>
+                `;
+                actionsHTML = `
+                    <button data-action="create-akun-for-student" data-student-id="${item.student.id}" data-student-name="${item.student.name}" class="btn btn-sm btn-primary">Buat Akun</button>
+                `;
+            }
+        }
+
+        // Gabungkan menjadi satu kartu
+        el.innerHTML = `
+            <div class="flex-grow">
+                <p class="font-semibold text-slate-800">${item.name}</p>
+                ${detailsHTML}
+            </div>
+            <div class="flex-shrink-0 flex items-center gap-2">
+                ${actionsHTML}
+            </div>
+        `;
+        fragment.appendChild(el);
+    });
+
+    adminUI.akunList.appendChild(fragment);
+}
 
     /**
      * Fungsi utama untuk menangani pembuatan/update akun.
@@ -1895,18 +1988,19 @@ let namaLengkap;
     /**
      * Menangani klik tombol pada daftar akun (Edit, Reset, Hapus).
      */
-    async function handleAkunActions(e) {
-        const button = e.target.closest('button');
-        if (!button) return;
+        async function handleAkunActions(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
 
-        const action = button.dataset.action;
-        const item = button.closest('[data-user-id]');
-        const userId = item.dataset.userId;
-        const userName = item.dataset.userName;
-        const userEmail = item.dataset.userEmail;
+            const action = button.dataset.action;
+            // Variabel yang error sudah dihapus dari sini
 
         switch (action) {
             case 'edit-akun': {
+                const item = button.closest('[data-user-id]');
+                if (!item) return;
+                const userId = item.dataset.userId;
+                const userName = item.dataset.userName;
                 // Siapkan modal untuk mode edit
                 adminUI.addAkunModalTitle.textContent = "Edit Nama Akun";
                 adminUI.akunEditId.value = userId;
@@ -1927,6 +2021,10 @@ let namaLengkap;
             }
 
             case 'reset-password-akun': {
+            const item = button.closest('[data-user-id]');
+            if (!item) return;
+            const userName = item.dataset.userName;
+            const userEmail = item.dataset.userEmail;
                 showConfirmModal({
                     title: "Reset Password?",
                     message: `Anda akan mengirim email reset password ke ${userEmail} (${userName}). Lanjutkan?`,
@@ -1945,6 +2043,10 @@ let namaLengkap;
             }
 
             case 'delete-akun': {
+            const item = button.closest('[data-user-id]');
+            if (!item) return;
+            const userId = item.dataset.userId;
+            const userName = item.dataset.userName;
                 const user = window.appState.allUsers.find(u => u.id === userId);
                 if (!user) return;
 
@@ -1992,6 +2094,44 @@ let namaLengkap;
                         }
                     }
                 });
+                break;
+            }
+            case 'create-akun-for-student': {
+                // Ambil data dari tombol yang diklik
+                const studentId = button.dataset.studentId;
+                const studentName = button.dataset.studentName;
+
+                // 1. Reset form dan atur judul
+                adminUI.addAkunForm.reset();
+                adminUI.addAkunModalTitle.textContent = `Buat Akun untuk ${studentName}`;
+
+                // 2. Atur status form (non-edit)
+                adminUI.akunEditId.value = "";
+                adminUI.akunPasswordContainer.classList.remove('hidden');
+                adminUI.akunPassword.required = true;
+                adminUI.addAkunSubmitBtn.textContent = "Simpan Akun";
+                
+                // 3. Paksa UI ke mode "Siswa" dan kunci
+                adminUI.akunRole.value = 'siswa';
+                adminUI.akunRole.disabled = true; // Kunci peran
+                adminUI.akunEmail.disabled = false;
+                
+                adminUI.akunNamaContainer.classList.add('hidden');
+                adminUI.akunNama.required = false;
+                adminUI.akunStudentSelectContainer.classList.remove('hidden');
+                adminUI.akunStudentSelect.required = true;
+
+                // 4. Isi dropdown dengan siswa yang belum punya akun
+                populateUnlinkedStudentsSelect(); 
+                
+                // 5. Pilih otomatis siswa yang kita klik
+                adminUI.akunStudentSelect.value = studentId;
+                
+                // 6. Kunci dropdown siswa agar tidak bisa diubah
+                adminUI.akunStudentSelect.disabled = true; 
+
+                // 7. Tampilkan modal
+                showModal(adminUI.addAkunModal);
                 break;
             }
         }
@@ -2860,7 +3000,8 @@ function renderStudentProgressList() {
             const filtersToUpdate = [
                 { el: ui.studentFilterClass, defaultText: 'Filter: Semua Kelas' },
                 { el: ui.summary.rankFilterClass, defaultText: 'Hasil: Semua Kelas' },
-                { el: ui.riwayat.filterClass, defaultText: 'Filter: Semua Kelas' }
+                { el: ui.riwayat.filterClass, defaultText: 'Filter: Semua Kelas' },
+                { el: adminUI.akunFilterKelas, defaultText: 'Filter: Semua Kelas' }
             ];
             const selectsToUpdate = [
                 { el: ui.newStudentClass, defaultText: '-- Pilih Kelas --' }
@@ -2890,7 +3031,6 @@ function renderStudentProgressList() {
                                 <p class="text-xs text-slate-500">${studentCount} siswa</p>
                             </div>
                             <div class="flex items-center space-x-1 flex-shrink-0">
-                                <button data-action="view-students" title="Lihat Siswa" class="inline-flex items-center justify-center rounded-md p-1 bg-teal-50 text-teal-600 hover:bg-teal-100 transition-colors">${eyeIcon}</button>
                                 <button data-action="edit-class" title="Ubah Nama Kelas" class="inline-flex items-center justify-center rounded-md p-1 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">${editIcon}</button>
                                 <button data-action="delete-class" title="Hapus Kelas" class="inline-flex items-center justify-center rounded-md p-1 bg-red-50 text-red-600 hover:bg-red-100 transition-colors">${deleteIcon}</button>
                             </div>
@@ -3233,7 +3373,22 @@ async function renderStudentList() {
         const previouslyOpenState = openFormsState.get(student.id);
 
         if (previouslyOpenState) {
-            // ... (logika restore state form, hanya relevan untuk guru)
+            // Kembalikan nilai yang baru saja disubmit/dihapus
+            setKualitasDropdown(previouslyOpenState.kualitas);
+            surahSelect.value = previouslyOpenState.surah;
+
+            if (!isJuzAmma && ayatDariSelect && ayatSampaiSelect) {
+                // Logika untuk Full Qur'an / Pilihan
+                await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
+                ayatDariSelect.value = previouslyOpenState.ayatDari;
+                ayatSampaiSelect.value = previouslyOpenState.ayatSampai;
+            } else if (isJuzAmma) {
+                // Logika untuk Juz Amma
+                const surahSampaiSelect = form.querySelector('.surah-sampai-select');
+                if (surahSampaiSelect) {
+                    surahSampaiSelect.value = previouslyOpenState.surahSampai;
+                }
+            }
         } else if (lastEntry) {
             setKualitasDropdown(lastEntry.kualitas);
             surahSelect.value = lastEntry.surahNo;
@@ -3249,19 +3404,21 @@ async function renderStudentList() {
         }
     }
 
-    // Hanya render pagination dan buka form jika guru
-    if (role !== 'siswa') {
-        renderSiswaPagination(totalFilteredStudents);
-        
-        const openStudentIds = new Set();
-        if (ui.studentList) {
-            ui.studentList.querySelectorAll('.student-item').forEach(item => {
-                const form = item.querySelector('.hafalan-form-container');
-                if (form && !form.classList.contains('hidden')) {
-                    openStudentIds.add(item.dataset.studentId);
-                }
-            });
+// Hanya render pagination dan buka form jika guru/admin
+if (role === 'guru' || role === 'admin_lembaga') {
+    renderSiswaPagination(totalFilteredStudents);
+
+    // Logika BARU: Buka kembali semua form yang tadi terbuka
+    // Kita gunakan 'openFormsState' yang sudah kita buat di awal fungsi ini.
+    openFormsState.forEach((state, studentId) => {
+        const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
+        if (studentItem) {
+            const formContainer = studentItem.querySelector('.hafalan-form-container');
+            if (formContainer) {
+                formContainer.classList.remove('hidden');
+            }
         }
+    });
         if (window.appState.lastSubmittedStudentId) {
             openStudentIds.add(window.appState.lastSubmittedStudentId);
             window.appState.lastSubmittedStudentId = null;
@@ -4377,27 +4534,6 @@ window.populateSettingsForms = function() {
             [ui.addClassBtn, ui.addStudentSubmitBtn, ui.import.importBtn, ui.import.downloadTemplateBtn, ui.profile.saveBtn, ui.pinModal.okBtn].forEach(btn => {
                 if (btn) btn.dataset.originalContent = btn.innerHTML;
             });
-if (adminUI.addAkunModalBtn) {
-        adminUI.addAkunModalBtn.addEventListener('click', () => {
-            // Siapkan modal untuk mode TAMBAH BARU
-            adminUI.addAkunForm.reset();
-            adminUI.addAkunModalTitle.textContent = "Tambah Akun Baru";
-            adminUI.akunEditId.value = "";
-            adminUI.akunEmail.disabled = false;
-            adminUI.akunRole.disabled = false;
-            adminUI.akunPasswordContainer.classList.remove('hidden');
-            adminUI.akunPassword.required = true;
-            adminUI.addAkunSubmitBtn.textContent = "Simpan Akun";
-            // 1. Panggil fungsi baru untuk mengisi dropdown siswa
-            populateUnlinkedStudentsSelect();
-            // 2. Atur tampilan default (role 'guru' adalah default di HTML)
-            if (adminUI.akunNamaContainer) adminUI.akunNamaContainer.classList.remove('hidden');
-            if (adminUI.akunStudentSelectContainer) adminUI.akunStudentSelectContainer.classList.add('hidden');
-            if (adminUI.akunNama) adminUI.akunNama.required = true;
-            if (adminUI.akunStudentSelect) adminUI.akunStudentSelect.required = false;
-            showModal(adminUI.addAkunModal);
-        });
-    }
 
     if (adminUI.cancelAddAkunBtn) {
         adminUI.cancelAddAkunBtn.addEventListener('click', () => {
@@ -4467,7 +4603,10 @@ if (adminUI.akunRole) {
     }
     if (adminUI.akunFilterRole) {
         adminUI.akunFilterRole.addEventListener('change', renderManajemenAkunList);
-    }            
+    }
+        if (adminUI.akunFilterKelas) {
+    adminUI.akunFilterKelas.addEventListener('change', renderManajemenAkunList);
+    }          
             ui.addClassForm.addEventListener('submit', async e => { 
                 e.preventDefault(); 
                 const name = ui.classNameInput.value.trim(); 
@@ -4488,11 +4627,6 @@ if (adminUI.akunRole) {
                 if (button) {
                     const action = button.dataset.action;
                     switch(action) {
-                        case 'view-students':
-                            ui.studentFilterClass.value = classId;
-                            showPage('siswa');
-                            renderStudentList();
-                            break;
                         case 'delete-class': {
                             const cls = window.appState.allClasses.find(c => c.id === classId);
                             showConfirmModal({
@@ -4649,14 +4783,13 @@ if (adminUI.akunRole) {
                         onConfirm: async () => {
                             try {
                                 // Menyimpan ID siswa agar form tetap terbuka setelah data di-refresh
-                                window.appState.lastSubmittedStudentId = studentId;
                                 await onlineDB.delete('hafalan', hafalanId);
                                 showToast("Riwayat setoran berhasil dihapus.");
                                 // Tampilan akan diperbarui secara otomatis oleh listener database
                             } catch (error) {
                                 console.error("Gagal menghapus riwayat:", error);
                                 showToast("Gagal menghapus data.", "error");
-                                window.appState.lastSubmittedStudentId = null; // Hapus jika gagal
+                                
                             }
                         }
                     });
@@ -4810,7 +4943,6 @@ if (adminUI.akunRole) {
                 }
                 
                 // Simpan semua entri dalam batch
-                window.appState.lastSubmittedStudentId = studentId;
                 const batch = db.batch();
                 entriesToSave.forEach(entry => {
                     const newDocRef = db.collection('hafalan').doc();

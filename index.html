@@ -615,10 +615,9 @@
                         </div>
                     </div>
                 </div>
-                <div id="manajemen_akun-page" class="page hidden">
+<div id="manajemen_akun-page" class="page hidden">
                     <div class="card p-4 sm:p-6">
-
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+                        <div id="akun-main-filter-container" class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                             <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Daftar Akun</h2>
                             <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
                                 <input type="text" id="akun-search" class="form-input w-full sm:w-auto" placeholder="Cari nama atau email...">
@@ -627,20 +626,19 @@
                                     <option value="guru">Guru</option>
                                     <option value="siswa">Siswa</option>
                                 </select>
-                                <button id="add-akun-modal-btn" class="btn btn-primary whitespace-nowrap">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                    <span>Tambah Akun</span>
-                                </button><button id="bulk-add-akun-btn" class="btn btn-secondary whitespace-nowrap">
+                                <select id="akun-filter-kelas" class="form-select w-full sm:w-auto hidden">
+                                <option value="">Semua Kelas</option>
+                                </select>
+                                <button id="bulk-add-akun-btn" class="btn btn-primary whitespace-nowrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                <span>Tambah Akun Massal</span>
+                                <span>Tambah Akun</span>
                             </button>
                             </div>
                         </div>
                         <div id="akun-list" class="space-y-3">
-                            </div>
+                        </div>
                     </div>
-                </div>
-                <div id="tentang-page" class="page hidden">
+                </div> <div id="tentang-page" class="page hidden">
                     <div class="card p-6 max-w-3xl mx-auto">
                         <h2 class="text-2xl font-bold text-teal-600 mb-4">Tentang HafalanQu</h2>
                         <div class="space-y-4 text-slate-600">
@@ -664,7 +662,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </main>
                 <!-- ===== Bottom Nav (Mobile) ===== -->
         <nav id="bottom-nav">
@@ -759,6 +756,7 @@
             <h2 id="add-akun-modal-title" class="text-2xl font-semibold mb-6">Tambah Akun Baru</h2>
             <form id="add-akun-form" class="space-y-4">
                 <input type="hidden" id="akun-edit-id" value="">
+                
                 <div id="akun-nama-container">
                     <label for="akun-nama" class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
                     <input type="text" id="akun-nama" class="form-input" placeholder="Masukkan nama lengkap" required>
@@ -768,12 +766,14 @@
                     <label for="akun-student-select" class="block text-sm font-medium text-slate-700 mb-1">Pilih Siswa (dari database)</label>
                     <select id="akun-student-select" class="form-select">
                         <option value="">-- Memuat siswa... --</option>
-                        </select>
+                    </select>
                 </div>
+                
                 <div>
                     <label for="akun-email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
                     <input type="email" id="akun-email" class="form-input" placeholder="email@contoh.com" required>
                 </div>
+                
                 <div>
                     <label for="akun-role" class="block text-sm font-medium text-slate-700 mb-1">Peran (Role)</label>
                     <select id="akun-role" class="form-select" required>
@@ -781,6 +781,7 @@
                         <option value="siswa">Siswa</option>
                     </select>
                 </div>
+                
                 <div id="akun-password-container">
                     <label for="akun-password" class="block text-sm font-medium text-slate-700 mb-1">Password Baru</label>
                     <div class="relative">
@@ -791,6 +792,7 @@
                         </button>
                     </div>
                 </div>
+                
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" id="cancel-add-akun" class="btn btn-secondary">Batal</button>
                     <button type="submit" id="add-akun-submit-btn" class="btn btn-primary">Simpan Akun</button>
@@ -800,7 +802,7 @@
     </div>
                 <div id="bulk-add-akun-modal" class="modal hidden">
                     <div class="card w-full max-w-lg p-6">
-                        <h2 class="text-2xl font-semibold mb-4">Tambah Akun Massal (Maks. 100)</h2>
+                        <h2 class="text-2xl font-semibold mb-4">Tambah Akun(Maks. 100)</h2>
                         <form id="bulk-add-akun-form">
                             <div id="bulk-add-input-container">
                                 <label for="bulk-akun-csv" class="block text-sm font-medium text-slate-700 mb-1">Data Akun</label>
