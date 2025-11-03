@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | Halaman Tidak Ditemukan</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Font Inter dari Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Mengatur font utama ke Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f8f8; /* Warna latar belakang yang sangat terang */
+        }
+        /* Mengganti warna primer menjadi hijau sage/hijau zaitun yang menenangkan */
+        .color-primary {
+            color: #0d9488; /* Teal 700 */
+        }
+        .bg-primary {
+            background-color: #0d9488;
+        }
+        .hover-primary:hover {
+            background-color: #0f766e; /* Teal 800 saat hover */
+        }
+        /* Style untuk ikon (opsional, jika ingin lebih spesifik) */
+        .icon-shadow {
+            text-shadow: 0 4px 6px rgba(13, 148, 136, 0.3);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="max-w-xl w-full mx-auto p-8 md:p-12 text-center">
+        <!-- Ikon dan Judul Utama -->
+        <div class="mb-8">
+            <!-- Ikon Bintang Bulan (Crescent Star) atau Simbol Islami lainnya menggunakan SVG inline -->
+            <svg class="w-20 h-20 mx-auto color-primary icon-shadow" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2a1 1 0 00-1 1v1.17a9 9 0 101 0V3a1 1 0 00-1-1zm0 18a7 7 0 110-14 7 7 0 010 14zm-.313-16a8.5 8.5 0 00-4.04 1.34A6 6 0 0112 7.5a6 6 0 014.353 2.155A8.5 8.5 0 0011.687 4z"/>
+            </svg>
+            
+            <h1 class="mt-4 text-7xl md:text-8xl font-extrabold color-primary">404</h1>
+            <h2 class="text-3xl md:text-4xl font-semibold tracking-tight text-gray-700 mt-2">Maaf, Halaman Tidak Ditemukan</h2>
+        </div>
+
+        <!-- Pesan Kustom -->
+        <div class="mb-10 border-t border-b border-gray-200 py-6">
+            <p class="text-lg text-gray-600 mb-4">
+                Kami mohon maaf, alamat yang Anda tuju sepertinya telah keliru, atau halaman tersebut telah dipindahkan.
+            </p>
+            <p class="italic text-base color-primary font-medium">
+                <!-- Kutipan Islami yang relevan dengan Kesalahan/Ujian/Sabar -->
+                "Mungkin ada hikmah di balik setiap kesalahan. Mari kita kembali ke jalan yang benar."
+            </p>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+            <!-- Tautan ke hafalanqu.my.id -->
+            <a href="https://hafalanqu.my.id/" class="block w-full sm:w-auto px-6 py-3 bg-primary text-white text-lg font-medium rounded-lg shadow-md transition duration-300 hover-primary transform hover:scale-105">
+                <span class="mr-2">🏠</span> Kembali ke Halaman Utama
+            </a>
+            <!-- Tautan Laporkan Masalah ke ahmadzulfikar600@gmail.com -->
+            <a href="mailto:ahmadzulfikar600@gmail.com" class="block w-full sm:w-auto px-6 py-3 bg-gray-100 text-gray-700 text-lg font-medium rounded-lg shadow-md transition duration-300 hover:bg-gray-200 transform hover:scale-105 border border-gray-300">
+                <span class="mr-2">📧</span> Laporkan Masalah
+            </a>
+        </div>
+        
+        <!-- Footer Tipis -->
+        <div class="mt-8 text-sm text-gray-500">
+            <p>&copy; 2025 hafalanqu. Senantiasa berusaha memberikan yang terbaik.</p>
+        </div>
+    </div>
+
+</body>
+</html>
