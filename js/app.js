@@ -2830,9 +2830,9 @@ function renderStudentProgressList() {
                 
                 if (totalMutqinKeseluruhan > 0) {
                     rankDisplay = `<span class="font-bold text-slate-500 text-lg w-6 text-center">${rank}</span>`;
-                    if (rank === 1) rankClass = 'bg-amber-100';
-                    else if (rank === 2) rankClass = 'bg-slate-200';
-                    else if (rank === 3) rankClass = 'bg-orange-100';
+                    if (rank === 1) rankClass = 'bg-teal-100'; // <-- Diubah ke Hijau/Teal
+                    else if (rank === 2) rankClass = 'bg-sky-100'; // <-- Diubah ke Biru/Sky
+                    else if (rank === 3) rankClass = 'bg-orange-100'; // <-- Tetap Oren
                 }
 
                 // Cek apakah item sudah ada di DOM
