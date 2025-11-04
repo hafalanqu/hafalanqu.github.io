@@ -2319,97 +2319,125 @@ function showConfirmModal({ title, message, okText, onConfirm }) {
             XLSX.writeFile(workbook, "template_import_siswa.xlsx");
         }
 
-        function handleImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-            const importBtn = ui.import.importBtn;
-            setButtonLoading(importBtn, true);
+    const importBtn = ui.import.importBtn;
+    setButtonLoading(importBtn, true);
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-                    if (!jsonData.length || !jsonData[0].hasOwnProperty('Nama') || !jsonData[0].hasOwnProperty('Kelas')) {
-                        showToast("Format template tidak sesuai. Pastikan ada kolom 'Nama' dan 'Kelas'.", "error");
-                        setButtonLoading(importBtn, false);
-                        return;
-                    }
+            if (!jsonData.length || !jsonData[0].hasOwnProperty('Nama') || !jsonData[0].hasOwnProperty('Kelas')) {
+                showToast("Format template tidak sesuai. Pastikan ada kolom 'Nama' dan 'Kelas'.", "error");
+                setButtonLoading(importBtn, false);
+                return;
+            }
 
-                    const batches = [];
-                    let currentBatch = db.batch();
+            const batches = [];
+            let currentBatch = db.batch();
+            batches.push(currentBatch);
+            let operationCount = 0;
+
+            // Hitungan baru untuk laporan
+            let newStudentsCount = 0;
+            let newClassesCount = 0;
+            let migratedCount = 0; // <-- BARU
+            let skippedCount = 0;
+
+            // --- LOGIKA PETA BARU ---
+            // Peta kelas (Nama > ID)
+            const classMap = new Map(window.appState.allClasses.map(c => [c.name.toLowerCase().trim(), c.id]));
+            // Peta siswa (Nama > Objek Siswa)
+            const studentMapByName = new Map(window.appState.allStudents.map(s => [s.name.toLowerCase().trim(), s]));
+            // --- AKHIR LOGIKA PETA BARU ---
+
+            for (const row of jsonData) {
+                if (operationCount >= 499) { // Batas batch
+                    currentBatch = db.batch();
                     batches.push(currentBatch);
-                    let operationCount = 0;
-                    let newStudentsCount = 0;
-                    let newClassesCount = 0;
-                    let skippedCount = 0;
-                    
-                    const classMap = new Map(window.appState.allClasses.map(c => [c.name.toLowerCase().trim(), c.id]));
-                    const existingStudentsMap = new Map(window.appState.allStudents.map(s => [`${s.name.toLowerCase().trim()}-${s.classId}`, true]));
-
-                    for (const row of jsonData) {
-                        if (operationCount >= 499) {
-                            currentBatch = db.batch();
-                            batches.push(currentBatch);
-                            operationCount = 0;
-                        }
-
-                        const studentName = row.Nama?.toString().trim();
-                        const className = row.Kelas?.toString().trim();
-                        if (!studentName || !className) continue;
-
-                        let classId = classMap.get(className.toLowerCase());
-
-                        if (!classId) {
-                            const newClassData = { name: className, lembagaId: window.appState.lembagaId };
-                            const newClassRef = db.collection('classes').doc();
-                            currentBatch.set(newClassRef, newClassData);
-                            operationCount++;
-                            classId = newClassRef.id;
-                            classMap.set(className.toLowerCase(), classId);
-                            newClassesCount++;
-                        }
-
-                        const studentKey = `${studentName.toLowerCase()}-${classId}`;
-                        if (!existingStudentsMap.has(studentKey)) {
-                            const newStudent = { name: studentName, classId, lembagaId: window.appState.lembagaId };
-                            const newStudentRef = db.collection('students').doc();
-                            currentBatch.set(newStudentRef, newStudent);
-                            operationCount++;
-                            existingStudentsMap.set(studentKey, true);
-                            newStudentsCount++;
-                        } else {
-                            skippedCount++;
-                        }
-                    }
-
-                    if (batches.length > 0 && operationCount > 0) {
-                        await Promise.all(batches.map(batch => batch.commit()));
-                    }
-                    
-                    hideModal(ui.addStudentModal);
-                    
-                    let message = `${newStudentsCount} siswa baru`;
-                    if (newClassesCount > 0) message += ` & ${newClassesCount} kelas baru`;
-                    message += ' berhasil diimpor.';
-                    if (skippedCount > 0) message += ` ${skippedCount} data duplikat dilewati.`;
-                    showToast(message, 'success');
-
-                } catch (error) {
-                    console.error("Import Error:", error);
-                    showToast("Terjadi kesalahan saat memproses file. " + error.message, "error");
-                } finally {
-                    setButtonLoading(importBtn, false);
-                    event.target.value = '';
+                    operationCount = 0;
                 }
-            };
-            reader.readAsArrayBuffer(file);
+
+                const studentName = row.Nama?.toString().trim();
+                const className = row.Kelas?.toString().trim();
+                if (!studentName || !className) continue;
+
+                // 1. Tentukan Class ID
+                let classId = classMap.get(className.toLowerCase());
+                if (!classId) {
+                    // Buat kelas baru jika tidak ada
+                    const newClassData = { name: className, lembagaId: window.appState.lembagaId };
+                    const newClassRef = db.collection('classes').doc();
+                    currentBatch.set(newClassRef, newClassData);
+                    operationCount++;
+                    classId = newClassRef.id;
+                    classMap.set(className.toLowerCase(), classId); // Tambahkan ke peta
+                    newClassesCount++;
+                }
+
+                // 2. Cek Siswa
+                const studentKey = studentName.toLowerCase();
+                const existingStudent = studentMapByName.get(studentKey);
+
+                if (existingStudent) {
+                    // --- SISWA SUDAH ADA ---
+                    if (existingStudent.classId !== classId) {
+                        // Beda kelas -> MIGRASI
+                        const studentRef = db.collection('students').doc(existingStudent.id);
+                        currentBatch.update(studentRef, { classId: classId });
+                        operationCount++;
+                        migratedCount++;
+                        // Perbarui peta agar tidak diproses ganda
+                        existingStudent.classId = classId; 
+                    } else {
+                        // Sama nama, sama kelas -> LEWATI
+                        skippedCount++;
+                    }
+                } else {
+                    // --- SISWA BARU ---
+                    const newStudent = { name: studentName, classId, lembagaId: window.appState.lembagaId };
+                    const newStudentRef = db.collection('students').doc();
+                    currentBatch.set(newStudentRef, newStudent);
+                    operationCount++;
+                    newStudentsCount++;
+                    // Tambahkan ke peta agar tidak diduplikasi oleh file impor ini
+                    studentMapByName.set(studentKey, { id: newStudentRef.id, ...newStudent });
+                }
+            }
+
+            // Commit semua batch
+            if (batches.length > 0 && operationCount > 0) {
+                await Promise.all(batches.map(batch => batch.commit()));
+            }
+
+            hideModal(ui.addStudentModal);
+
+            // Buat pesan laporan yang lebih baik
+            let message = `${newStudentsCount} siswa baru ditambahkan.`;
+            if (migratedCount > 0) message += ` ${migratedCount} siswa dimigrasi ke kelas baru.`;
+            if (newClassesCount > 0) message += ` ${newClassesCount} kelas baru dibuat.`;
+            if (skippedCount > 0) message += ` ${skippedCount} data duplikat dilewati.`;
+
+            showToast(message, 'success');
+
+        } catch (error) {
+            console.error("Import Error:", error);
+            showToast("Terjadi kesalahan saat memproses file. " + error.message, "error");
+        } finally {
+            setButtonLoading(importBtn, false);
+            event.target.value = '';
         }
+    };
+    reader.readAsArrayBuffer(file);
+}
         function _renderAllImpl() {
             renderSummary();
             renderClassList();
@@ -4717,7 +4745,30 @@ if (adminUI.akunRole) {
     }
         if (adminUI.akunFilterKelas) {
     adminUI.akunFilterKelas.addEventListener('change', renderManajemenAkunList);
-    }          
+    }
+    // Listener untuk filter di halaman Pencapaian (Dashboard)
+if (ui.summary.searchStudent) {
+    ui.summary.searchStudent.addEventListener('input', renderStudentProgressList);
+}
+if (ui.summary.rankFilterClass) {
+    ui.summary.rankFilterClass.addEventListener('change', renderStudentProgressList);
+}
+
+// Listener untuk filter di halaman Input Hafalan (Siswa)
+if (ui.siswa.searchStudent) {
+    ui.siswa.searchStudent.addEventListener('input', renderStudentList);
+}
+if (ui.studentFilterClass) {
+    ui.studentFilterClass.addEventListener('change', renderStudentList);
+}
+
+// Listener untuk filter di halaman Riwayat
+if (ui.riwayat.searchStudent) {
+    ui.riwayat.searchStudent.addEventListener('input', renderRiwayatList);
+}
+if (ui.riwayat.filterClass) {
+    ui.riwayat.filterClass.addEventListener('change', renderRiwayatList);
+}      
             ui.addClassForm.addEventListener('submit', async e => { 
                 e.preventDefault(); 
                 const name = ui.classNameInput.value.trim(); 
@@ -4782,69 +4833,48 @@ if (adminUI.akunRole) {
                     }
                 }
             });
-            ui.addStudentForm.addEventListener('submit', async e => { 
-                e.preventDefault(); 
-                const name = document.getElementById('new-student-name').value.trim(); 
-                const classId = document.getElementById('new-student-class').value; 
-                if (!name || !classId) return showToast('Nama siswa dan kelas harus diisi.', 'error');
-                setButtonLoading(ui.addStudentSubmitBtn, true);
-                await onlineDB.add('students', { name, classId, lembagaId: window.appState.lembagaId });
-                ui.addStudentForm.reset(); 
-                hideModal(ui.addStudentModal); 
-                    showToast("Siswa baru berhasil ditambahkan.");
-                setButtonLoading(ui.addStudentSubmitBtn, false);
-            });
-            ui.studentFilterClass.addEventListener('change', () => {
-                window.appState.currentPageSiswa = 1;
-                renderStudentList();
-            });
-            if(ui.summary.rankFilterClass) ui.summary.rankFilterClass.addEventListener('change', () => {
-                window.appState.currentPagePencapaian = 1;
-                renderStudentProgressList();
-            });
-            if(ui.summary.searchStudent) ui.summary.searchStudent.addEventListener('input', () => {
-                window.appState.currentPagePencapaian = 1;
-                renderStudentProgressList();
-            });
-            if(ui.riwayat.filterClass) ui.riwayat.filterClass.addEventListener('change', () => {
-                window.appState.currentPageRiwayat = 1;
-                renderRiwayatList();
-            });
-            if(ui.riwayat.searchStudent) ui.riwayat.searchStudent.addEventListener('input', () => {
-                window.appState.currentPageRiwayat = 1;
-                renderRiwayatList();
-            });
-            if(ui.siswa && ui.siswa.searchStudent) {
-                ui.siswa.searchStudent.addEventListener('input', () => {
-                    window.appState.currentPageSiswa = 1; // Reset ke halaman pertama saat mencari
-                    renderStudentList();
-                });
+ui.addStudentForm.addEventListener('submit', async e => { 
+    e.preventDefault(); 
+    const name = document.getElementById('new-student-name').value.trim(); 
+    const classId = document.getElementById('new-student-class').value; 
+    if (!name || !classId) return showToast('Nama siswa dan kelas harus diisi.', 'error');
+
+    setButtonLoading(ui.addStudentSubmitBtn, true);
+
+    try {
+        // --- LOGIKA MIGRASI BARU ---
+        const studentNameLower = name.toLowerCase();
+        const existingStudent = window.appState.allStudents.find(s => 
+            (s.name || '').toLowerCase() === studentNameLower
+        );
+
+        if (existingStudent) {
+            // Siswa dengan nama ini sudah ada
+            if (existingStudent.classId !== classId) {
+                // Berbeda kelas -> Lakukan MIGRASI
+                await onlineDB.update('students', { id: existingStudent.id, classId: classId });
+                showToast(`Siswa "${name}" berhasil dipindahkan ke kelas baru.`, 'success');
+            } else {
+                // Sama kelas -> Duplikat
+                showToast(`Siswa "${name}" sudah ada di kelas ini.`, 'info');
             }
-        if (ui.riwayat.list) {
-            ui.riwayat.list.addEventListener('click', async (e) => {
-                const deleteBtn = e.target.closest('[data-action="delete-riwayat"]');
-                if (!deleteBtn) return;
-
-                const hafalanId = deleteBtn.dataset.id;
-                if (!hafalanId) return;
-
-                showConfirmModal({
-                    title: "Hapus Riwayat?",
-                    message: "Apakah Anda yakin ingin menghapus data setoran ini secara permanen?",
-                    okText: "Ya, Hapus",
-                    onConfirm: async () => {
-                        try {
-                            await onlineDB.delete('hafalan', hafalanId);
-                            showToast("Riwayat setoran berhasil dihapus.");
-                            // Daftar akan diperbarui secara otomatis oleh listener real-time.
-                        } catch (error) {
-                            console.error("Gagal menghapus riwayat:", error);
-                            showToast("Gagal menghapus data.", "error");
-                        }
-                    }
-                });
-            });
+        } else {
+            // Siswa belum ada -> Buat BARU
+            await onlineDB.add('students', { name, classId, lembagaId: window.appState.lembagaId });
+            showToast("Siswa baru berhasil ditambahkan.", "success");
         }
+        // --- AKHIR LOGIKA MIGRASI ---
+
+        ui.addStudentForm.reset(); 
+        hideModal(ui.addStudentModal); 
+
+    } catch (error) {
+        console.error("Gagal tambah/migrasi siswa:", error);
+        showToast("Terjadi kesalahan.", "error");
+    } finally {
+        setButtonLoading(ui.addStudentSubmitBtn, false);
+    }
+});
             ui.import.downloadTemplateBtn.addEventListener('click', downloadTemplate);
             ui.import.importBtn.addEventListener('click', () => ui.import.fileInput.click());
             ui.import.fileInput.addEventListener('change', handleImport);
