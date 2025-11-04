@@ -1412,6 +1412,15 @@ if (!initialPage || !validPageElement) {
         }
     function initializeAppLogic(lembagaId, uid) {
         const currentUserUID = uid || window.appState.currentUserUID;
+        function getLocalISOString(date) {
+        const pad = (num) => num.toString().padStart(2, '0');
+        const y = date.getFullYear();
+        const M = pad(date.getMonth() + 1); // Bulan (0-11) + 1
+        const d = pad(date.getDate());
+        const h = pad(date.getHours());
+        const m = pad(date.getMinutes());
+        return `${y}-${M}-${d}T${h}:${m}`;
+    }
         const uiElements = {
             addStudentModal: document.getElementById('add-student-modal'),
             addClassForm: document.getElementById('add-class-form'),
@@ -3132,6 +3141,7 @@ async function renderStudentList() {
                 const state = {
                     surah: form.surah.value,
                     kualitas: form.kualitas.value,
+                    timestamp: form['hafalan-timestamp'].value,
                     ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
                     ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null,
                     surahSampai: (isJuzAmma && surahSampaiSelect) ? surahSampaiSelect.value : null
@@ -3264,11 +3274,18 @@ async function renderStudentList() {
     // Loop untuk merender kartu siswa
     for (const student of paginatedStudents) {
         const studentHafalan = window.appState.allHafalan.filter(h => h.studentId === student.id);
+        
         const hasSubmitted = studentHafalan.some(h => isToday(h.timestamp) && h.jenis !== 'tes');
         const item = document.createElement('div');
         item.className = 'student-item bg-slate-50 rounded-lg';
         item.dataset.studentId = student.id;
-
+        const defaultTimestamp = getLocalISOString(new Date());
+            const dateTimeInputHTML = `
+            <div>
+                <label class="block text-sm font-medium mb-1">Tanggal & Waktu Setoran</label>
+                <input type="datetime-local" name="hafalan-timestamp" class="form-input" value="${defaultTimestamp}" required>
+            </div>
+            `;
         const deleteButtonHTML = (role !== 'siswa')
             ? `<button data-action="delete-student" class="delete-student-btn text-red-400 hover:text-red-600 p-1 rounded-full ml-2 flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -3328,10 +3345,10 @@ async function renderStudentList() {
                 ${deleteButtonHTML}
             </div>
             <div class="hafalan-form-container ${role === 'siswa' ? 'p-4 student-form-view' : 'hidden p-4 border-t border-slate-200'}">
-                <form class="hafalan-form space-y-4">
+            <form class="hafalan-form space-y-4">
                     <input type="hidden" name="studentId" value="${student.id}">
                     
-                    <div class="${isJuzAmma ? 'grid grid-cols-2 gap-4' : ''}">
+                    ${dateTimeInputHTML} <div class="${isJuzAmma ? 'grid grid-cols-2 gap-4' : ''}">
                         <div>
                             <label class="block text-sm font-medium mb-1">${isJuzAmma ? 'Dari Surah' : 'Surah'}</label>
                             <select name="surah" class="form-select surah-select" required>${surahOptionsHTML}</select>
@@ -3376,7 +3393,10 @@ async function renderStudentList() {
             // Kembalikan nilai yang baru saja disubmit/dihapus
             setKualitasDropdown(previouslyOpenState.kualitas);
             surahSelect.value = previouslyOpenState.surah;
-
+            const form = item.querySelector('.hafalan-form');
+                if (form && form['hafalan-timestamp']) {
+                    form['hafalan-timestamp'].value = previouslyOpenState.timestamp;
+                }
             if (!isJuzAmma && ayatDariSelect && ayatSampaiSelect) {
                 // Logika untuk Full Qur'an / Pilihan
                 await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
@@ -4874,7 +4894,11 @@ if (adminUI.akunRole) {
                 let teacherId = window.appState.currentUserUID; // Default ke guru yang login
                 const studentId = formData.get('studentId');
                 const kualitas = formData.get('kualitas');
-                const timestamp = Date.now();
+                const timestampString = formData.get('hafalan-timestamp');
+                if (!timestampString) {
+                    throw new Error("Tanggal dan waktu setoran tidak valid.");
+                }
+                const timestamp = new Date(timestampString).getTime();
                 const lembagaId = window.appState.lembagaId;
                 // Logika PIN Siswa (jika siswa yang login)
                 if (window.appState.loggedInRole === 'siswa') {
