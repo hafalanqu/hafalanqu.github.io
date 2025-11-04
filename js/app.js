@@ -3419,20 +3419,6 @@ if (role === 'guru' || role === 'admin_lembaga') {
             }
         }
     });
-        if (window.appState.lastSubmittedStudentId) {
-            openStudentIds.add(window.appState.lastSubmittedStudentId);
-            window.appState.lastSubmittedStudentId = null;
-        }
-        
-        openStudentIds.forEach(studentId => {
-            const studentItem = ui.studentList.querySelector(`.student-item[data-student-id="${studentId}"]`);
-            if (studentItem) {
-                const formContainer = studentItem.querySelector('.hafalan-form-container');
-                if (formContainer) {
-                    formContainer.classList.remove('hidden');
-                }
-            }
-        });
     }
 }
         // --- FUNGSI-FUNGSI BARU UNTUK SETORAN MASSAL ---
