@@ -5042,6 +5042,10 @@ if (ui.addBulkHafalanBtn) {
                     window.appState.bulkHafalanStudentIds = [];
                     renderSelectedStudentsForBulkHafalan();
                     ui.bulkHafalanModal.form.reset();
+                    const bulkTimestampInput = document.getElementById('bulk-hafalan-timestamp');
+                    if (bulkTimestampInput) {
+                    bulkTimestampInput.value = getLocalISOString(new Date());
+                    }
 
                     // 2. Isi dropdown surah sesuai pengaturan
                     populateBulkHafalanSurah();
@@ -5148,7 +5152,11 @@ if (ui.addBulkHafalanBtn) {
                         const quranScope = getQuranScope();
                         
                         const kualitas = formData.get('kualitas');
-                        const timestamp = Date.now();
+                        const timestampString = formData.get('hafalan-timestamp');
+                        if (!timestampString) {
+                            throw new Error("Tanggal dan waktu setoran tidak valid.");
+                        }
+                        const timestamp = new Date(timestampString).getTime();
                         const guruId = window.appState.currentUserUID;
                         const lembagaId = window.appState.lembagaId;
                         const batch = db.batch();
@@ -5231,17 +5239,15 @@ if (quranScope === 'juz30') {
 
                 showToast(`Setoran (${totalEntries} entri) berhasil disimpan untuk ${selectedStudentIds.length} siswa.`, "success");
                 
-                // ▼▼▼ PERUBAHAN DI SINI ▼▼▼
 
-                // 1. HAPUS/KOMENTARI BARIS INI:
-                // ui.bulkHafalanModal.el.classList.add('hidden'); // Sembunyikan modal
+            // Cukup reset input tanggal ke waktu saat ini
+            const bulkTimestampInput = document.getElementById('bulk-hafalan-timestamp');
+            if (bulkTimestampInput && typeof getLocalISOString === 'function') {
+                bulkTimestampInput.value = getLocalISOString(new Date());
+            }
 
-                // 2. TAMBAHKAN 3 BARIS INI:
-                ui.bulkHafalanModal.form.reset(); // Reset form (surah, kualitas, dll)
-                populateBulkHafalanSurah(); // Isi ulang dropdown surah (penting setelah reset)
-                renderSelectedStudentsForBulkHafalan(); // Muat ulang riwayat terbaru
-
-                // ▲▲▲ AKHIR PERUBAHAN ▲▲▲
+            // Muat ulang riwayat terbaru untuk siswa yang dipilih
+            renderSelectedStudentsForBulkHafalan();
 
                 } catch (error) {
                         showToast(error.message, "error");
