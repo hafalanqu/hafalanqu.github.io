@@ -4420,24 +4420,47 @@ window.populateProfileForm = function() {
     const currentUserUID = window.appState.currentUserUID;
     const userProfile = window.appState.allUsers.find(u => u.id === currentUserUID);
 
+    // 'previewEl' sekarang adalah <img> tag
+    const previewEl = ui.profile.picturePreview; 
+    if (!previewEl) return;
+
+    // URL Placeholder
+    const placeholder = 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Foto';
+
+    // --- TAMBAHKAN FUNGSI 'onerror' INI ---
+    // Ini akan menangani 404 (Not Found) atau link yang rusak
+    previewEl.onerror = function() {
+        previewEl.src = placeholder;
+    };
+    // --- AKHIR TAMBAHAN ---
+
     if (userProfile) {
         ui.profile.fullNameInput.value = userProfile.namaLengkap || '';
         ui.profile.pobInput.value = userProfile.ttl || '';
-        if (userProfile.fotoProfilUrl) {
-            ui.profile.picturePreview.src = userProfile.fotoProfilUrl;
-        } else {
-            ui.profile.picturePreview.src = 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Foto';
+
+        const iconData = userProfile.fotoProfilUrl;
+
+        // Cek apakah data adalah URL yang valid (dimulai http)
+        // BUKAN kode SVG (yang dimulai <svg)
+        if (iconData && (iconData.startsWith('http') || iconData.startsWith('https:'))) {
+            // Jika ini adalah URL, coba atur 'src'
+            previewEl.src = iconData;
+        } else { 
+            // Jika data kosong ATAU data SVG lama, tampilkan placeholder
+            previewEl.src = placeholder;
         }
+
         const role = window.appState.loggedInRole;
         if (role === 'admin_lembaga') {
-            // Jika admin, pastikan bisa diedit
             ui.profile.fullNameInput.disabled = false;
             ui.profile.fullNameInput.placeholder = "Masukkan nama lengkap Anda";
         } else {
-            // Jika bukan admin (guru/siswa), kunci
             ui.profile.fullNameInput.disabled = true;
             ui.profile.fullNameInput.placeholder = "Nama diatur oleh Admin";
         }
+    } else {
+        // Tampilkan placeholder jika userProfile belum siap
+        previewEl.src = placeholder;
     }
 }
 
