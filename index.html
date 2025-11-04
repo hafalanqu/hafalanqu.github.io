@@ -515,11 +515,11 @@
                             <div>
                                 <label class="block text-sm font-medium mb-1">Kualitas Hafalan</label>
                                 <select name="kualitas" id="bulk-kualitas-select" class="form-select">
-                                    <option value="sangat-lancar" selected>Sangat Lancar</option>
-                                    <option value="lancar">Lancar</option>
-                                    <option value="cukup-lancar">Cukup Lancar</option>
-                                    <option value="tidak-lancar">Tidak Lancar</option>
-                                    <option value="sangat-tidak-lancar">Sangat Tidak Lancar</option>
+                                    <option value="sangat-lancar" selected>Sangat Baik</option>
+                                    <option value="lancar">Baik</option>
+                                    <option value="cukup-lancar">Cukup</option>
+                                    <option value="tidak-lancar">Kurang</option>
+                                    <option value="sangat-tidak-lancar">Tidak Bisa</option>
                                 </select>
                             </div>
                             
@@ -585,23 +585,23 @@
                             <p class="text-sm text-slate-500 mb-6">Sesuaikan nilai persentase untuk setiap tingkat kualitas hafalan. Nilai ini akan digunakan untuk menghitung skor rata-rata Mutqin.</p>
                             <form id="mutqin-settings-form" class="space-y-4">
                                <div class="grid grid-cols-2 items-center gap-4">
-                                    <label for="score-sangat-lancar" class="font-medium text-slate-700">Sangat Lancar</label>
+                                    <label for="score-sangat-lancar" class="font-medium text-slate-700">Sangat Baik</label>
                                     <input type="number" id="score-sangat-lancar" class="form-input text-right" min="0" max="100" required>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <label for="score-lancar" class="font-medium text-slate-700">Lancar</label>
+                                    <label for="score-lancar" class="font-medium text-slate-700">Baik</label>
                                     <input type="number" id="score-lancar" class="form-input text-right" min="0" max="100" required>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <label for="score-cukup-lancar" class="font-medium text-slate-700">Cukup Lancar</label>
+                                    <label for="score-cukup-lancar" class="font-medium text-slate-700">Cukup</label>
                                     <input type="number" id="score-cukup-lancar" class="form-input text-right" min="0" max="100" required>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <label for="score-tidak-lancar" class="font-medium text-slate-700">Tidak Lancar</label>
+                                    <label for="score-tidak-lancar" class="font-medium text-slate-700">Kurang</label>
                                     <input type="number" id="score-tidak-lancar" class="form-input text-right" min="0" max="100" required>
                                 </div>
                                 <div class="grid grid-cols-2 items-center gap-4">
-                                    <label for="score-sangat-tidak-lancar" class="font-medium text-slate-700">Sangat Tdk Lancar</label>
+                                    <label for="score-sangat-tidak-lancar" class="font-medium text-slate-700">Tidak Bisa</label>
                                     <input type="number" id="score-sangat-tidak-lancar" class="form-input text-right" min="0" max="100" required>
                                 </div>
                                 <div class="flex justify-end pt-2">
