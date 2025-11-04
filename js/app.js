@@ -4420,33 +4420,39 @@ window.populateProfileForm = function() {
     const currentUserUID = window.appState.currentUserUID;
     const userProfile = window.appState.allUsers.find(u => u.id === currentUserUID);
 
-    // 'previewEl' sekarang adalah <img> tag
     const previewEl = ui.profile.picturePreview; 
     if (!previewEl) return;
 
-    // URL Placeholder
-    const placeholder = 'https://placehold.co/128x128/e2e8f0/94a3b8?text=Foto';
-
-    // --- TAMBAHKAN FUNGSI 'onerror' INI ---
-    // Ini akan menangani 404 (Not Found) atau link yang rusak
-    previewEl.onerror = function() {
-        previewEl.src = placeholder;
-    };
-    // --- AKHIR TAMBAHAN ---
+    // URL Placeholder default (jika user data belum ada)
+    let placeholder = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
     if (userProfile) {
+        // --- LOGIKA BARU ---
+        // Jika user data ADA, buat placeholder dinamis
+        if (userProfile.namaLengkap && userProfile.namaLengkap.length > 0) {
+            const firstLetter = userProfile.namaLengkap.charAt(0).toUpperCase();
+            // Pastikan itu huruf, bukan angka atau simbol
+            if (firstLetter.match(/[A-Z]/i)) { 
+                placeholder = `https://placehold.co/128x128/e2e8f0/94a3b8?text=${firstLetter}`;
+            }
+        }
+        // --- AKHIR LOGIKA BARU ---
+
         ui.profile.fullNameInput.value = userProfile.namaLengkap || '';
         ui.profile.pobInput.value = userProfile.ttl || '';
 
         const iconData = userProfile.fotoProfilUrl;
 
+        // Atur onerror untuk menggunakan placeholder dinamis
+        previewEl.onerror = function() {
+            previewEl.src = placeholder;
+        };
+
         // Cek apakah data adalah URL yang valid (dimulai http)
-        // BUKAN kode SVG (yang dimulai <svg)
         if (iconData && (iconData.startsWith('http') || iconData.startsWith('https:'))) {
-            // Jika ini adalah URL, coba atur 'src'
-            previewEl.src = iconData;
+            previewEl.src = iconData; // Set ke foto asli
         } else { 
-            // Jika data kosong ATAU data SVG lama, tampilkan placeholder
+            // Jika data kosong ATAU data SVG lama, tampilkan placeholder dinamis
             previewEl.src = placeholder;
         }
 
@@ -4458,8 +4464,10 @@ window.populateProfileForm = function() {
             ui.profile.fullNameInput.disabled = true;
             ui.profile.fullNameInput.placeholder = "Nama diatur oleh Admin";
         }
+
     } else {
-        // Tampilkan placeholder jika userProfile belum siap
+        // Tampilkan placeholder statis "Foto" jika userProfile belum siap
+        previewEl.onerror = function() { /* do nothing */ };
         previewEl.src = placeholder;
     }
 }
