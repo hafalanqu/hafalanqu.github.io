@@ -3243,7 +3243,7 @@ async function renderStudentList() {
                 const state = {
                     surah: form.surah.value,
                     kualitas: form.kualitas.value,
-                    timestamp: form['hafalan-timestamp'].value,
+                    
                     ayatDari: !isJuzAmma ? form.ayatDari?.value : null,
                     ayatSampai: !isJuzAmma ? form.ayatSampai?.value : null,
                     surahSampai: (isJuzAmma && surahSampaiSelect) ? surahSampaiSelect.value : null
@@ -3495,10 +3495,6 @@ async function renderStudentList() {
             // Kembalikan nilai yang baru saja disubmit/dihapus
             setKualitasDropdown(previouslyOpenState.kualitas);
             surahSelect.value = previouslyOpenState.surah;
-            const form = item.querySelector('.hafalan-form');
-                if (form && form['hafalan-timestamp']) {
-                    form['hafalan-timestamp'].value = previouslyOpenState.timestamp;
-                }
             if (!isJuzAmma && ayatDariSelect && ayatSampaiSelect) {
                 // Logika untuk Full Qur'an / Pilihan
                 await populateAyatDropdowns(surahSelect, ayatDariSelect, ayatSampaiSelect);
