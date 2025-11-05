@@ -2084,6 +2084,7 @@ let namaLengkap;
                 if (!item) return;
                 const userId = item.dataset.userId;
                 const userName = item.dataset.userName;
+                const userEmail = item.dataset.userEmail;
                 // Siapkan modal untuk mode edit
                 adminUI.addAkunModalTitle.textContent = "Edit Nama Akun";
                 adminUI.akunEditId.value = userId;
@@ -2335,6 +2336,7 @@ function handleImport(event) {
             const worksheet = workbook.Sheets[firstSheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
+            // Validasi (tetap 'Nama' dan 'Kelas')
             if (!jsonData.length || !jsonData[0].hasOwnProperty('Nama') || !jsonData[0].hasOwnProperty('Kelas')) {
                 showToast("Format template tidak sesuai. Pastikan ada kolom 'Nama' dan 'Kelas'.", "error");
                 setButtonLoading(importBtn, false);
@@ -2346,18 +2348,35 @@ function handleImport(event) {
             batches.push(currentBatch);
             let operationCount = 0;
 
-            // Hitungan baru untuk laporan
             let newStudentsCount = 0;
             let newClassesCount = 0;
-            let migratedCount = 0; // <-- BARU
-            let skippedCount = 0;
+            let migratedCount = 0; 
+            let skippedCount = 0; // Data duplikat di file
+            let ambiguousCount = 0; // Data ambigu di DB
 
-            // --- LOGIKA PETA BARU ---
             // Peta kelas (Nama > ID)
             const classMap = new Map(window.appState.allClasses.map(c => [c.name.toLowerCase().trim(), c.id]));
-            // Peta siswa (Nama > Objek Siswa)
-            const studentMapByName = new Map(window.appState.allStudents.map(s => [s.name.toLowerCase().trim(), s]));
-            // --- AKHIR LOGIKA PETA BARU ---
+
+            // --- LOGIKA BARU: Pengecekan Ambiguitas ---
+            // 1. Buat peta siswa berdasarkan nama
+            const studentMapByName = new Map();
+            // 2. Buat set untuk nama yang ambigu
+            const ambiguousNames = new Set();
+
+            for (const student of window.appState.allStudents) {
+                const studentKey = (student.name || '').toLowerCase().trim();
+                if (!studentKey) continue;
+
+                if (studentMapByName.has(studentKey)) {
+                    // Jika nama ini sudah pernah ditemukan, tandai sebagai AMBIGU
+                    ambiguousNames.add(studentKey);
+                }
+                studentMapByName.set(studentKey, student);
+            }
+            // --- AKHIR LOGIKA BARU ---
+
+            // Set untuk melacak nama yang sudah diproses di *file Excel ini*
+            const processedNamesInFile = new Set();
 
             for (const row of jsonData) {
                 if (operationCount >= 499) { // Batas batch
@@ -2368,7 +2387,24 @@ function handleImport(event) {
 
                 const studentName = row.Nama?.toString().trim();
                 const className = row.Kelas?.toString().trim();
-                if (!studentName || !className) continue;
+                if (!studentName || !className) continue; // Lewati baris kosong
+
+                const studentKey = studentName.toLowerCase();
+
+                // Cek duplikat di file Excel
+                if (processedNamesInFile.has(studentKey)) {
+                    skippedCount++;
+                    continue;
+                }
+                processedNamesInFile.add(studentKey);
+
+                // --- PENGECEKAN AMBIGUITAS ---
+                if (ambiguousNames.has(studentKey)) {
+                    // Nama ini duplikat di database. LEWATI.
+                    ambiguousCount++;
+                    continue; 
+                }
+                // --- AKHIR PENGECEKAN ---
 
                 // 1. Tentukan Class ID
                 let classId = classMap.get(className.toLowerCase());
@@ -2379,42 +2415,46 @@ function handleImport(event) {
                     currentBatch.set(newClassRef, newClassData);
                     operationCount++;
                     classId = newClassRef.id;
-                    classMap.set(className.toLowerCase(), classId); // Tambahkan ke peta
+                    classMap.set(className.toLowerCase(), classId);
                     newClassesCount++;
                 }
 
-                // 2. Cek Siswa
-                const studentKey = studentName.toLowerCase();
+                // 2. Cek Siswa (Sekarang aman, karena kita sudah filter yang ambigu)
                 const existingStudent = studentMapByName.get(studentKey);
 
                 if (existingStudent) {
-                    // --- SISWA SUDAH ADA ---
+                    // --- SISWA SUDAH ADA (UNIK) ---
+                    const studentRef = db.collection('students').doc(existingStudent.id);
+                    let updates = {};
+
+                    // Cek apakah kelasnya berbeda (migrasi)
                     if (existingStudent.classId !== classId) {
-                        // Beda kelas -> MIGRASI
-                        const studentRef = db.collection('students').doc(existingStudent.id);
-                        currentBatch.update(studentRef, { classId: classId });
+                        updates.classId = classId;
+                    }
+                    // Cek apakah nama di Excel beda (perbaikan nama, misal typo)
+                    if (existingStudent.name !== studentName) {
+                        updates.name = studentName;
+                    }
+
+                    if (Object.keys(updates).length > 0) {
+                        currentBatch.update(studentRef, updates);
                         operationCount++;
                         migratedCount++;
-                        // Perbarui peta agar tidak diproses ganda
-                        existingStudent.classId = classId; 
                     } else {
-                        // Sama nama, sama kelas -> LEWATI
-                        skippedCount++;
+                        skippedCount++; // Sama persis, lewati
                     }
                 } else {
-                    // --- SISWA BARU ---
+                    // --- SISWA BARU (NAMA UNIK) ---
                     const newStudent = { name: studentName, classId, lembagaId: window.appState.lembagaId };
                     const newStudentRef = db.collection('students').doc();
                     currentBatch.set(newStudentRef, newStudent);
                     operationCount++;
                     newStudentsCount++;
-                    // Tambahkan ke peta agar tidak diduplikasi oleh file impor ini
-                    studentMapByName.set(studentKey, { id: newStudentRef.id, ...newStudent });
                 }
             }
 
             // Commit semua batch
-            if (batches.length > 0 && operationCount > 0) {
+            if (batches.length > 0 && (operationCount > 0 || newClassesCount > 0)) {
                 await Promise.all(batches.map(batch => batch.commit()));
             }
 
@@ -2422,9 +2462,10 @@ function handleImport(event) {
 
             // Buat pesan laporan yang lebih baik
             let message = `${newStudentsCount} siswa baru ditambahkan.`;
-            if (migratedCount > 0) message += ` ${migratedCount} siswa dimigrasi ke kelas baru.`;
+            if (migratedCount > 0) message += ` ${migratedCount} siswa dimigrasi/diperbarui.`;
             if (newClassesCount > 0) message += ` ${newClassesCount} kelas baru dibuat.`;
-            if (skippedCount > 0) message += ` ${skippedCount} data duplikat dilewati.`;
+            if (skippedCount > 0) message += ` ${skippedCount} data duplikat (di file) dilewati.`;
+            if (ambiguousCount > 0) message += ` ${ambiguousCount} data dilewati (nama ambigu di database).`;
 
             showToast(message, 'success');
 
