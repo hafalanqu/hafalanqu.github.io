@@ -1257,10 +1257,67 @@ function getWorksheetCols(data) {
 
     return cols;
 }
+    /**
+ * Mengisi dropdown filter Tanggal dan Tahun berdasarkan data hafalan.
+ */
+function populateDateFilters() {
+    if (!ui.summary.filterTahun || !ui.summary.filterTanggal) return;
+
+    const currentTahun = ui.summary.filterTahun.value;
+    const currentTanggal = ui.summary.filterTanggal.value;
+
+    // 1. Populate TAHUN
+    const years = new Set();
+    window.appState.allHafalan.forEach(h => {
+        years.add(new Date(h.timestamp).getFullYear());
+    });
+
+    // Simpan opsi "Semua Tahun"
+    ui.summary.filterTahun.innerHTML = '<option value="">Semua Tahun</option>'; 
+    Array.from(years).sort((a, b) => b - a).forEach(year => { // Urutkan terbaru di atas
+        ui.summary.filterTahun.add(new Option(year, year));
+    });
+
+    ui.summary.filterTahun.value = currentTahun; // Kembalikan nilai
+
+    // 2. Populate TANGGAL (1-31)
+    // (Kita buat sederhana saja, 1-31)
+    ui.summary.filterTanggal.innerHTML = '<option value="">Semua Tgl</option>';
+    for (let i = 1; i <= 31; i++) {
+        ui.summary.filterTanggal.add(new Option(i, i));
+    }
+    ui.summary.filterTanggal.value = currentTanggal; // Kembalikan nilai
+}
+
+/**
+ * Mengambil data hafalan yang sudah difilter berdasarkan tanggal.
+ * @returns {Array} - Array hafalan yang sudah difilter.
+ */
+function getFilteredHafalanByDate() {
+    const tgl = ui.summary.filterTanggal.value;
+    const bln = ui.summary.filterBulan.value;
+    const thn = ui.summary.filterTahun.value;
+
+    // Jika tidak ada filter aktif, kembalikan semua
+    if (!tgl && !bln && !thn) {
+        return window.appState.allHafalan;
+    }
+
+    return window.appState.allHafalan.filter(h => {
+        const d = new Date(h.timestamp);
+        // Cek filter satu per satu
+        if (tgl && d.getDate() != tgl) return false;
+        if (bln && d.getMonth() != bln) return false;
+        if (thn && d.getFullYear() != thn) return false;
+
+        return true; // Lolos semua filter
+    });
+}
 function exportAllData() {
     try {
         // 1. Ambil semua data & helper maps
         const { allStudents, allClasses, allHafalan, allUsers } = window.appState;
+        const filteredHafalan = getFilteredHafalanByDate();
         const userMap = new Map(allUsers.map(u => [u.id, u.namaLengkap || u.email]));
 
         // (Daftar surah & kualitas disalin dari file Anda untuk mandiri)
@@ -1302,8 +1359,8 @@ function exportAllData() {
 
             // Urutkan siswa (logika yang sama seperti di dashboard)
             const sortedStudents = studentsInClass.sort((a, b) => {
-                const totalAyatA = allHafalan.filter(h => h.studentId === a.id && h.jenis === 'ziyadah').reduce((sum, entry) => sum + (parseInt(entry.ayatSampai) - parseInt(entry.ayatDari) + 1), 0);
-                const totalAyatB = allHafalan.filter(h => h.studentId === b.id && h.jenis === 'ziyadah').reduce((sum, entry) => sum + (parseInt(entry.ayatSampai) - parseInt(entry.ayatDari) + 1), 0);
+                const totalAyatA = filteredHafalan.filter(h => h.studentId === a.id && h.jenis === 'ziyadah').reduce((sum, entry) => sum + (parseInt(entry.ayatSampai) - parseInt(entry.ayatDari) + 1), 0);
+                const totalAyatB = filteredHafalan.filter(h => h.studentId === b.id && h.jenis === 'ziyadah').reduce((sum, entry) => sum + (parseInt(entry.ayatSampai) - parseInt(entry.ayatDari) + 1), 0);
                 if (totalAyatB !== totalAyatA) return totalAyatB - totalAyatA;
                 return a.name.localeCompare(b.name);
             });
@@ -1311,7 +1368,7 @@ function exportAllData() {
             // Loop untuk setiap siswa di kelas ini
             sortedStudents.forEach(student => {
                 studentNumber++;
-                const studentEntries = allHafalan.filter(h => h.studentId === student.id).sort((a, b) => b.timestamp - a.timestamp);
+                const studentEntries = filteredHafalan.filter(h => h.studentId === student.id).sort((a, b) => b.timestamp - a.timestamp);
                 let isFirstRowForStudent = true;
 
                 if (studentEntries.length > 0) {
@@ -1490,6 +1547,7 @@ function exportAllData() {
         const m = pad(date.getMinutes());
         return `${y}-${M}-${d}T${h}:${m}`;
     }
+
         const uiElements = {
             addStudentModal: document.getElementById('add-student-modal'),
             addClassForm: document.getElementById('add-class-form'),
@@ -1514,6 +1572,9 @@ function exportAllData() {
                 studentProgressList: document.getElementById('student-progress-list'),
                 rankFilterClass: document.getElementById('summary-rank-filter-class'),
                 searchStudent: document.getElementById('summary-search-student'),
+                filterTanggal: document.getElementById('summary-filter-tanggal'),
+                filterBulan: document.getElementById('summary-filter-bulan'),
+                filterTahun: document.getElementById('summary-filter-tahun')
             },
             riwayat: {
                 filterClass: document.getElementById('riwayat-filter-class'),
@@ -2686,6 +2747,7 @@ function renderSummary() {
  */
 function renderStudentProgressList() {
     if (!ui.summary.studentProgressList) return;
+    const filteredHafalan = getFilteredHafalanByDate();
     
     // --- DATA STRUKTUR AL-QUR'AN (TETAP SAMA) ---
     const surahInfo = [ { no: 1, ayat: 7, nama: "Al-Fatihah" }, { no: 2, ayat: 286, nama: "Al-Baqarah" }, { no: 3, ayat: 200, nama: "Ali 'Imran" }, { no: 4, ayat: 176, nama: "An-Nisa'" }, { no: 5, ayat: 120, nama: "Al-Ma'idah" }, { no: 6, ayat: 165, nama: "Al-An'am" }, { no: 7, ayat: 206, nama: "Al-A'raf" }, { no: 8, ayat: 75, nama: "Al-Anfal" }, { no: 9, ayat: 129, nama: "At-Taubah" }, { no: 10, ayat: 109, nama: "Yunus" }, { no: 11, ayat: 123, nama: "Hud" }, { no: 12, ayat: 111, nama: "Yusuf" }, { no: 13, ayat: 43, nama: "Ar-Ra'd" }, { no: 14, ayat: 52, nama: "Ibrahim" }, { no: 15, ayat: 99, nama: "Al-Hijr" }, { no: 16, ayat: 128, nama: "An-Nahl" }, { no: 17, ayat: 111, nama: "Al-Isra'" }, { no: 18, ayat: 110, nama: "Al-Kahf" }, { no: 19, ayat: 98, nama: "Maryam" }, { no: 20, ayat: 135, nama: "Taha" }, { no: 21, ayat: 112, nama: "Al-Anbiya'" }, { no: 22, ayat: 78, nama: "Al-Hajj" }, { no: 23, ayat: 118, nama: "Al-Mu'minun" }, { no: 24, ayat: 64, nama: "An-Nur" }, { no: 25, ayat: 77, nama: "Al-Furqan" }, { no: 26, ayat: 227, nama: "Asy-Syu'ara'" }, { no: 27, ayat: 93, nama: "An-Naml" }, { no: 28, ayat: 88, nama: "Al-Qasas" }, { no: 29, ayat: 69, nama: "Al-'Ankabut" }, { no: 30, ayat: 60, nama: "Ar-Rum" }, { no: 31, ayat: 34, nama: "Luqman" }, { no: 32, ayat: 30, nama: "As-Sajdah" }, { no: 33, ayat: 73, nama: "Al-Ahzab" }, { no: 34, ayat: 54, nama: "Saba'" }, { no: 35, ayat: 45, nama: "Fatir" }, { no: 36, ayat: 83, nama: "Yasin" }, { no: 37, ayat: 182, nama: "As-Saffat" }, { no: 38, ayat: 88, nama: "Sad" }, { no: 39, ayat: 75, nama: "Az-Zumar" }, { no: 40, ayat: 85, nama: "Ghafir" }, { no: 41, ayat: 54, nama: "Fussilat" }, { no: 42, ayat: 53, nama: "Asy-Syura" }, { no: 43, ayat: 89, nama: "Az-Zukhruf" }, { no: 44, ayat: 59, nama: "Ad-Dukhan" }, { no: 45, ayat: 37, nama: "Al-Jasiyah" }, { no: 46, ayat: 35, nama: "Al-Ahqaf" }, { no: 47, ayat: 38, nama: "Muhammad" }, { no: 48, ayat: 29, nama: "Al-Fath" }, { no: 49, ayat: 18, nama: "Al-Hujurat" }, { no: 50, ayat: 45, nama: "Qaf" }, { no: 51, ayat: 60, nama: "Az-Zariyat" }, { no: 52, ayat: 49, nama: "At-Tur" }, { no: 53, ayat: 62, nama: "An-Najm" }, { no: 54, ayat: 55, nama: "Al-Qamar" }, { no: 55, ayat: 78, nama: "Ar-Rahman" }, { no: 56, ayat: 96, nama: "Al-Waqi'ah" }, { no: 57, ayat: 29, nama: "Al-Hadid" }, { no: 58, ayat: 22, nama: "Al-Mujadalah" }, { no: 59, ayat: 24, nama: "Al-Hasyr" }, { no: 60, ayat: 13, nama: "Al-Mumtahanah" }, { no: 61, ayat: 14, nama: "As-Saff" }, { no: 62, ayat: 11, nama: "Al-Jumu'ah" }, { no: 63, ayat: 11, nama: "Al-Munafiqun" }, { no: 64, ayat: 18, nama: "At-Tagabun" }, { no: 65, ayat: 12, nama: "At-Talaq" }, { no: 66, ayat: 12, nama: "At-Tahrim" }, { no: 67, ayat: 30, nama: "Al-Mulk" }, { no: 68, ayat: 52, nama: "Al-Qalam" }, { no: 69, ayat: 52, nama: "Al-Haqqah" }, { no: 70, ayat: 44, nama: "Al-Ma'arij" }, { no: 71, ayat: 28, nama: "Nuh" }, { no: 72, ayat: 28, nama: "Al-Jinn" }, { no: 73, ayat: 20, nama: "Al-Muzzammil" }, { no: 74, ayat: 56, nama: "Al-Muddassir" }, { no: 75, ayat: 40, nama: "Al-Qiyamah" }, { no: 76, ayat: 31, nama: "Al-Insan" }, { no: 77, ayat: 50, nama: "Al-Mursalat" }, { no: 78, ayat: 40, nama: "An-Naba'" }, { no: 79, ayat: 46, nama: "An-Nazi'at" }, { no: 80, ayat: 42, nama: "'Abasa" }, { no: 81, ayat: 29, nama: "At-Takwir" }, { no: 82, ayat: 19, nama: "Al-Infitar" }, { no: 83, ayat: 36, nama: "Al-Mutaffifin" }, { no: 84, ayat: 25, nama: "Al-Insyiqaq" }, { no: 85, ayat: 22, nama: "Al-Buruj" }, { no: 86, ayat: 17, nama: "At-Tariq" }, { no: 87, ayat: 19, nama: "Al-A'la" }, { no: 88, ayat: 26, nama: "Al-Gasyiyah" }, { no: 89, ayat: 30, nama: "Al-Fajr" }, { no: 90, ayat: 20, nama: "Al-Balad" }, { no: 91, ayat: 15, nama: "Asy-Syams" }, { no: 92, ayat: 21, nama: "Al-Lail" }, { no: 93, ayat: 11, nama: "Ad-Duha" }, { no: 94, ayat: 8, nama: "Asy-Syarh" }, { no: 95, ayat: 8, nama: "At-Tin" }, { no: 96, ayat: 19, nama: "Al-'Alaq" }, { no: 97, ayat: 5, nama: "Al-Qadr" }, { no: 98, ayat: 8, nama: "Al-Bayyinah" }, { no: 99, ayat: 8, nama: "Az-Zalzalah" }, { no: 100, ayat: 11, nama: "Al-'Adiyat" }, { no: 101, ayat: 11, nama: "Al-Qari'ah" }, { no: 102, ayat: 8, nama: "At-Takasur" }, { no: 103, ayat: 3, nama: "Al-'Asr" }, { no: 104, ayat: 9, nama: "Al-Humazah" }, { no: 105, ayat: 5, nama: "Al-Fil" }, { no: 106, ayat: 4, nama: "Quraisy" }, { no: 107, ayat: 7, nama: "Al-Ma'un" }, { no: 108, ayat: 3, nama: "Al-Kausar" }, { no: 109, ayat: 6, nama: "Al-Kafirun" }, { no: 110, ayat: 3, nama: "An-Nasr" }, { no: 111, ayat: 5, nama: "Al-Masad" }, { no: 112, ayat: 4, nama: "Al-Ikhlas" }, { no: 113, ayat: 5, nama: "Al-Falaq" }, { no: 114, ayat: 6, nama: "An-Nas" }
@@ -2813,7 +2875,7 @@ function renderStudentProgressList() {
             });
 
             // --- PENGURUTAN (TETAP SAMA) ---
-            const totalMutqinKeseluruhan = studentScores.reduce((sum, student) => sum + student.mutqinScore, 0);
+            const totalMutqinKeseluruhan = filteredHafalan.length;
 
             if (totalMutqinKeseluruhan === 0) {
                 studentScores.sort((a, b) => a.name.localeCompare(b.name));
@@ -4785,7 +4847,21 @@ if (ui.summary.searchStudent) {
 if (ui.summary.rankFilterClass) {
     ui.summary.rankFilterClass.addEventListener('change', renderStudentProgressList);
 }
-
+if (ui.summary.filterTanggal) {
+    ui.summary.filterTanggal.addEventListener('change', renderStudentProgressList);
+}
+if (ui.summary.filterBulan) {
+    ui.summary.filterBulan.addEventListener('change', () => {
+        // populateDateFilters(); // (Opsional: untuk update tanggal 1-30, 1-31, dll)
+        renderStudentProgressList();
+    });
+}
+if (ui.summary.filterTahun) {
+    ui.summary.filterTahun.addEventListener('change', () => {
+        // populateDateFilters(); // (Opsional)
+        renderStudentProgressList();
+    });
+}
 // Listener untuk filter di halaman Input Hafalan (Siswa)
 if (ui.siswa.searchStudent) {
     ui.siswa.searchStudent.addEventListener('input', renderStudentList);
@@ -5794,6 +5870,7 @@ if (ui.settings.quranScopeForm) {
 
                 }, error => commonErrorHandler(error, 'hafalan'));
                 activeDBListeners.push(unsubHafalan);
+                populateDateFilters();
                                 const unsubUsers = db.collection('users').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
