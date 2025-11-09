@@ -248,31 +248,16 @@
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                             <h2 class="text-xl font-semibold text-slate-800 whitespace-nowrap">Pencapaian Siswa</h2>
                             <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-                                <input type="text" id="summary-search-student" class="form-input w-full sm:w-auto" placeholder="Cari nama siswa...">
+                                <input type="text" id="summary-search-student" class="form-input w-full sm:w-64" placeholder="Cari nama siswa...">
                                 <select id="summary-rank-filter-class" class="form-select w-full sm:w-auto"></select>
-                        <select id="summary-filter-tanggal" class="form-select w-full sm:w-auto">
-                            <option value="">Semua Tgl</option>
-                            </select>
-
-                        <select id="summary-filter-bulan" class="form-select w-full sm:w-auto">
-                            <option value="">Semua Bulan</option>
-                            <option value="0">Januari</option>
-                            <option value="1">Februari</option>
-                            <option value="2">Maret</option>
-                            <option value="3">April</option>
-                            <option value="4">Mei</option>
-                            <option value="5">Juni</option>
-                            <option value="6">Juli</option>
-                            <option value="7">Agustus</option>
-                            <option value="8">September</option>
-                            <option value="9">Oktober</option>
-                            <option value="10">November</option>
-                            <option value="11">Desember</option>
-                        </select>
-
-                        <select id="summary-filter-tahun" class="form-select w-full sm:w-auto">
-                            <option value="">Semua Tahun</option>
-                            </select>
+                                <div class="flex items-center gap-2">
+                                    <label for="summary-filter-date-start" class="text-sm text-slate-600">Dari:</label>
+                                    <input type="date" id="summary-filter-date-start" class="form-input w-full sm:w-auto">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label for="summary-filter-date-end" class="text-sm text-slate-600">Sampai:</label>
+                                    <input type="date" id="summary-filter-date-end" class="form-input w-full sm:w-auto">
+                                </div>
                             </div>
                         </div>
                         <div id="student-progress-list" class="space-y-2">

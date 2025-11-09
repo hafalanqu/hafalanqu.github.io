@@ -1290,27 +1290,36 @@ function populateDateFilters() {
 }
 
 /**
- * Mengambil data hafalan yang sudah difilter berdasarkan tanggal.
+ * Mengambil data hafalan yang sudah difilter berdasarkan rentang tanggal.
  * @returns {Array} - Array hafalan yang sudah difilter.
  */
 function getFilteredHafalanByDate() {
-    const tgl = ui.summary.filterTanggal.value;
-    const bln = ui.summary.filterBulan.value;
-    const thn = ui.summary.filterTahun.value;
+    const dateStart = ui.summary.filterDateStart.value;
+    const dateEnd = ui.summary.filterDateEnd.value;
 
-    // Jika tidak ada filter aktif, kembalikan semua
-    if (!tgl && !bln && !thn) {
+    // Jika tidak ada filter tanggal, kembalikan semua
+    if (!dateStart && !dateEnd) {
         return window.appState.allHafalan;
     }
 
-    return window.appState.allHafalan.filter(h => {
-        const d = new Date(h.timestamp);
-        // Cek filter satu per satu
-        if (tgl && d.getDate() != tgl) return false;
-        if (bln && d.getMonth() != bln) return false;
-        if (thn && d.getFullYear() != thn) return false;
+    // Tentukan rentang waktu
+    // new Date('YYYY-MM-DD') menghasilkan UTC midnight, jadi kita paksa ke waktu lokal
+    // agar tidak salah hari karena timezone.
 
-        return true; // Lolos semua filter
+    // Mulai dari 00:00:00 pada tanggal 'Dari'
+    const startTimestamp = dateStart ? new Date(dateStart + 'T00:00:00').getTime() : 0;
+
+    // Selesai pada 23:59:59 pada tanggal 'Sampai'
+    const endTimestamp = dateEnd ? new Date(dateEnd + 'T23:59:59').getTime() : Infinity;
+
+    return window.appState.allHafalan.filter(h => {
+        const timestamp = h.timestamp;
+
+        // Cek apakah timestamp berada di dalam rentang
+        const afterStart = timestamp >= startTimestamp;
+        const beforeEnd = timestamp <= endTimestamp;
+
+        return afterStart && beforeEnd;
     });
 }
 function exportAllData() {
@@ -1572,10 +1581,9 @@ function exportAllData() {
                 studentProgressList: document.getElementById('student-progress-list'),
                 rankFilterClass: document.getElementById('summary-rank-filter-class'),
                 searchStudent: document.getElementById('summary-search-student'),
-                filterTanggal: document.getElementById('summary-filter-tanggal'),
-                filterBulan: document.getElementById('summary-filter-bulan'),
-                filterTahun: document.getElementById('summary-filter-tahun')
-            },
+                filterDateStart: document.getElementById('summary-filter-date-start'),
+                filterDateEnd: document.getElementById('summary-filter-date-end')
+                        },
             riwayat: {
                 filterClass: document.getElementById('riwayat-filter-class'),
                 list: document.getElementById('riwayat-list'),
@@ -4847,20 +4855,11 @@ if (ui.summary.searchStudent) {
 if (ui.summary.rankFilterClass) {
     ui.summary.rankFilterClass.addEventListener('change', renderStudentProgressList);
 }
-if (ui.summary.filterTanggal) {
-    ui.summary.filterTanggal.addEventListener('change', renderStudentProgressList);
+if (ui.summary.filterDateStart) {
+    ui.summary.filterDateStart.addEventListener('change', renderStudentProgressList);
 }
-if (ui.summary.filterBulan) {
-    ui.summary.filterBulan.addEventListener('change', () => {
-        // populateDateFilters(); // (Opsional: untuk update tanggal 1-30, 1-31, dll)
-        renderStudentProgressList();
-    });
-}
-if (ui.summary.filterTahun) {
-    ui.summary.filterTahun.addEventListener('change', () => {
-        // populateDateFilters(); // (Opsional)
-        renderStudentProgressList();
-    });
+if (ui.summary.filterDateEnd) {
+    ui.summary.filterDateEnd.addEventListener('change', renderStudentProgressList);
 }
 // Listener untuk filter di halaman Input Hafalan (Siswa)
 if (ui.siswa.searchStudent) {
@@ -5870,7 +5869,6 @@ if (ui.settings.quranScopeForm) {
 
                 }, error => commonErrorHandler(error, 'hafalan'));
                 activeDBListeners.push(unsubHafalan);
-                populateDateFilters();
                                 const unsubUsers = db.collection('users').where('lembagaId', '==', lembagaId)
                     .onSnapshot(snapshot => {
                         window.appState.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
