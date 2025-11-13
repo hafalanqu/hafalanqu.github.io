@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HafalanQu - Aplikasi Jurnal Progres Hafalan Qur'an</title>
+    <meta name="description" content="HafalanQu adalah solusi digital untuk guru dan siswa tahfidz mengelola, mencatat, dan menguji hafalan Al-Qur'an secara efisien.">
+    
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Memuat Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        /* Menerapkan font Inter sebagai font default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Kustomisasi warna tema agar sesuai dengan aplikasi Anda */
+        .bg-teal-600 { background-color: #0d9488; }
+        .text-teal-600 { color: #0d9488; }
+        .border-teal-600 { border-color: #0d9488; }
+        .hover\:bg-teal-700:hover { background-color: #0f766e; }
+        .ring-teal-500:focus { --tw-ring-color: #14b8a6; }
+    </style>
+</head>
+<body class="bg-white text-slate-800 antialiased">
+
+    <!-- ===== Navigasi ===== -->
+    <header class="sticky top-0 z-50 w-full bg-white shadow-sm">
+        <nav class="container mx-auto flex items-center justify-between p-4 px-6">
+            <!-- Logo -->
+            <a href="#" class="text-2xl font-bold text-teal-600">
+                HafalanQu
+            </a>
+            
+            <!-- Menu Desktop -->
+            <div class="hidden space-x-6 md:flex">
+                <a href="#fitur" class="text-slate-600 hover:text-teal-600">Fitur</a>
+                <a href="#harga" class="text-slate-600 hover:text-teal-600">Paket</a>
+                <a href="#testimoni" class="text-slate-600 hover:text-teal-600">Testimoni</a>
+            </div>
+            
+            <!-- Tombol CTA (Call to Action) -->
+            <!-- Arahkan `href` ini ke aplikasi Anda yang sebenarnya -->
+            <a href="https://hafalanqu.my.id/login" class="hidden rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-teal-700 md:block">
+                Login
+            </a>
+
+            <!-- Tombol Menu Mobile (opsional, jika diperlukan) -->
+            <button id="mobile-menu-button" class="md:hidden text-slate-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+        </nav>
+
+        <!-- Menu Mobile (Tersembunyi di Awal) -->
+        <div id="mobile-menu" class="hidden md:hidden">
+            <div class="space-y-1 px-4 pb-4">
+                <a href="#fitur" class="mobile-menu-link block rounded-lg px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-teal-600">Fitur</a>
+                <a href="#harga" class="mobile-menu-link block rounded-lg px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-teal-600">Harga</a>
+                <a href="#testimoni" class="mobile-menu-link block rounded-lg px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-teal-600">Testimoni</a>
+                <a href="https://hafalanqu.my.id/login" class="mobile-menu-link block rounded-lg bg-teal-50 px-3 py-2 text-base font-medium text-teal-600 hover:bg-teal-100">
+                    Login
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== Konten Utama ===== -->
+    <main>
+
+        <!-- ===== Hero Section ===== -->
+        <section class="relative flex min-h-[calc(100vh-64px)] items-center bg-white py-16 md:py-20">
+            <div class="container mx-auto grid grid-cols-1 items-center gap-12 px-6 md:grid-cols-2">
+                <!-- Teks Hero -->
+                <div class="text-center md:text-left">
+                    <h1 class="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
+                        Pantau Progres Hafalan Qur'an dengan Mudah.
+                    </h1>
+                    <p class="mt-4 text-lg text-slate-600">
+                        HafalanQu adalah solusi digital untuk guru dan siswa tahfidz mengelola, mencatat, dan menguji hafalan secara efisien.
+                    </p>
+                    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
+                        <a href="https://hafalanqu.my.id/ustadz" class="flex items-center justify-center rounded-lg bg-teal-600 px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-teal-700">
+                            Mulai Uji Coba
+                        </a>
+                        <a href="#fitur" class="flex items-center justify-center rounded-lg bg-slate-100 px-6 py-3 text-base font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-200">
+                            Lihat Fitur
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Gambar Hero -->
+                <div class="mt-8 md:mt-0">
+                    <img 
+                        src="https://imgur.com/w8GeBqZ.png"
+                        alt="Screenshot dasbor aplikasi HafalanQu"
+                        class="w-full rounded-lg shadow-xl"
+                        onerror="this.src='https://placehold.co/1200x800/e2e8f0/94a3b8?text=Gagal+Memuat+Gambar'"
+                    >
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Fitur Unggulan ===== -->
+        <section id="fitur" class="bg-slate-50 py-16 sm:py-24">
+            <div class="container mx-auto max-w-7xl px-6">
+                <!-- Judul Section -->
+                <div class="max-w-3xl text-center mx-auto">
+                    <span class="text-sm font-semibold uppercase tracking-wide text-teal-600">Fitur Unggulan</span>
+                    <h2 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                        Semua yang Anda Butuhkan untuk Manajemen Tahfidz
+                    </h2>
+                </div>
+
+                <!-- Daftar Fitur -->
+                <div class="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                    <!-- Fitur 1: Pencatatan Ziyadah & Muraja'ah -->
+                    <div class="flex flex-col rounded-lg bg-white p-6 shadow-lg">
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center justify-center rounded-lg bg-teal-100 p-3 text-teal-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </span>
+                        </div>
+                        <h3 class="mt-4 text-xl font-semibold">Pencatatan Terperinci</h3>
+                        <p class="mt-2 text-base text-slate-600">
+                            Catat setoran Ziyadah (hafalan baru) dan Muraja'ah (ulangan) dengan mudah. Tak ada lagi catatan yang tercecer.
+                        </p>
+                    </div>
+
+                    <!-- Fitur 2: Manajemen Kelas & Siswa -->
+                    <div class="flex flex-col rounded-lg bg-white p-6 shadow-lg">
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center justify-center rounded-lg bg-teal-100 p-3 text-teal-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            </span>
+                        </div>
+                        <h3 class="mt-4 text-xl font-semibold">Manajemen Siswa & Kelas</h3>
+                        <p class="mt-2 text-base text-slate-600">
+                            Kelola puluhan siswa dan kelas dalam satu dasbor. Pindahkan siswa dan pantau pencapaian per kelas dengan mudah.
+                        </p>
+                    </div>
+                    
+                    <!-- Fitur 3: Tes Hafalan Interaktif -->
+                    <div class="flex flex-col rounded-lg bg-white p-6 shadow-lg">
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center justify-center rounded-lg bg-teal-100 p-3 text-teal-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="m9 12 2 2 4-4"></path></svg>
+                            </span>
+                        </div>
+                        <h3 class="mt-4 text-xl font-semibold">Tes Hafalan Interaktif</h3>
+                        <p class="mt-2 text-base text-slate-600">
+                            Uji hafalan siswa dengan fitur sambung ayat, tebak surah, dan lainnya. Hasil tes tersimpan otomatis dalam riwayat.
+                        </p>
+                    </div>
+
+                    <!-- Fitur 4: Laporan & Statistik -->
+                    <div class="flex flex-col rounded-lg bg-white p-6 shadow-lg">
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center justify-center rounded-lg bg-teal-100 p-3 text-teal-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            </span>
+                        </div>
+                        <h3 class="mt-4 text-xl font-semibold">Laporan & Statistik</h3>
+                        <p class="mt-2 text-base text-slate-600">
+                            Lihat kemajuan siswa secara visual. Pahami pencapaian dan area yang perlu perbaikan dengan data yang jelas dan akurat.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Testimoni ===== -->
+        <section id="testimoni" class="bg-white py-16 sm:py-24">
+            <div class="container mx-auto max-w-7xl px-6">
+                <div class="max-w-3xl text-center mx-auto">
+                    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                        Apa Kata Mereka Tentang HafalanQu
+                    </h2>
+                    <p class="mt-4 text-lg text-slate-600">
+                        Kami bangga telah membantu para guru dan siswa dalam perjalanan hafalan mereka.
+                    </p>
+                </div>
+
+                <div class="mt-16 grid max-w-4xl mx-auto gap-8 md:grid-cols-2">
+                    <!-- Testimoni 1 -->
+                    <div class="rounded-lg bg-slate-50 p-8 shadow-md">
+                        <blockquote class="text-lg italic text-slate-700">
+                            "Luar biasa! HafalanQu sangat menghemat waktu administrasi saya. Saya bisa fokus membimbing siswa sementara data setoran mereka terekam rapi dan bisa diakses kapan saja."
+                        </blockquote>
+                        <footer class="mt-6">
+                            <p class="font-semibold text-slate-900">Ustadzah Naylis Sa'adah</p>
+                            <p class="text-sm text-teal-600">Pengajar Tahfidz, Ponpes At-Tibyan</p>
+                        </footer>
+                    </div>
+
+                    <!-- Testimoni 2 -->
+                    <div class="rounded-lg bg-slate-50 p-8 shadow-md">
+                        <blockquote class="text-lg italic text-slate-700">
+                            "Saya jadi lebih termotivasi melihat progres hafalan saya sendiri di dasbor. Fitur tes-nya juga seru untuk menguji hafalan. Sekarang saya tahu persis surah mana yang perlu diulang."
+                        </blockquote>
+                        <footer class="mt-6">
+                            <p class="font-semibold text-slate-900">Nurul Aouliyaul Husna</p>
+                            <p class="text-sm text-teal-600">Santri</p>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Harga (Promosi) ===== -->
+        <section id="harga" class="bg-slate-50 py-16 sm:py-24">
+            <div class="container mx-auto max-w-7xl px-6">
+                <div class="max-w-3xl text-center mx-auto">
+                    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                        Akses Penuh, Sepenuhnya Gratis
+                    </h2>
+                    <p class="mt-4 text-lg text-slate-600">
+                        Kami menyediakan semua fitur secara gratis. Jika Anda merasa terbantu, Anda dapat mendukung kami melalui infaq.
+                    </p>
+                </div>
+
+                <div class="mt-16 grid max-w-7xl mx-auto gap-8 md:grid-cols-1 lg:grid-cols-3">
+                    <!-- Paket Gratis -->
+                    <div class="flex flex-col rounded-lg border-2 border-slate-200 bg-white p-8 shadow-lg">
+                        <h3 class="text-2xl font-semibold">Gratis (Guru)</h3>
+                        <p class="mt-2 text-slate-600">Untuk guru yang baru memulai.</p>
+                        <div class="mt-4">
+                            <span class="text-4xl font-bold">Rp 0</span>
+                            <span class="text-base text-slate-500">/ selamanya</span>
+                        </div>
+                        <ul class="mt-6 space-y-3 text-slate-600">
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>1 Akun Guru</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Laporan Lengkap & Ekspor Data</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Fitur Tes</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <!-- Menggunakan ikon silang untuk "Tanpa" -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                <span>Akun Admin Lembaga</span>
+                            </li>
+                                <li class="flex items-center gap-2">
+                                <!-- Menggunakan ikon silang untuk "Tanpa" -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                <span>Akun Guru Tanpa Batas</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <!-- Menggunakan ikon silang untuk "Tanpa" -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                <span>Akun Siswa Tanpa Batas</span>
+                            </li>
+                        </ul>
+                        <a href="https://hafalanqu.my.id/ustadz" class="mt-8 block w-full rounded-lg bg-slate-100 px-6 py-3 text-center font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-200">
+                            Daftar Paket Basic
+                        </a>
+                    </div>
+                    
+                    <!-- Paket Pro -->
+                    <div class="flex flex-col rounded-lg border-2 border-teal-600 bg-white p-8 shadow-2xl relative">
+                        <span class="absolute -top-3 right-4 rounded-full bg-teal-600 px-3 py-1 text-xs font-semibold uppercase text-white">Populer</span>
+                        <h3 class="text-2xl font-semibold text-teal-600">Gratis (Plus)</h3>
+                        <p class="mt-2 text-slate-600">Untuk lembaga dan sekolah tahfidz.</p>
+                        <div class="mt-4">
+                            <span class="text-4xl font-bold">Rp 0</span>
+                            <span class="text-base text-slate-500">/ selamanya</span>
+                        </div>
+                        <ul class="mt-6 space-y-3 text-slate-600">
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Akun Admin Lembaga</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Akun Guru Tanpa Batas</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Akun Siswa Tanpa Batas</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Laporan Lengkap & Ekspor Data</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-teal-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Fitur Tes</span>
+                            </li>
+                        </ul>
+                        <a href="https://hafalanqu.my.id/admin" class="mt-8 block w-full rounded-lg bg-teal-600 px-6 py-3 text-center font-medium text-white shadow-sm transition-colors hover:bg-teal-700">
+                            Daftar Paket Plus
+                        </a>
+                    </div>
+
+                    <!-- Paket Infaq -->
+                    <div class="flex flex-col rounded-lg border-2 border-yellow-500 bg-white p-8 shadow-lg">
+                        <h3 class="text-2xl font-semibold text-yellow-700">Infaq Pengembangan</h3>
+                        <p class="mt-2 text-slate-600">Untuk mendukung developer.</p>
+                        <div class="mt-4">
+                            <span class="text-4xl font-bold">Seikhlasnya</span>
+                        </div>
+                        <ul class="mt-6 space-y-3 text-slate-600">
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-yellow-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Membantu biaya server & maintenance</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-yellow-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Mendukung pengembangan fitur baru</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-yellow-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Semoga menjadi amal jariyah</span>
+                            </li>
+                        </ul>
+                        <a href="https://hafalanqu.my.id/infaq" class="mt-8 block w-full rounded-lg bg-yellow-500 px-6 py-3 text-center font-medium text-white shadow-sm transition-colors hover:bg-yellow-600">
+                            Beri Dukungan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ===== Final CTA ===== -->
+        <section class="bg-teal-600 py-16 sm:py-24">
+            <div class="container mx-auto max-w-7xl px-6 text-center">
+                <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    Siap Mengelola Hafalan Anda?
+                </h2>
+                <p class="mt-4 text-lg text-teal-100">
+                    Daftar sekarang dan rasakan kemudahan manajemen tahfidz digital.
+                </p>
+                <a href="https://hafalanqu.my.id/ustadz" class="mt-8 inline-flex rounded-lg bg-white px-6 py-3 text-base font-medium text-teal-600 shadow-sm transition-colors hover:bg-slate-100">
+                    Mulai Sekarang
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== Footer ===== -->
+    <footer class="bg-slate-900">
+        <div class="container mx-auto max-w-7xl px-6 py-8">
+            <div class="flex flex-col items-center justify-between md:flex-row">
+                <div class="text-lg font-bold text-white">
+                    HafalanQu
+                </div>
+                <div class="mt-4 flex space-x-6 md:mt-0">
+                    <a href="#fitur" class="text-sm text-slate-300 hover:text-white">Fitur</a>
+                    <a href="#harga" class="text-sm text-slate-300 hover:text-white">Harga</a>
+                    <a href="#testimoni" class="text-sm text-slate-300 hover:text-white">Testimoni</a>
+                    <a href="https://wa.me/6285888892326?text=Assalamu'alaikum%2C%20saya%20menemukan%20bug%20di%20aplikasi%20HafalanQu%3A%0A%0A[Tolong%20jelaskan%20bugnya%20di%20sini]%0A" target="_blank" rel="noopener noreferrer" class="text-sm text-slate-300 hover:text-white">Laporkan Bug</a>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-slate-700 pt-8 text-center text-sm text-slate-400">
+                &copy; 2025 HafalanQu. Hak Cipta Dilindungi.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script untuk Toggle Menu Mobile -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuLinks = document.querySelectorAll('.mobile-menu-link');
+
+            if (menuButton && mobileMenu) {
+                // Tampilkan/Sembunyikan menu saat tombol di-klik
+                menuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            if (menuLinks && mobileMenu) {
+                // Sembunyikan menu saat salah satu link di-klik (untuk navigasi di halaman yang sama)
+                menuLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
