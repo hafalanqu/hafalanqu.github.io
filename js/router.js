@@ -22,8 +22,9 @@ window.routes = {
 };
 
 window.navigate = function(path) {
-    if (window.location.pathname === path) return;
-    history.pushState(null, null, path);
+    if (window.location.pathname !== path) {
+        history.pushState(null, null, path);
+    }
     window.resolveRoute();
 };
 
@@ -242,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.addEventListener('click', (e) => {
         const link = e.target.closest('[data-page]');
-        if (link && !link.closest('a[href]')) {
+        if (link) {
             const pageName = link.dataset.page;
             const mappedPath = navBindings[pageName];
             if (mappedPath) {
