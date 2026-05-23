@@ -13,6 +13,22 @@
         var role = sessionStorage.getItem('loggedInRole');
         var path = window.location.pathname;
         
+        var p = new URLSearchParams(window.location.search).get('p');
+        var redirect = sessionStorage.redirect;
+        
+        var realPath = path;
+        if (redirect) {
+          try {
+            realPath = new URL(redirect, window.location.origin).pathname;
+          } catch(e) {}
+        } else if (p) {
+          realPath = '/' + p.replace(/~and~/g, '&').split('&')[0].split('?')[0];
+        }
+        
+        if (realPath.length > 1 && realPath.endsWith('/')) {
+          realPath = realPath.slice(0, -1);
+        }
+        
         var injectStyle = function(css) {
           var head = document.head || document.getElementsByTagName('head')[0];
           var style = document.createElement('style');
@@ -26,9 +42,9 @@
         
         if (role) {
           css += ' #app-layout { display: block !important; }';
-        } else if (path === '/login' || path === '/ustadz' || path === '/santri' || path === '/admin' || path === '/infaq') {
+        } else if (realPath === '/login' || realPath === '/ustadz' || realPath === '/santri' || realPath === '/admin' || realPath === '/infaq') {
           css += ' #auth-layout { display: flex !important; }';
-        } else {
+        } else if (realPath === '/' || realPath === '') {
           css += ' #landing-layout { display: block !important; }';
         }
         
