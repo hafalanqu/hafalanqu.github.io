@@ -29,9 +29,6 @@ window.navigate = function(path) {
 };
 
 window.resolveRoute = function() {
-    // Remove the temporary style tag that prevents layout flashing on load
-    document.getElementById('prevent-flash-style')?.remove();
-
     let path = window.location.pathname;
     
     // Normalize path (handle trailing slashes)
@@ -164,6 +161,9 @@ window.resolveRoute = function() {
             }
         }
     }
+
+    // Remove the temporary style tag that prevents layout flashing on load
+    document.getElementById('prevent-flash-style')?.remove();
 };
 
 window.updateNavActiveState = function(pageId) {
