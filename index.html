@@ -23,6 +23,22 @@
       })();
     </script>
     
+    <!-- Programmatically Unregister Legacy Service Workers to Prevent Caching Conflicts -->
+    <script type="text/javascript">
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister().then(function(success) {
+              if (success) {
+                console.log('Legacy Service Worker cleared programmatically.');
+                window.location.reload();
+              }
+            });
+          }
+        });
+      }
+    </script>
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@400;700&display=swap" rel="stylesheet">
