@@ -7,6 +7,35 @@
     <meta name="description" content="HafalanQu adalah solusi digital untuk guru dan siswa tahfidz mengelola, mencatat, dan menguji hafalan Al-Qur'an secara efisien.">
     <title>HafalanQu - Jurnal Progres Hafalan Al-Qur'an</title>
     
+    <!-- Prevent Layout Flash / Flicker before mounting -->
+    <script type="text/javascript">
+      (function() {
+        var role = sessionStorage.getItem('loggedInRole');
+        var path = window.location.pathname;
+        
+        var injectStyle = function(css) {
+          var head = document.head || document.getElementsByTagName('head')[0];
+          var style = document.createElement('style');
+          style.id = 'prevent-flash-style';
+          style.type = 'text/css';
+          style.appendChild(document.createTextNode(css));
+          head.appendChild(style);
+        };
+
+        var css = '#landing-layout, #auth-layout, #app-layout { display: none !important; }';
+        
+        if (role) {
+          css += ' #app-layout { display: block !important; }';
+        } else if (path === '/login' || path === '/ustadz' || path === '/santri' || path === '/admin' || path === '/infaq') {
+          css += ' #auth-layout { display: flex !important; }';
+        } else {
+          css += ' #landing-layout { display: block !important; }';
+        }
+        
+        injectStyle(css);
+      })();
+    </script>
+    
     <!-- SPA Query Redirect Decoder -->
     <script type="text/javascript">
       (function() {
