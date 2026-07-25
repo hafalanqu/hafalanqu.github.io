@@ -602,7 +602,7 @@
                 dArr.forEach(d=>{
                     let td2=document.createElement('td');td2.style.textAlign='center';
                     let c=att[name][d]||0;
-                    td2.innerHTML=c>0?`<span class="badge yes">${c}</span>`:`<span class="badge no">–</span>`;
+                    td2.innerHTML=c>0?`<span class="badge yes">✓</span>`:`<span class="badge no">–</span>`;
                     tr.appendChild(td2);
                 });
                 body.appendChild(tr);
