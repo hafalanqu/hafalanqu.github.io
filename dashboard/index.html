@@ -524,7 +524,7 @@
             });
 
             buildDoughnut('chartProporsi', ['Ziyadah','Murajaah'], [countZ,countM], ['#059669','#3b82f6']);
-            buildDoughnut('chartKualitas', ['Mumtaz','Jayyid Jiddan','Jayyid','Maqbul'], [mumtaz,jiddan,jayyid,maqbul], ['#003527','#059669','#10b981','#6ee7b7']);
+            buildDoughnut('chartKualitas', ['Mumtaz','Jayyid Jiddan','Jayyid','Maqbul'], [mumtaz,jiddan,jayyid,maqbul], ['#3b82f6','#059669','#10b981','#6ee7b7']);
 
             let t20 = Object.keys(top20Map).map(k=>({n:k,a:top20Map[k]})).sort((a,b)=>b.a-a.a).slice(0,20);
             buildBar('chartTop20', t20.map(x=>x.n), t20.map(x=>x.a));
