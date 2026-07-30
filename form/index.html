@@ -282,6 +282,12 @@
                     <p style="color: var(--error-color); font-size: 13px;">* Menunjukkan pertanyaan yang wajib diisi</p>
                 </div>
 
+                <!-- Tanggal -->
+                <div class="question-card" onclick="highlightCard(this)">
+                    <div class="question-title">Tanggal <span class="required-asterisk">*</span></div>
+                    <input type="date" id="tanggal" name="tanggal" class="form-control" required>
+                </div>
+
                 <!-- Kelas -->
                 <div class="question-card" onclick="highlightCard(this)">
                     <div class="question-title">Kelas <span class="required-asterisk">*</span></div>
@@ -578,6 +584,9 @@
             cards.forEach(card => card.classList.remove('active'));
             element.classList.add('active');
         }
+
+        // Set default tanggal to today
+        document.getElementById('tanggal').valueAsDate = new Date();
 
         // --- SPREADSHEET INTEGRATION ---
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYELGH4BokMLRXtKBmk62T7QpP3CQyOaEsWEzHfI4l8QeCvGyar6pHlv1cE1vEdZAg/exec';

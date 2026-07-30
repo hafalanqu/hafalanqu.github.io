@@ -35,8 +35,12 @@ function doPost (e) {
     // Tambahkan baris baru di posisi 2 (di bawah header)
     sheet.insertRowBefore(2);
     
+    // Ambil tanggal dari form (atau gunakan waktu saat ini jika kosong)
+    const inputTanggal = e.parameter.tanggal;
+    const tanggalSetoran = inputTanggal ? new Date(inputTanggal) : new Date();
+    
     const dataRow = [
-      new Date(), // Timestamp
+      tanggalSetoran, // Timestamp (Tanggal)
       e.parameter.kelas || '',
       e.parameter.namaLengkap || '',
       e.parameter.jenisSetoran || '',
