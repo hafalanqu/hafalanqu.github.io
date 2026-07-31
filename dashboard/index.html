@@ -470,10 +470,36 @@
         function updateDashboard() {
             const filterKelas = document.getElementById('filterKelas').value;
             const filterNama = document.getElementById('filterNama').value.toLowerCase();
-            const filteredData = rawData.filter(row => {
+            
+            // Filter and copy data
+            let filteredData = rawData.filter(row => {
                 return (filterKelas === 'Semua Kelas' || row.kelas === filterKelas)
                     && (filterNama === '' || row.nama.toLowerCase().includes(filterNama));
+            }).map(row => ({...row}));
+            
+            // Urutkan berdasarkan tanggal untuk perhitungan Ziyadah progresif
+            filteredData.sort((a, b) => new Date(a.tanggalRaw) - new Date(b.tanggalRaw));
+            
+            let maxAyatReached = {};
+            filteredData.forEach(r => {
+                const j = (r.jenis || '').toLowerCase();
+                if (j.includes('ziyadah')) {
+                    if (!maxAyatReached[r.nama]) maxAyatReached[r.nama] = {};
+                    const currentMax = maxAyatReached[r.nama][r.surat] || 0;
+                    const aSampai = parseInt(r.ayatSampai) || 0;
+                    
+                    if (aSampai > currentMax) {
+                        r.netAyat = aSampai - currentMax;
+                        maxAyatReached[r.nama][r.surat] = aSampai;
+                    } else {
+                        r.netAyat = 0; // Ayat ini sudah pernah dihafal sebelumnya
+                    }
+                } else {
+                    // Untuk murajaah atau lainnya, gunakan total ayat mentah
+                    r.netAyat = r.totalAyat;
+                }
             });
+
             renderRingkasan(filteredData);
             renderCharts(filteredData);
             renderAbsensi(filteredData);
@@ -485,7 +511,7 @@
                 const j = (r.jenis || '').toLowerCase();
                 if (j.includes('ziyadah')) cZ++;
                 if (j.includes('murajaah')) cM++;
-                tA += r.totalAyat;
+                tA += r.netAyat;
             });
             animateVal('txtZiyadah', cZ);
             animateVal('txtMurajaah', cM);
@@ -512,7 +538,7 @@
 
             data.forEach(r => {
                 const j = (r.jenis||'').toLowerCase();
-                if (j.includes('ziyadah')) { countZ++; top20Map[r.nama]=(top20Map[r.nama]||0)+r.totalAyat; }
+                if (j.includes('ziyadah')) { countZ++; top20Map[r.nama]=(top20Map[r.nama]||0)+r.netAyat; }
                 if (j.includes('murajaah')) countM++;
                 const n = (r.nilai||'').toLowerCase();
                 if (n.includes('mumtaz')) mumtaz++;
@@ -520,7 +546,7 @@
                 else if (n.includes('jayyid')) jayyid++;
                 else if (n.includes('maqbul')) maqbul++;
                 let dk = r.tanggalRaw.split('T')[0];
-                trenMap[dk]=(trenMap[dk]||0)+r.totalAyat;
+                trenMap[dk]=(trenMap[dk]||0)+r.netAyat;
             });
 
             buildDoughnut('chartProporsi', ['Ziyadah','Murajaah'], [countZ,countM], ['#059669','#3b82f6']);
