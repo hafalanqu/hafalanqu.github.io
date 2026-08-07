@@ -338,15 +338,7 @@
                     </div>
                 </div>
 
-                <!-- Jenis Setoran -->
-                <div class="question-card" onclick="highlightCard(this)">
-                    <div class="question-title">Jenis Setoran <span class="required-asterisk">*</span></div>
-                    <select id="jenisSetoran" name="jenisSetoran" class="form-control" required>
-                        <option value="" disabled selected>Pilih Jenis Setoran</option>
-                        <option value="Ziyadah">Ziyadah</option>
-                        <option value="Murajaah">Murajaah</option>
-                    </select>
-                </div>
+
 
                 <!-- Surat -->
                 <div class="question-card" onclick="highlightCard(this)">
@@ -395,11 +387,18 @@
                     <input type="text" id="catatan" name="catatan" class="form-control" placeholder="Jawaban Anda">
                 </div>
 
+                <!-- Hidden Fields untuk Fitur Edit & Delete -->
+                <input type="hidden" id="action" name="action" value="submit">
+                <input type="hidden" id="timestampId" name="timestampId" value="">
+
                 <!-- Submit -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <button type="submit" id="submitBtn" class="submit-btn">
                             Kirim <span class="spinner"></span>
+                        </button>
+                        <button type="button" id="cancelEditBtn" class="submit-btn" style="display: none; background-color: #6c757d;">
+                            Batal Edit
                         </button>
                         <a href="../dashboard/" class="submit-btn"
                             style="background-color: transparent; color: var(--primary-color); border: 1.5px solid var(--primary-color); text-decoration: none; padding: 11px 20px; display: inline-flex; align-items: center; justify-content: center; margin-top: 10px;">
@@ -616,25 +615,29 @@
                 method: 'POST',
                 body: formData
             })
-                .then(response => {
+                .then(response => response.json())
+                .then(data => {
                     btn.disabled = false;
                     btn.classList.remove('loading');
-                    if (response.ok) {
+                    if (data.result === 'success') {
                         statusMsg.className = 'message-box success';
                         statusMsg.textContent = 'Data berhasil dikirim!';
 
-                        // Segarkan riwayat tanpa me-reset form
+                        // Kembalikan tombol ke mode "Kirim" jika sedang mode "Edit"
+                        resetFormMode();
+
+                        // Segarkan riwayat tanpa me-reset form kelas/nama
                         namaLengkapSelect.dispatchEvent(new Event('change'));
 
-                        // Sembunyikan pesan sukses setelah 5 detik agar form rapi kembali
+                        // Sembunyikan pesan sukses setelah 5 detik
                         setTimeout(() => {
                             statusMsg.className = 'message-box';
                             statusMsg.textContent = '';
                         }, 5000);
 
-                        window.scrollTo(0, 0); // Gulir ke atas setelah berhasil
+                        window.scrollTo(0, 0); // Gulir ke atas
                     } else {
-                        throw new Error('Network response was not ok');
+                        throw new Error(data.error || 'Server error');
                     }
                 })
                 .catch(error => {
@@ -646,7 +649,24 @@
                 });
         });
 
+        // --- CANCEL EDIT ---
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        cancelEditBtn.addEventListener('click', function() {
+            resetFormMode();
+            window.scrollTo(0, 0);
+        });
+
+        function resetFormMode() {
+            document.getElementById('action').value = 'submit';
+            document.getElementById('timestampId').value = '';
+            document.getElementById('submitBtn').innerHTML = 'Kirim <span class="spinner"></span>';
+            document.getElementById('submitBtn').style.backgroundColor = 'var(--primary-color)';
+            cancelEditBtn.style.display = 'none';
+        }
+
         // --- FETCH HISTORY ---
+        window.historyData = [];
+        
         namaLengkapSelect.addEventListener('change', function () {
             const historyCard = document.getElementById('historyCard');
             const historyLoading = document.getElementById('historyLoading');
@@ -657,7 +677,6 @@
                 historyLoading.style.display = 'flex';
                 historyContent.innerHTML = '';
 
-                // Fetch to Apps Script using doGet
                 const url = GOOGLE_SCRIPT_URL + "?action=getHistory&nama=" + encodeURIComponent(this.value);
 
                 fetch(url)
@@ -665,19 +684,34 @@
                     .then(data => {
                         historyLoading.style.display = 'none';
                         if (data.result === 'success' && data.data.length > 0) {
-                            let html = '<ul style="margin: 0; padding-left: 20px; color: var(--text-main);">';
-                            data.data.forEach(h => {
-                                html += `<li><strong>${h.tanggal}</strong>: ${h.surat} (Ayat ${h.ayatMulai}-${h.ayatSampai}) - <span style="color: var(--primary-color); font-weight: 500;">${h.nilai}</span></li>`;
+                            window.historyData = data.data; // Simpan ke global array
+                            
+                            let html = '<ul style="margin: 0; padding-left: 0; list-style-type: none; color: var(--text-main);">';
+                            data.data.forEach((h, index) => {
+                                let badgeColor = h.jenisSetoran === 'Ziyadah' ? '#17a2b8' : '#6c757d';
+                                html += `<li style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <strong>${h.tanggal}</strong> <span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px;">${h.jenisSetoran}</span><br>
+                                            ${h.surat} (Ayat ${h.ayatMulai}-${h.ayatSampai})<br>
+                                            Nilai: <span style="color: var(--primary-color); font-weight: 500;">${h.nilai}</span>
+                                        </div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button type="button" onclick="editRecord(${index})" style="background: none; border: none; cursor: pointer; color: #f39c12; padding: 5px;" title="Edit">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </button>
+                                            <button type="button" onclick="deleteRecord('${h.id}')" style="background: none; border: none; cursor: pointer; color: #e74c3c; padding: 5px;" title="Hapus">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </li>`;
                             });
                             html += '</ul>';
                             historyContent.innerHTML = html;
 
-                            // Autoselect Jenis Setoran, Surat & Ayat based on the most recent record
+                            // Autoselect Surat & Ayat based on the most recent record
                             const lastRecord = data.data[0];
-
-                            if (lastRecord.jenisSetoran) {
-                                document.getElementById('jenisSetoran').value = lastRecord.jenisSetoran;
-                            }
 
                             if (lastRecord.surat) {
                                 Array.from(suratSelect.options).forEach(opt => {
@@ -695,9 +729,6 @@
                                     if (lastRecord.ayatSampai) {
                                         ayatSampaiSelect.value = lastRecord.ayatSampai;
                                     }
-                                    if (lastRecord.nilai) {
-                                        document.getElementById('nilai').value = lastRecord.nilai;
-                                    }
                                 }, 50);
                             }
                         } else {
@@ -712,6 +743,77 @@
                 historyCard.style.display = 'none';
             }
         });
+
+        // --- EDIT RECORD ---
+        window.editRecord = function(index) {
+            const h = window.historyData[index];
+            if (!h) return;
+            
+            // Set Hidden Inputs
+            document.getElementById('action').value = 'edit';
+            document.getElementById('timestampId').value = h.id;
+            
+            // Set Form Data
+            if (h.surat) {
+                Array.from(suratSelect.options).forEach(opt => {
+                    if (opt.value === h.surat) {
+                        suratSelect.value = h.surat;
+                        suratSelect.dispatchEvent(new Event('change'));
+                    }
+                });
+                setTimeout(() => {
+                    if (h.ayatMulai) {
+                        ayatMulaiSelect.value = h.ayatMulai;
+                        ayatMulaiSelect.dispatchEvent(new Event('change'));
+                    }
+                    if (h.ayatSampai) ayatSampaiSelect.value = h.ayatSampai;
+                }, 50);
+            }
+            if (h.nilai) document.getElementById('nilai').value = h.nilai;
+            if (h.catatan) document.getElementById('catatan').value = h.catatan;
+            
+            // Ubah Tampilan Tombol
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = 'Perbarui Data <span class="spinner"></span>';
+            submitBtn.style.backgroundColor = '#f39c12';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+            
+            // Scroll ke arah input Surat agar bisa langsung diedit
+            document.getElementById('surat').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        // --- DELETE RECORD ---
+        window.deleteRecord = function(timestampId) {
+            if (!confirm("Apakah Anda yakin ingin menghapus data setoran ini?")) return;
+            
+            const historyLoading = document.getElementById('historyLoading');
+            historyLoading.style.display = 'flex';
+            historyLoading.innerHTML = `<span class="spinner" style="display: inline-block; width: 14px; height: 14px; border-color: #e74c3c transparent #e74c3c transparent; margin-right: 8px;"></span> Menghapus data...`;
+            
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('timestampId', timestampId);
+            formData.append('namaLengkap', document.getElementById('namaLengkap').value);
+            
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    // Segarkan riwayat
+                    namaLengkapSelect.dispatchEvent(new Event('change'));
+                } else {
+                    alert("Gagal menghapus: " + data.message);
+                    historyLoading.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                alert("Terjadi kesalahan jaringan saat menghapus.");
+                historyLoading.style.display = 'none';
+            });
+        };
 
     </script>
 </body>
