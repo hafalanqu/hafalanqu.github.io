@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1280">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard HafalanQu</title>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,7 +37,6 @@
             display: flex;
             flex-direction: column;
             min-height: 100%;
-            min-width: 1200px;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -153,10 +152,75 @@
         /* ═══ METRICS ROW ═══ */
         .metrics-row {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 12px;
             margin-bottom: 14px;
         }
+        
+        /* ═══ MODAL ═══ */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 450px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-header h2 {
+            font-size: 16px;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+        .modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+        }
+        .perhatian-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .perhatian-item:last-child { border-bottom: none; }
+        
         .metric-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -196,6 +260,21 @@
         .metric-card.ziyadah .m-icon { background: #ecfdf5; color: #059669; }
         .metric-card.murajaah .m-icon { background: #eff6ff; color: #2563eb; }
         .metric-card.total .m-icon { background: #fef3c7; color: #d97706; }
+        .metric-card.target .m-icon { background: #ecfdf5; color: #059669; }
+        .metric-card.perhatian .m-icon { background: #fef2f2; color: #ef4444; }
+
+        @media (max-width: 1024px) {
+            .metrics-row { grid-template-columns: repeat(3, 1fr); }
+            .dash-grid { grid-template-columns: 1fr 1fr; }
+            .chart-proporsi, .chart-kualitas { grid-column: auto; grid-row: auto; }
+            .chart-tren, .chart-top20, .chart-absensi { grid-column: 1 / -1; grid-row: auto; }
+        }
+        @media (max-width: 640px) {
+            .metrics-row { grid-template-columns: 1fr; }
+            .dash-grid { grid-template-columns: 1fr; }
+            .top-bar { flex-direction: column; align-items: flex-start; }
+            .top-bar .filters { width: 100%; justify-content: space-between; }
+        }
 
         /* ═══ DASHBOARD GRID ═══ */
         .dash-grid {
@@ -381,23 +460,51 @@
         <div class="metrics-row">
             <div class="metric-card ziyadah">
                 <div class="m-icon">📗</div>
-                <div>
+                <div style="flex: 1;">
                     <div class="m-label">Ziyadah</div>
                     <div class="m-value" id="txtZiyadah">0</div>
                 </div>
             </div>
             <div class="metric-card murajaah">
                 <div class="m-icon">📘</div>
-                <div>
+                <div style="flex: 1;">
                     <div class="m-label">Murajaah</div>
                     <div class="m-value" id="txtMurajaah">0</div>
                 </div>
             </div>
             <div class="metric-card total">
                 <div class="m-icon">⭐</div>
-                <div>
+                <div style="flex: 1;">
                     <div class="m-label">Total Ayat</div>
                     <div class="m-value" id="txtTotalAyat">0</div>
+                </div>
+            </div>
+            
+            <!-- NEW CARD 1: TARGET HAFALAN -->
+            <div class="metric-card target">
+                <div class="m-icon">🎯</div>
+                <div style="flex: 1; width: 100%;">
+                    <div class="m-label">Target Hafalan</div>
+                    <div class="m-value" id="txtTargetVal">0%</div>
+                    <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;" id="txtTargetDetail">0 / 0 ayat</div>
+                    
+                    <!-- Progress Bar -->
+                    <div style="width: 100%; height: 4px; background-color: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden;">
+                        <div id="targetProgressBar" style="height: 100%; width: 0%; background-color: #059669; border-radius: 2px; transition: width 0.5s ease;"></div>
+                    </div>
+                    
+                    <div style="font-size: 9px; font-weight: 500; color: #059669; margin-top: 5px;" id="txtTargetChange">+0% dari bulan lalu</div>
+                </div>
+            </div>
+            
+            <!-- NEW CARD 2: SISWA PERLU PERHATIAN -->
+            <div class="metric-card perhatian" style="cursor: pointer;" onclick="openPerhatianModal()">
+                <div class="m-icon">⚠️</div>
+                <div style="flex: 1; width: 100%;">
+                    <div class="m-label">Siswa Perlu Perhatian</div>
+                    <div class="m-value" style="font-size: 18px;" id="txtPerhatianVal">0 Siswa</div>
+                    <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px;" id="txtPerhatianDetail">-</div>
+                    <div style="font-size: 9px; font-weight: 500; color: #d97706; margin-top: 8px;" id="txtPerhatianChange">↓ 0 siswa dari minggu lalu</div>
                 </div>
             </div>
         </div>
@@ -437,7 +544,24 @@
                 </div>
             </div>
         </div>
+    </div>-top: 8px;" id="txtPerhatianChange">↓ 0 siswa dari minggu lalu</div>
+                </div>
+            </div>
+        </div>
 
+    </div>
+
+    <!-- MODAL SISWA PERLU PERHATIAN -->
+    <div class="modal-overlay" id="perhatianModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Siswa Perlu Perhatian</h2>
+                <button class="modal-close" onclick="closePerhatianModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="perhatianList">
+                <!-- Daftar akan dimuat via JS -->
+            </div>
+        </div>
     </div>
 
     <!-- FOOTER -->
@@ -449,6 +573,50 @@
         let rawData = [];
         let charts = {};
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbwYELGH4BokMLRXtKBmk62T7QpP3CQyOaEsWEzHfI4l8QeCvGyar6pHlv1cE1vEdZAg/exec';
+
+        // --- DATA DUMMY UNTUK MODAL ---
+        const dummySiswaPerhatian = [
+            { nama: "Ahmad Fauzi", kelas: "8A", status: "Hafalan Menurun", detail: "Nilai rata-rata minggu ini menurun dari Jayyid Jiddan ke Maqbul." },
+            { nama: "Siti Aminah", kelas: "8B", status: "Tidak Aktif", detail: "Belum menyetor hafalan selama 5 hari berturut-turut." },
+            { nama: "Budi Santoso", kelas: "8C", status: "Tidak Aktif", detail: "Absen setoran di jam tahfidz 3 kali pekan ini." },
+            { nama: "Nur Hidayah", kelas: "8A", status: "Hafalan Menurun", detail: "Target capaian harian tidak terpenuhi 4 hari." },
+            { nama: "Fatimah Az-Zahra", kelas: "8D", status: "Tidak Aktif", detail: "Belum masuk kelas tahfidz selama seminggu." },
+            { nama: "Hasan Basri", kelas: "8B", status: "Hafalan Menurun", detail: "Kualitas hafalan sering Rasib." },
+            { nama: "Zaid bin Tsabit", kelas: "8C", status: "Hafalan Menurun", detail: "Ziyadah melambat, banyak salah tajwid." }
+        ];
+
+        function openPerhatianModal() {
+            const modal = document.getElementById('perhatianModal');
+            const listContainer = document.getElementById('perhatianList');
+            
+            let html = '';
+            dummySiswaPerhatian.forEach(siswa => {
+                let badgeColor = siswa.status === 'Tidak Aktif' ? '#ef4444' : '#d97706';
+                html += `
+                    <div class="perhatian-item">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-main); font-size: 13px;">${siswa.nama} <span style="font-weight: 500; font-size: 11px; color: var(--text-muted);">(${siswa.kelas})</span></div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${siswa.detail}</div>
+                        </div>
+                        <div style="background-color: ${badgeColor}15; color: ${badgeColor}; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; white-space: nowrap;">
+                            ${siswa.status}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        function closePerhatianModal() {
+            document.getElementById('perhatianModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('perhatianModal').addEventListener('click', function(e) {
+            if (e.target === this) closePerhatianModal();
+        });
 
         async function fetchDashboardData() {
             try {
@@ -505,28 +673,137 @@
             renderAbsensi(filteredData);
         }
 
+        // Configurable target per siswa (bisa disesuaikan nanti)
+        const TARGET_PER_SISWA = 250;
+
         function renderRingkasan(data) {
             let cZ = 0, cM = 0, tA = 0;
+            const siswaMap = new Map();
+            let maxDateGlobal = 0;
+
             data.forEach(r => {
                 const j = (r.jenis || '').toLowerCase();
                 if (j.includes('ziyadah')) cZ++;
                 if (j.includes('murajaah')) cM++;
                 tA += r.netAyat;
+
+                const tgl = new Date(r.tanggalRaw || r.tanggal).getTime();
+                if (tgl > maxDateGlobal) maxDateGlobal = tgl;
+
+                if (!siswaMap.has(r.nama)) {
+                    siswaMap.set(r.nama, { kelas: r.kelas, latestDate: tgl, latestNilai: r.nilai });
+                } else {
+                    const current = siswaMap.get(r.nama);
+                    if (tgl > current.latestDate) {
+                        current.latestDate = tgl;
+                        current.latestNilai = r.nilai;
+                    }
+                }
             });
+            
+            // Fallback maxDate if empty data
+            if (maxDateGlobal === 0) maxDateGlobal = Date.now();
+
             animateVal('txtZiyadah', cZ);
             animateVal('txtMurajaah', cM);
             animateVal('txtTotalAyat', tA);
+
+            // DATA ASLI: Target Hafalan
+            const totalSiswa = siswaMap.size;
+            const targetHafalanTarget = totalSiswa > 0 ? totalSiswa * TARGET_PER_SISWA : 1050; 
+            const targetHafalanCurrent = tA;
+            const percentage = targetHafalanTarget > 0 ? Math.min(100, Math.round((targetHafalanCurrent / targetHafalanTarget) * 100)) : 0;
+            const dummyTargetChange = 2.1; 
+
+            animateVal('txtTargetVal', percentage, '%');
+            document.getElementById('txtTargetDetail').innerText = `${targetHafalanCurrent.toLocaleString('id-ID')} / ${targetHafalanTarget.toLocaleString('id-ID')} ayat`;
+            document.getElementById('targetProgressBar').style.width = percentage + '%';
+            document.getElementById('txtTargetChange').innerText = `+${dummyTargetChange}% dari bulan lalu`;
+
+            // DATA ASLI: Siswa Perlu Perhatian (Fokus Kehadiran/Tidak Aktif saja)
+            const listPerhatian = [];
+            const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+            
+            let countTidakAktif = 0;
+
+            siswaMap.forEach((info, nama) => {
+                const diffTime = maxDateGlobal - info.latestDate;
+                const isTidakAktif = diffTime > SEVEN_DAYS;
+
+                if (isTidakAktif) {
+                    const days = Math.floor(diffTime / (1000 * 3600 * 24));
+                    listPerhatian.push({
+                        nama: nama,
+                        kelas: info.kelas,
+                        status: "Tidak Aktif",
+                        detail: `Belum menyetor hafalan selama ${days} hari.`
+                    });
+                    countTidakAktif++;
+                }
+            });
+
+            const spTotal = listPerhatian.length;
+            animateVal('txtPerhatianVal', spTotal, ' Siswa');
+            document.getElementById('txtPerhatianDetail').innerText = `${countTidakAktif} siswa terpantau tidak aktif setoran`;
+            
+            const txtPerhatianChange = document.getElementById('txtPerhatianChange');
+            if (spTotal > 0) {
+                txtPerhatianChange.innerText = `Ada ${spTotal} siswa perlu bimbingan`;
+                txtPerhatianChange.style.color = '#d97706';
+            } else {
+                txtPerhatianChange.innerText = `Alhamdulillah berprogres baik!`;
+                txtPerhatianChange.style.color = '#059669';
+            }
+
+            // Save dynamic data for modal
+            window.activeSiswaPerhatian = listPerhatian;
         }
 
-        function animateVal(id, end) {
+        function openPerhatianModal() {
+            const modal = document.getElementById('perhatianModal');
+            const listContainer = document.getElementById('perhatianList');
+            
+            let html = '';
+            if (window.activeSiswaPerhatian && window.activeSiswaPerhatian.length > 0) {
+                window.activeSiswaPerhatian.forEach(siswa => {
+                    let badgeColor = siswa.status === 'Tidak Aktif' ? '#ef4444' : '#d97706';
+                    html += `
+                        <div class="perhatian-item">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--text-main); font-size: 13px;">${siswa.nama} <span style="font-weight: 500; font-size: 11px; color: var(--text-muted);">(${siswa.kelas})</span></div>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${siswa.detail}</div>
+                            </div>
+                            <div style="background-color: ${badgeColor}15; color: ${badgeColor}; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; white-space: nowrap;">
+                                ${siswa.status}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = `<div class="empty-state">Alhamdulillah, tidak ada siswa yang perlu perhatian khusus saat ini.</div>`;
+            }
+            
+            listContainer.innerHTML = html;
+            modal.classList.add('active');
+        }
+        function animateVal(id, end, suffix = '') {
             const el = document.getElementById(id);
-            const start = parseInt(el.innerText.replace(/\./g,'')) || 0;
-            if (start === end) return;
+            // Hapus suffix dan parsing int
+            let valText = el.innerText;
+            if (suffix) {
+                valText = valText.replace(suffix, '');
+            }
+            const start = parseInt(valText.replace(/\./g,'')) || 0;
+            if (start === end) {
+                el.innerText = end.toLocaleString('id-ID') + suffix;
+                return;
+            }
             const dur = 500, t0 = performance.now();
             function tick(now) {
                 const p = Math.min((now - t0) / dur, 1);
                 const e = 1 - Math.pow(1 - p, 3);
-                el.innerText = Math.round(start + (end - start) * e).toLocaleString('id-ID');
+                const currentVal = Math.round(start + (end - start) * e);
+                el.innerText = currentVal.toLocaleString('id-ID') + suffix;
                 if (p < 1) requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);

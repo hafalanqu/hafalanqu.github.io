@@ -190,17 +190,21 @@ function getHistoryData(namaLengkap) {
       let tgl = data[i][0];
       let formattedDate = "";
       let isoDate = "";
+      let sortableDate = 0;
       if(tgl instanceof Date) {
         isoDate = tgl.toISOString();
         formattedDate = tgl.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+        sortableDate = tgl.getTime();
       } else {
         isoDate = String(tgl);
         formattedDate = String(tgl).split('T')[0];
+        sortableDate = new Date(tgl).getTime() || 0;
       }
 
       history.push({
         id: isoDate, // Digunakan untuk unik ID hapus/edit
         tanggal: formattedDate,
+        sortableDate: sortableDate,
         kelas: data[i][1],
         jenisSetoran: data[i][3],
         surat: data[i][4],
@@ -209,12 +213,17 @@ function getHistoryData(namaLengkap) {
         nilai: data[i][7],
         catatan: data[i][8]
       });
-      if (history.length === 3) break;
     }
   }
   
+  // Urutkan berdasarkan tanggal (terbaru di atas)
+  history.sort((a, b) => b.sortableDate - a.sortableDate);
+  
+  // Ambil maksimal 3 riwayat terakhir
+  let topHistory = history.slice(0, 3);
+  
   return ContentService
-    .createTextOutput(JSON.stringify({ result: 'success', data: history }))
+    .createTextOutput(JSON.stringify({ result: 'success', data: topHistory }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
