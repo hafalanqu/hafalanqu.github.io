@@ -470,21 +470,6 @@
         let charts = {};
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbwYELGH4BokMLRXtKBmk62T7QpP3CQyOaEsWEzHfI4l8QeCvGyar6pHlv1cE1vEdZAg/exec';
 
-        // --- DATA DUMMY UNTUK MODAL ---
-        const dummySiswaPerhatian = [
-            { nama: "Ahmad Fauzi", kelas: "8A", status: "Hafalan Menurun", detail: "Nilai rata-rata minggu ini menurun dari Jayyid Jiddan ke Maqbul." },
-            listContainer.innerHTML = html;
-            modal.classList.add('active');
-        }
-
-        function closePerhatianModal() {
-            document.getElementById('perhatianModal').classList.remove('active');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('perhatianModal').addEventListener('click', function(e) {
-            if (e.target === this) closePerhatianModal();
-        });
 
         async function fetchDashboardData() {
             try {
