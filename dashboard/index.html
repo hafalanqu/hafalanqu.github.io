@@ -368,7 +368,7 @@
             </svg>
             <span class="logo-text">HafalanQu</span>
         </a>
-        <span class="header-badge">Dashboard</span>
+
     </header>
 
     <!-- MAIN -->
@@ -384,6 +384,9 @@
                     <option value="8B">8B</option>
                     <option value="8C">8C</option>
                     <option value="8D">8D</option>
+                </select>
+                <select id="filterBulan" class="filter-control">
+                    <option value="Semua">Semua Bulan</option>
                 </select>
                 <input type="text" id="filterNama" placeholder="Cari nama..." class="filter-control" style="width:160px;">
                 <div id="loadingIndicator" class="loading-indicator">
@@ -429,7 +432,7 @@
                 <div class="chart-small-wrap"><canvas id="chartKualitas"></canvas></div>
             </div>
             <div class="card chart-tren">
-                <div class="card-title"><span class="ci" style="background:#003527;"></span> Tren Harian</div>
+                <div class="card-title"><span class="ci" style="background:#003527;"></span> Progres Hafalan</div>
                 <canvas id="chartTren" height="140"></canvas>
             </div>
             <div class="card chart-top20">
@@ -439,12 +442,7 @@
                 </div>
             </div>
             <div class="card chart-absensi" style="padding: 14px 0 0 0; overflow: hidden;">
-                <div class="card-title" style="padding: 0 16px; display: flex; justify-content: space-between; align-items: center;">
-                    <div><span class="ci" style="background:#4f46e5;"></span> Rekap Absensi</div>
-                    <select id="filterBulanAbsensi" style="font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text-main); outline: none; cursor: pointer;">
-                        <option value="Semua">Semua Bulan</option>
-                    </select>
-                </div>
+                <div class="card-title" style="padding: 0 16px;"><span class="ci" style="background:#4f46e5;"></span> Rekap Absensi</div>
                 <div class="table-wrap" style="max-height: 280px; overflow-y: auto;">
                     <table class="data-table">
                         <thead>
@@ -487,7 +485,7 @@
                         }
                     });
                     
-                    const dropdown = document.getElementById('filterBulanAbsensi');
+                    const dropdown = document.getElementById('filterBulan');
                     const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
                     
                     Array.from(months).sort().reverse().forEach(m => {
@@ -518,11 +516,14 @@
         function updateDashboard() {
             const filterKelas = document.getElementById('filterKelas').value;
             const filterNama = document.getElementById('filterNama').value.toLowerCase();
+            const filterBulan = document.getElementById('filterBulan').value;
             
             // Filter and copy data
             let filteredData = rawData.filter(row => {
+                const rowDate = (row.tanggalRaw || row.tanggal || '').split('T')[0];
                 return (filterKelas === 'Semua Kelas' || row.kelas === filterKelas)
-                    && (filterNama === '' || row.nama.toLowerCase().includes(filterNama));
+                    && (filterNama === '' || row.nama.toLowerCase().includes(filterNama))
+                    && (filterBulan === 'Semua' || rowDate.startsWith(filterBulan));
             }).map(row => ({...row}));
             
             // Urutkan berdasarkan tanggal untuk perhitungan Ziyadah progresif
@@ -670,24 +671,13 @@
         }
 
         function renderAbsensi(data) {
-            const filterBulan = document.getElementById('filterBulanAbsensi').value;
-            
-            // Filter data by selected month for absensi ONLY
-            let absensiData = data;
-            if (filterBulan !== "Semua") {
-                absensiData = data.filter(r => {
-                    const dateStr = (r.tanggalRaw || r.tanggal || '').split('T')[0];
-                    return dateStr.startsWith(filterBulan);
-                });
-            }
-
             const hdr=document.getElementById('absensiHeader'), body=document.getElementById('absensiBody'), empty=document.getElementById('absensiEmpty');
             while(hdr.children.length>1) hdr.removeChild(hdr.lastChild);
             body.innerHTML='';
-            if(!absensiData.length){empty.classList.remove('hidden');return;}
+            if(!data.length){empty.classList.remove('hidden');return;}
             empty.classList.add('hidden');
             let dates=new Set(), names=new Set(), att={};
-            absensiData.forEach(r=>{
+            data.forEach(r=>{
                 let dk=(r.tanggalRaw || r.tanggal || '').split('T')[0];
                 dates.add(dk); names.add(r.nama);
                 if(!att[r.nama]) att[r.nama]={};
@@ -710,7 +700,7 @@
 
         document.getElementById('filterKelas').addEventListener('change', updateDashboard);
         document.getElementById('filterNama').addEventListener('input', updateDashboard);
-        document.getElementById('filterBulanAbsensi').addEventListener('change', updateDashboard);
+        document.getElementById('filterBulan').addEventListener('change', updateDashboard);
         
         fetchDashboardData();
     </script>
