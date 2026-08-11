@@ -475,7 +475,7 @@
             try {
                 const response = await fetch(scriptUrl + '?action=getAllData');
                 const result = await response.json();
-                if (result.status === 'success') {
+                if (result.result === 'success') {
                     rawData = result.data;
                     
                     // --- Populate Bulan Dropdown ---
