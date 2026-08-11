@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HafalanQu</title>
     <script>
-        if (sessionStorage.getItem('instLoggedIn') !== 'mtsn6demak') {
+        if (sessionStorage.getItem('instLoggedIn') !== 'smaalislam') {
             window.location.href = '../../login/';
         }
     </script>
@@ -394,7 +394,7 @@
 
                 <!-- Hidden Fields untuk Fitur Edit & Delete -->
                 <input type="hidden" id="action" name="action" value="submit">
-                <input type="hidden" id="inst" name="inst" value="mtsn6demak">
+                <input type="hidden" id="inst" name="inst" value="smaalislam">
                 <input type="hidden" id="timestampId" name="timestampId" value="">
 
                 <!-- Submit -->
@@ -682,7 +682,7 @@
                 historyLoading.style.display = 'flex';
                 historyContent.innerHTML = '';
 
-                const url = GOOGLE_SCRIPT_URL + "?action=getHistory&inst=mtsn6demak&nama=" + encodeURIComponent(this.value);
+                const url = GOOGLE_SCRIPT_URL + "?action=getHistory&inst=smaalislam&nama=" + encodeURIComponent(this.value);
 
                 fetch(url)
                     .then(response => response.json())
@@ -800,7 +800,7 @@
             
             const formData = new FormData();
             formData.append('action', 'delete');
-            formData.append('inst', 'mtsn6demak');
+            formData.append('inst', 'smaalislam');
             formData.append('timestampId', timestampId);
             formData.append('namaLengkap', document.getElementById('namaLengkap').value);
             

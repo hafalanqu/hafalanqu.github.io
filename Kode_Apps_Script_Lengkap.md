@@ -11,7 +11,6 @@ Ikuti langkah ini untuk memperbarui sistem Anda agar memiliki Dashboard HTML mur
 // KODE BACKEND: FORM HTML & DASHBOARD ROUTER
 // ==========================================
 
-const sheetName = 'Database';
 const scriptProp = PropertiesService.getScriptProperties();
 
 function initialSetup () {
@@ -24,10 +23,28 @@ function doPost (e) {
   lock.tryLock(10000);
 
   try {
+    const action = e.parameter.action || 'submit';
+
+    // ----------------------------------------
+    // FITUR: LOGIN & ROUTING
+    // ----------------------------------------
+    if (action === 'login') {
+      const u = e.parameter.username;
+      const p = e.parameter.password;
+      
+      if (u === 'ustadz' && p === 'mtsn6demak') {
+        return ContentService.createTextOutput(JSON.stringify({ result: 'success', inst: 'mtsn6demak' })).setMimeType(ContentService.MimeType.JSON);
+      } else if (u === 'ustadz' && p === 'smaalislam') {
+        return ContentService.createTextOutput(JSON.stringify({ result: 'success', inst: 'smaalislam' })).setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: 'Username atau Password salah' })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    const inst = e.parameter.inst || 'mtsn6demak';
+    const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
     const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
     const sheet = doc.getSheetByName(sheetName);
-    
-    const action = e.parameter.action || 'submit';
 
     // ----------------------------------------
     // FITUR: HAPUS DATA
@@ -159,13 +176,15 @@ function doPost (e) {
 
 function doGet(e) {
   try {
+    const inst = e.parameter.inst || 'mtsn6demak';
+
     // ROUTING 1: Permintaan Data History (Dipanggil oleh Form)
     if (e.parameter.action === 'getHistory') {
-      return getHistoryData(e.parameter.nama);
+      return getHistoryData(e.parameter.nama, inst);
     }
     
     // ROUTING 2: Permintaan Semua Data Database (Dipanggil oleh Dashboard HTML)
-    return getAllDataJSON();
+    return getAllDataJSON(inst);
 
   } catch (error) {
     return ContentService
@@ -179,7 +198,8 @@ function doGet(e) {
 // ==========================================
 
 // Fungsi untuk Form: Mengambil 3 riwayat terakhir
-function getHistoryData(namaLengkap) {
+function getHistoryData(namaLengkap, inst) {
+  const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
   const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
   const sheet = doc.getSheetByName(sheetName);
   const data = sheet.getDataRange().getValues();
@@ -228,7 +248,8 @@ function getHistoryData(namaLengkap) {
 }
 
 // Fungsi untuk Dashboard: Mengambil SELURUH data baris-berbaris
-function getAllDataJSON() {
+function getAllDataJSON(inst) {
+  const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
   const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
   const sheet = doc.getSheetByName(sheetName);
   const data = sheet.getDataRange().getValues();
@@ -272,6 +293,7 @@ function getAllDataJSON() {
 ```
 
 4. Klik tombol **Save (Simpan)**.
-5. Sekarang, Anda dapat **Menghapus Sheet `Dashboard` dan `Rekap Absensi` lama secara permanen** dari Google Spreadsheet Anda. Biarkan hanya tersisa sheet `Database` agar Spreadsheet super ringan. Anda juga boleh menghapus kolom J, K, dan L jika ada sisa tulisan `#ERROR!` di sana, karena sekarang kita hanya butuh Kolom A sampai J (Total Ayat) saja!
+5. Sekarang, Anda dapat **Menghapus Sheet `Dashboard` dan `Rekap Absensi` lama secara permanen** dari Google Spreadsheet Anda.
+6. **PENTING UNTUK KEDUA INSTITUSI**: Ubah nama sheet Anda (di bagian bawah layar Spreadsheet) menjadi persis **Database_MTsN6Demak** (untuk MTsN). Kemudian buat sheet/tab baru dengan nama persis **Database_SMAALISLAM** (untuk SMA). Copy (salin) bagian *header* (baris 1) dari sheet MTsN ke sheet SMA. Data siswa SMA Al-Islam akan disimpan dan diambil dari *sheet* ini secara terpisah.
 
 *(Langkah pembuatan halaman Dashboard HTML ada di file terpisah).*

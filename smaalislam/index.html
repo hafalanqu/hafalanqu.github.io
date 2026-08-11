@@ -362,7 +362,7 @@
 
     <!-- HEADER -->
     <header class="site-header">
-        <a href="../form/" class="brand">
+        <a href="form/" class="brand">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
@@ -468,12 +468,12 @@
     <script>
         let rawData = [];
         let charts = {};
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwYELGH4BokMLRXtKBmk62T7QpP3CQyOaEsWEzHfI4l8QeCvGyar6pHlv1cE1vEdZAg/exec';
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwFcB_A7WAI9A-Ca8-dihwA2VKvzH1pgf1inXbetMeYk7usNGeTZhTcfzv5pfgVswZB/exec';
 
 
         async function fetchDashboardData() {
             try {
-                const response = await fetch(scriptUrl + '?action=getAllData');
+                const response = await fetch(scriptUrl + '?action=getAllData&inst=smaalislam');
                 const result = await response.json();
                 if (result.result === 'success') {
                     rawData = result.data;

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilih Dashboard - HafalanQu</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#003527",
+                        surface: "#f8f9fa",
+                        "on-surface": "#191c1d",
+                        "primary-container": "#064e3b",
+                        "on-primary": "#ffffff",
+                        "outline": "#707974",
+                    },
+                    fontFamily: {
+                        headline: ["EB Garamond"],
+                        body: ["Inter"],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2 { font-family: 'EB Garamond', serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex items-center justify-center p-4">
+    
+    <div class="bg-white max-w-md w-full rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="bg-primary px-8 py-10 text-center text-on-primary">
+            <h1 class="text-4xl font-bold mb-2">HafalanQu</h1>
+            <p class="opacity-90">Pilih institusi untuk melihat Dashboard</p>
+        </div>
+        
+        <div class="p-8 space-y-4">
+            <a href="../mtsn6demak/" class="flex items-center justify-center gap-3 w-full bg-primary hover:bg-primary-container text-white font-semibold py-4 px-4 rounded-xl transition-all shadow-md text-center transform hover:-translate-y-1">
+                <img src="../assets/images/logo_mtsn.png" alt="Logo MTsN 6 Demak" class="w-8 h-8 object-contain bg-white rounded-full p-0.5">
+                <span>Dashboard MTsN 6 Demak</span>
+            </a>
+            
+            <a href="../smaalislam/" class="flex items-center justify-center gap-3 w-full border-2 border-primary text-primary hover:bg-surface text-center font-semibold py-4 px-4 rounded-xl transition-all shadow-sm transform hover:-translate-y-1">
+                <img src="../assets/images/logo_sma.png" alt="Logo SMA Al-Islam" class="w-8 h-8 object-contain">
+                <span>Dashboard SMA Al-Islam</span>
+            </a>
+            
+            <div class="text-center pt-6 flex justify-center">
+                <a href="../" class="text-gray-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-gray-100" title="Kembali ke Halaman Utama">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
