@@ -304,8 +304,8 @@
             padding: 7px 12px;
             border-bottom: 1px solid var(--border-light);
             color: var(--text-secondary);
+            background: #ffffff;
         }
-        .data-table tbody tr:hover td { background: #f9fafb; }
         .data-table tbody td:first-child {
             font-weight: 500;
             color: var(--text-main);
@@ -313,11 +313,13 @@
             position: sticky;
             left: 0;
             z-index: 2;
-            background: inherit;
+            background: #ffffff;
         }
+        .data-table tbody tr:hover td { background: #f9fafb; }
+        .data-table tbody tr:hover td:first-child { background: #f9fafb; }
         .data-table tbody tr:nth-child(even) td { background: #fafbfc; }
-        .data-table tbody tr:nth-child(even):hover td { background: #f3f4f6; }
         .data-table tbody tr:nth-child(even) td:first-child { background: #fafbfc; }
+        .data-table tbody tr:nth-child(even):hover td { background: #f3f4f6; }
         .data-table tbody tr:nth-child(even):hover td:first-child { background: #f3f4f6; }
         .badge {
             display: inline-flex;
