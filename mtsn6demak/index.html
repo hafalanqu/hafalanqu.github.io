@@ -204,7 +204,7 @@
             .metrics-row { grid-template-columns: repeat(3, 1fr); }
             .dash-grid { grid-template-columns: 1fr 1fr; }
             .chart-proporsi, .chart-kualitas { grid-column: auto; grid-row: auto; }
-            .chart-tren, .chart-top20, .chart-absensi { grid-column: 1 / -1; grid-row: auto; }
+            .chart-tren, .chart-top20, .chart-absensi, .card-riwayat, .card-motivasi { grid-column: 1 / -1; grid-row: auto; }
         }
         @media (max-width: 640px) {
             .metrics-row { grid-template-columns: 1fr; }
@@ -217,7 +217,7 @@
         .dash-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
-            grid-template-rows: auto auto;
+            grid-template-rows: auto auto auto;
             gap: 12px;
             margin-bottom: 14px;
         }
@@ -258,6 +258,32 @@
             flex-direction: column; 
         }
         .chart-absensi { grid-column: 3 / 5; grid-row: 2; }
+        .card-riwayat { grid-column: 1 / 3; grid-row: 3; }
+        .card-motivasi { grid-column: 3 / 5; grid-row: 3; }
+
+        /* ═══ RIWAYAT LIST ═══ */
+        .riwayat-list { list-style: none; padding: 0; margin: 0; }
+        .riwayat-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .riwayat-item:last-child { border-bottom: none; }
+        .riwayat-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--primary-light); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 12px; flex-shrink: 0;
+        }
+        .riwayat-info { flex: 1; min-width: 0; }
+        .riwayat-nama { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .riwayat-detail { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+        .riwayat-badge {
+            font-size: 9px; font-weight: 600; padding: 2px 7px;
+            border-radius: 9999px; flex-shrink: 0;
+        }
+        .riwayat-badge.ziyadah { background: #ecfdf5; color: #059669; }
+        .riwayat-badge.murajaah { background: #eff6ff; color: #3b82f6; }
 
         .chart-small-wrap {
             max-width: 160px;
@@ -438,7 +464,7 @@
                 <canvas id="chartTren" height="140"></canvas>
             </div>
             <div class="card chart-top20">
-                <div class="card-title"><span class="ci" style="background:#db2777;"></span> Top 20 Siswa — Ziyadah</div>
+                <div class="card-title"><span class="ci" style="background:#db2777;"></span> Top Ziyadah</div>
                 <div style="flex: 1; position: relative; min-height: 0; width: 100%;">
                     <canvas id="chartTop20"></canvas>
                 </div>
@@ -456,6 +482,64 @@
                     </table>
                     <div id="absensiEmpty" class="empty-state hidden">Belum ada data setoran.</div>
                 </div>
+            </div>
+            <!-- Kartu Riwayat Terakhir -->
+            <div class="card card-riwayat">
+                <div class="card-title"><span class="ci" style="background:#f59e0b;"></span> 10 Riwayat Setoran Terakhir</div>
+                <div style="max-height: 340px; overflow-y: auto;">
+                    <ul class="riwayat-list" id="riwayatList">
+                        <li class="riwayat-item" style="justify-content:center;color:var(--text-secondary);font-size:12px;">Memuat data...</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Kartu Motivasi -->
+            <div class="card card-motivasi" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 280px; position: relative;">
+                <div class="card-title" style="position: absolute; top: 14px; left: 16px;"><span class="ci" style="background:#059669;"></span> Motivasi Qur'ani</div>
+                
+                <div class="motivasi-container">
+                    <div class="quote-icon">❝</div>
+                    <p id="motivasiTeks" class="motivasi-teks fade-transition">Memuat motivasi...</p>
+                    <p id="motivasiSumber" class="motivasi-sumber fade-transition"></p>
+                </div>
+
+                <style>
+                    .motivasi-container {
+                        text-align: center;
+                        padding: 20px;
+                        max-width: 90%;
+                        margin-top: 20px;
+                    }
+                    .quote-icon {
+                        font-size: 32px;
+                        color: #10b981;
+                        opacity: 0.3;
+                        margin-bottom: 10px;
+                        line-height: 1;
+                    }
+                    .motivasi-teks {
+                        font-size: 14px;
+                        color: var(--text);
+                        font-style: italic;
+                        line-height: 1.5;
+                        margin-bottom: 12px;
+                        min-height: 60px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .motivasi-sumber {
+                        font-size: 11px;
+                        color: var(--text-secondary);
+                        font-weight: 600;
+                    }
+                    .fade-transition {
+                        transition: opacity 1s ease-in-out;
+                        opacity: 1;
+                    }
+                    .fade-transition.fade-out {
+                        opacity: 0;
+                    }
+                </style>
             </div>
         </div>
     </div>
@@ -540,20 +624,24 @@
                     const aSampai = parseInt(r.ayatSampai) || 0;
                     
                     if (aSampai > currentMax) {
-                        r.netAyat = aSampai - currentMax;
+                        r.netZiyadah = aSampai - currentMax;
                         maxAyatReached[r.nama][r.surat] = aSampai;
                     } else {
-                        r.netAyat = 0; // Ayat ini sudah pernah dihafal sebelumnya
+                        r.netZiyadah = 0; // Ayat ini sudah pernah dihafal sebelumnya
                     }
+                    r.netMurajaah = r.totalAyat - r.netZiyadah;
+                    if (r.netMurajaah < 0) r.netMurajaah = 0; // Sanity check
                 } else {
-                    // Untuk murajaah atau lainnya, gunakan total ayat mentah
-                    r.netAyat = r.totalAyat;
+                    // Untuk murajaah atau lainnya
+                    r.netZiyadah = 0;
+                    r.netMurajaah = r.totalAyat;
                 }
             });
 
             renderRingkasan(filteredData);
             renderCharts(filteredData);
             renderAbsensi(filteredData);
+            renderHistory(filteredData);
         }
 
         // Configurable target per siswa
@@ -567,7 +655,7 @@
                 const j = (r.jenis || '').toLowerCase();
                 if (j.includes('ziyadah')) cZ++;
                 if (j.includes('murajaah')) cM++;
-                tA += r.netAyat;
+                tA += (r.netZiyadah || 0) + (r.netMurajaah || 0);
             });
 
             animateVal('txtZiyadah', cZ);
@@ -602,16 +690,21 @@
             let top20Map={}, trenMap={};
 
             data.forEach(r => {
+                let dk = r.tanggalRaw.split('T')[0];
+                if (!trenMap[dk]) trenMap[dk] = { z: 0, m: 0 };
+                
                 const j = (r.jenis||'').toLowerCase();
-                if (j.includes('ziyadah')) { countZ++; top20Map[r.nama]=(top20Map[r.nama]||0)+r.netAyat; }
-                if (j.includes('murajaah')) countM++;
+                if (j.includes('ziyadah')) { countZ++; top20Map[r.nama]=(top20Map[r.nama]||0)+r.netZiyadah; }
+                if (j.includes('murajaah')) { countM++; }
+                
+                trenMap[dk].z += (r.netZiyadah || 0);
+                trenMap[dk].m += (r.netMurajaah || 0);
+
                 const n = (r.nilai||'').toLowerCase();
                 if (n.includes('mumtaz')) mumtaz++;
                 else if (n.includes('jayyid jiddan')) jiddan++;
                 else if (n.includes('jayyid')) jayyid++;
                 else if (n.includes('maqbul')) maqbul++;
-                let dk = r.tanggalRaw.split('T')[0];
-                trenMap[dk]=(trenMap[dk]||0)+r.netAyat;
             });
 
             buildDoughnut('chartProporsi', ['Ziyadah','Murajaah'], [countZ,countM], ['#059669','#3b82f6']);
@@ -621,7 +714,7 @@
             buildBar('chartTop20', t20.map(x=>x.n), t20.map(x=>x.a));
 
             let tArr = Object.keys(trenMap).sort();
-            buildLine('chartTren', tArr.map(d=>{let p=d.split('-');return p[2]+'/'+p[1];}), tArr.map(d=>trenMap[d]));
+            buildLineSplit('chartTren', tArr.map(d=>{let p=d.split('-');return p[2]+'/'+p[1];}), tArr.map(d=>trenMap[d].z), tArr.map(d=>trenMap[d].m));
         }
 
         const cf = {family:"'Inter',sans-serif", size:11, weight:500};
@@ -655,21 +748,57 @@
             });
         }
 
-        function buildLine(id, labels, data) {
+        function buildLineSplit(id, labels, dataZ, dataM) {
             const ctx = document.getElementById(id).getContext('2d');
             if(charts[id]) charts[id].destroy();
-            const g = ctx.createLinearGradient(0,0,0,200);
-            g.addColorStop(0,'rgba(0,53,39,0.12)'); g.addColorStop(1,'rgba(0,53,39,0)');
+            const gz = ctx.createLinearGradient(0,0,0,200);
+            gz.addColorStop(0,'rgba(5,150,105,0.12)'); gz.addColorStop(1,'rgba(5,150,105,0)');
+            const gm = ctx.createLinearGradient(0,0,0,200);
+            gm.addColorStop(0,'rgba(59,130,246,0.12)'); gm.addColorStop(1,'rgba(59,130,246,0)');
             charts[id] = new Chart(ctx, {
                 type:'line',
-                data:{labels, datasets:[{label:'Ayat',data,borderColor:'#003527',backgroundColor:g,tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#003527',pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2}]},
+                data:{
+                    labels, 
+                    datasets:[
+                        {label:'Ziyadah',data:dataZ,borderColor:'#059669',backgroundColor:gz,tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#059669',pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2},
+                        {label:'Murajaah',data:dataM,borderColor:'#3b82f6',backgroundColor:gm,tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#3b82f6',pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2}
+                    ]
+                },
                 options:{
                     responsive:true, maintainAspectRatio:true,
-                    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1a2e',titleFont:cf,bodyFont:cf,padding:8,cornerRadius:6,intersect:false,mode:'index'}},
+                    plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true,boxWidth:8,font:{...cf,size:10}}},tooltip:{backgroundColor:'#1a1a2e',titleFont:cf,bodyFont:cf,padding:8,cornerRadius:6,intersect:false,mode:'index'}},
                     scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:cf,color:'#9ca3af'}},x:{grid:{display:false},ticks:{font:cf,color:'#9ca3af'}}},
                     interaction:{intersect:false,mode:'index'}
                 }
             });
+        }
+
+        function renderHistory(data) {
+            const list = document.getElementById('riwayatList');
+            // Urutkan berdasarkan tanggal terbaru
+            let sorted = [...data].sort((a, b) => new Date(b.tanggalRaw) - new Date(a.tanggalRaw));
+            let top10 = sorted.slice(0, 10);
+            
+            if (top10.length === 0) {
+                list.innerHTML = '<li class="riwayat-item" style="justify-content:center;color:var(--text-secondary);font-size:12px;">Belum ada data setoran.</li>';
+                return;
+            }
+            
+            list.innerHTML = top10.map(r => {
+                const initials = (r.nama || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                const jenis = (r.jenis || '').toLowerCase();
+                const badgeClass = jenis.includes('ziyadah') ? 'ziyadah' : 'murajaah';
+                const badgeText = jenis.includes('ziyadah') ? 'Ziyadah' : 'Murajaah';
+                const ayatRange = r.ayatMulai + '-' + r.ayatSampai;
+                return `<li class="riwayat-item">
+                    <div class="riwayat-avatar">${initials}</div>
+                    <div class="riwayat-info">
+                        <div class="riwayat-nama">${r.nama}</div>
+                        <div class="riwayat-detail">${r.tanggal} · ${r.surat} : ${ayatRange} · ${r.nilai || '-'}</div>
+                    </div>
+                    <span class="riwayat-badge ${badgeClass}">${badgeText}</span>
+                </li>`;
+            }).join('');
         }
 
         function renderAbsensi(data) {
@@ -704,6 +833,58 @@
         document.getElementById('filterNama').addEventListener('input', updateDashboard);
         document.getElementById('filterBulan').addEventListener('change', updateDashboard);
         
+        // --- ROTASI MOTIVASI ---
+        const motivasiData = [
+            { teks: "Sebaik-baik kalian adalah yang belajar Al-Qur'an dan mengajarkannya.", sumber: "HR. Bukhari" },
+            { teks: "Penghafal Al-Qur'an adalah keluarga Allah dan orang-orang istimewa-Nya.", sumber: "HR. Ahmad" },
+            { teks: "Bacalah Al-Qur'an, sesungguhnya ia akan datang pada hari kiamat memberi syafaat.", sumber: "HR. Muslim" },
+            { teks: "Satu huruf dari Al-Qur'an bernilai sepuluh kebaikan.", sumber: "HR. Tirmidzi" },
+            { teks: "Orang yang mahir membaca Al-Qur'an akan bersama malaikat yang mulia lagi taat.", sumber: "HR. Bukhari & Muslim" },
+            { teks: "Al-Qur'an adalah cahaya di bumi dan simpanan di langit.", sumber: "HR. Ibnu Hibban" },
+            { teks: "Tidak ada rasa iri yang dibenarkan kecuali kepada penghafal Al-Qur'an dan dermawan.", sumber: "HR. Bukhari" },
+            { teks: "Hati yang tidak ada sedikitpun Al-Qur'an di dalamnya seperti rumah kumuh yang mau runtuh.", sumber: "HR. Tirmidzi" },
+            { teks: "Mahkota kehormatan akan dipakaikan kepada orang tua penghafal Al-Qur'an di hari kiamat.", sumber: "HR. Abu Daud" },
+            { teks: "Menghafal Al-Qur'an adalah investasi terbaik untuk masa depan akhirat yang abadi." },
+            { teks: "Setiap ayat yang dihafal adalah anak tangga menuju derajat yang lebih tinggi di surga." },
+            { teks: "Jangan lelah mengulang, karena mutiara hafalan yang sesungguhnya ada pada muraja'ah." },
+            { teks: "Al-Qur'an tidak akan pernah meninggalkan sahabatnya di saat-saat tersulit, bahkan di alam kubur." },
+            { teks: "Jadikan Al-Qur'an sebagai sahabat setiamu, maka ia akan setia menemanimu hingga ke surga." },
+            { teks: "Kesulitan dalam menghafal adalah penghapus dosa, sedangkan kemudahannya adalah anugerah." },
+            { teks: "Hafalan yang kuat dan kokoh lahir dari keikhlasan niat dan doa tulus di sepertiga malam." },
+            { teks: "Sebaik-baik teman duduk dan pengisi waktu luang adalah lembaran mushaf Al-Qur'an." },
+            { teks: "Jangan bersedih jika hafalan lambat, Allah Yang Maha Melihat menilai keringat dan kesabaranmu." },
+            { teks: "Setiap detak jantung yang diiringi lantunan ayat-Nya adalah ketenangan bagi jiwa yang lelah." },
+            { teks: "Al-Qur'an adalah pelita di tengah pekatnya kegelapan dunia, peganglah erat-erat agar tak tersesat." }
+        ];
+
+        let motivasiIndex = 0;
+        function rotateMotivasi() {
+            const elTeks = document.getElementById('motivasiTeks');
+            const elSumber = document.getElementById('motivasiSumber');
+            if(!elTeks || !elSumber) return;
+
+            // Fade out
+            elTeks.classList.add('fade-out');
+            elSumber.classList.add('fade-out');
+
+            setTimeout(() => {
+                const data = motivasiData[motivasiIndex];
+                elTeks.innerText = `"${data.teks}"`;
+                elSumber.innerText = data.sumber ? `— ${data.sumber}` : '';
+                
+                // Fade in
+                elTeks.classList.remove('fade-out');
+                elSumber.classList.remove('fade-out');
+                
+                motivasiIndex = (motivasiIndex + 1) % motivasiData.length;
+            }, 1000); // Wait for fade out to complete (1s)
+        }
+
+        // Initialize and set interval (change every 8 seconds)
+        rotateMotivasi();
+        setInterval(rotateMotivasi, 8000);
+        // -----------------------
+
         fetchDashboardData();
     </script>
 </body>
