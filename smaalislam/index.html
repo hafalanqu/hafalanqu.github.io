@@ -26,7 +26,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html {
-            min-height: 100%;
+            height: 100%;
             background: var(--bg);
         }
 
@@ -470,7 +470,7 @@
                 </div>
             </div>
             <div class="card chart-absensi" style="padding: 14px 0 0 0; overflow: hidden;">
-                <div class="card-title" style="padding: 0 16px;"><span class="ci" style="background:#4f46e5;"></span> Rekap Absensi</div>
+                <div class="card-title" style="padding: 0 16px;"><span class="ci" style="background:#4f46e5;"></span> Daftar Hadir</div>
                 <div class="table-wrap" style="max-height: 280px; overflow-y: auto;">
                     <table class="data-table">
                         <thead>
@@ -650,17 +650,16 @@
         const TARGET_PER_SISWA = 381;
 
         function renderRingkasan(data) {
-            let cZ = 0, cM = 0, tA = 0;
+            let zAyat = 0, mAyat = 0, tA = 0;
 
             data.forEach(r => {
-                const j = (r.jenis || '').toLowerCase();
-                if (j.includes('ziyadah')) cZ++;
-                if (j.includes('murajaah')) cM++;
+                zAyat += (r.netZiyadah || 0);
+                mAyat += (r.netMurajaah || 0);
                 tA += (r.netZiyadah || 0) + (r.netMurajaah || 0);
             });
 
-            animateVal('txtZiyadah', cZ);
-            animateVal('txtMurajaah', cM);
+            animateVal('txtZiyadah', zAyat);
+            animateVal('txtMurajaah', mAyat);
             animateVal('txtTotalAyat', tA);
         }
         function animateVal(id, end, suffix = '') {
@@ -687,7 +686,7 @@
         }
 
         function renderCharts(data) {
-            let countZ=0, countM=0, mumtaz=0, jiddan=0, jayyid=0, maqbul=0;
+            let totalZiyadah = 0, totalMurajaah = 0, mumtaz=0, jiddan=0, jayyid=0, maqbul=0;
             let top20Map={}, trenMap={};
 
             data.forEach(r => {
@@ -695,8 +694,10 @@
                 if (!trenMap[dk]) trenMap[dk] = { z: 0, m: 0 };
                 
                 const j = (r.jenis||'').toLowerCase();
-                if (j.includes('ziyadah')) { countZ++; top20Map[r.nama]=(top20Map[r.nama]||0)+r.netZiyadah; }
-                if (j.includes('murajaah')) { countM++; }
+                if (j.includes('ziyadah')) { top20Map[r.nama]=(top20Map[r.nama]||0)+r.netZiyadah; }
+                
+                totalZiyadah += (r.netZiyadah || 0);
+                totalMurajaah += (r.netMurajaah || 0);
                 
                 trenMap[dk].z += (r.netZiyadah || 0);
                 trenMap[dk].m += (r.netMurajaah || 0);
@@ -708,7 +709,7 @@
                 else if (n.includes('maqbul')) maqbul++;
             });
 
-            buildDoughnut('chartProporsi', ['Ziyadah','Murajaah'], [countZ,countM], ['#059669','#3b82f6']);
+            buildDoughnut('chartProporsi', ['Ziyadah','Murajaah'], [totalZiyadah, totalMurajaah], ['#059669','#3b82f6']);
             buildDoughnut('chartKualitas', ['Mumtaz','Jayyid Jiddan','Jayyid','Maqbul'], [mumtaz,jiddan,jayyid,maqbul], ['#3b82f6','#059669','#10b981','#6ee7b7']);
 
             let t20 = Object.keys(top20Map).map(k=>({n:k,a:top20Map[k]})).sort((a,b)=>b.a-a.a).slice(0,20);
