@@ -266,6 +266,59 @@
         .submit-btn.loading .spinner {
             display: inline-block;
         }
+        /* Modal Konfirmasi Hapus */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-title {
+            margin: 0 0 12px 0;
+            color: var(--primary-color);
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+        }
+        .modal-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn-cancel, .btn-confirm {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-cancel {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-confirm {
+            background-color: #d93025;
+            color: white;
+        }
     </style>
 </head>
 
@@ -791,9 +844,24 @@
         };
 
         // --- DELETE RECORD ---
+        let deleteTargetId = null;
+        
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            deleteTargetId = null;
+        };
+
         window.deleteRecord = function(timestampId) {
-            if (!confirm("Apakah Anda yakin ingin menghapus data setoran ini?")) return;
+            deleteTargetId = timestampId;
+            document.getElementById('deleteConfirmModal').style.display = 'flex';
+        };
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (!deleteTargetId) return;
             
+            const timestampId = deleteTargetId;
+            closeDeleteModal();
+
             const historyLoading = document.getElementById('historyLoading');
             historyLoading.style.display = 'flex';
             historyLoading.innerHTML = `<span class="spinner" style="display: inline-block; width: 14px; height: 14px; border-color: #e74c3c transparent #e74c3c transparent; margin-right: 8px;"></span> Menghapus data...`;
@@ -822,9 +890,21 @@
                 alert("Terjadi kesalahan jaringan saat menghapus.");
                 historyLoading.style.display = 'none';
             });
-        };
+        });
 
     </script>
+    <!-- Modal Konfirmasi Hapus -->
+    <div id="deleteConfirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">Konfirmasi Hapus</h3>
+            <p class="modal-text">Apakah Anda yakin ingin menghapus data setoran ini?</p>
+            <div class="modal-actions">
+                <button id="cancelDeleteBtn" class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
+                <button id="confirmDeleteBtn" class="btn-confirm">Hapus</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
