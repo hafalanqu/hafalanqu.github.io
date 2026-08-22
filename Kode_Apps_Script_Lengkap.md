@@ -73,14 +73,16 @@ function doPost (e) {
 
 function doGet(e) {
   try {
+    const inst = e.parameter.inst || 'mtsn6demak';
+
     // ROUTING 1: Permintaan Data History (Dipanggil oleh Form)
     if (e.parameter.action === 'getHistory') {
-      return getHistoryData(e.parameter.nama);
+      return getHistoryData(e.parameter.nama, inst);
     }
     
     // ROUTING 2: Permintaan Semua Data Database (Dipanggil oleh Dashboard HTML)
     // Walaupun tanpa parameter, kita bisa jadikan ini default response agar API mudah diakses
-    return getAllDataJSON();
+    return getAllDataJSON(inst);
 
   } catch (error) {
     return ContentService
@@ -94,9 +96,15 @@ function doGet(e) {
 // ==========================================
 
 // Fungsi untuk Form: Mengambil 3 riwayat terakhir
-function getHistoryData(namaLengkap) {
+function getHistoryData(namaLengkap, inst) {
+  const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
   const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
-  const sheet = doc.getSheetByName(sheetName);
+  let sheet = doc.getSheetByName(sheetName);
+  
+  if (!sheet && inst === 'mtsn6demak') {
+      sheet = doc.getSheetByName('Database');
+  }
+  
   const data = sheet.getDataRange().getValues();
   
   let history = [];
@@ -128,9 +136,16 @@ function getHistoryData(namaLengkap) {
 }
 
 // Fungsi untuk Dashboard: Mengambil SELURUH data baris-berbaris
-function getAllDataJSON() {
+function getAllDataJSON(inst) {
+  const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
   const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
-  const sheet = doc.getSheetByName(sheetName);
+  let sheet = doc.getSheetByName(sheetName);
+  
+  // FALLBACK: Jika user belum mengubah nama sheet menjadi Database_MTsN6Demak
+  if (!sheet && inst === 'mtsn6demak') {
+      sheet = doc.getSheetByName('Database');
+  }
+  
   const data = sheet.getDataRange().getValues();
   
   let database = [];
