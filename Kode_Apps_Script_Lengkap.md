@@ -11,6 +11,7 @@ Ikuti langkah ini untuk memperbarui sistem Anda agar memiliki Dashboard HTML mur
 // KODE BACKEND: FORM HTML & DASHBOARD ROUTER
 // ==========================================
 
+const sheetName = 'Database';
 const scriptProp = PropertiesService.getScriptProperties();
 
 function initialSetup () {
@@ -23,139 +24,35 @@ function doPost (e) {
   lock.tryLock(10000);
 
   try {
-    const action = e.parameter.action || 'submit';
-
-    // ----------------------------------------
-    // FITUR: LOGIN & ROUTING
-    // ----------------------------------------
-    if (action === 'login') {
-      const u = e.parameter.username;
-      const p = e.parameter.password;
-      
-      if (u === 'ustadz' && p === 'mtsn6demak') {
-        return ContentService.createTextOutput(JSON.stringify({ result: 'success', inst: 'mtsn6demak' })).setMimeType(ContentService.MimeType.JSON);
-      } else if (u === 'ustadz' && p === 'smaalislam') {
-        return ContentService.createTextOutput(JSON.stringify({ result: 'success', inst: 'smaalislam' })).setMimeType(ContentService.MimeType.JSON);
-      } else {
-        return ContentService.createTextOutput(JSON.stringify({ result: 'error', message: 'Username atau Password salah' })).setMimeType(ContentService.MimeType.JSON);
-      }
-    }
-
-    const inst = e.parameter.inst || 'mtsn6demak';
-    const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
     const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
     const sheet = doc.getSheetByName(sheetName);
-
-    // ----------------------------------------
-    // FITUR: HAPUS DATA
-    // ----------------------------------------
-    if (action === 'delete') {
-      const timestampId = e.parameter.timestampId;
-      const nama = e.parameter.namaLengkap;
-      
-      const data = sheet.getDataRange().getValues();
-      let deleted = false;
-      for (let i = 1; i < data.length; i++) {
-        let rawDate = data[i][0];
-        let isoDate = (rawDate instanceof Date) ? rawDate.toISOString() : String(rawDate);
-        if (isoDate === timestampId && data[i][2] === nama) {
-          sheet.deleteRow(i + 1); // +1 karena array 0-indexed dan baris sheet 1-indexed
-          deleted = true;
-          break;
-        }
-      }
-      
-      if (deleted) {
-        return ContentService.createTextOutput(JSON.stringify({ 'result': 'success', 'message': 'Data dihapus' })).setMimeType(ContentService.MimeType.JSON);
-      } else {
-        return ContentService.createTextOutput(JSON.stringify({ 'result': 'error', 'message': 'Data tidak ditemukan' })).setMimeType(ContentService.MimeType.JSON);
-      }
-    }
 
     // Hitung selisih ayat otomatis
     let aMulai = parseInt(e.parameter.ayatMulai) || 0;
     let aSampai = parseInt(e.parameter.ayatSampai) || 0;
     const totalAyat = (aSampai > 0 && aMulai > 0) ? (aSampai - aMulai + 1) : 0;
     
-    const namaLengkap = e.parameter.namaLengkap || '';
-    const surat = e.parameter.surat || '';
-    
-    // ----------------------------------------
-    // FITUR: DETEKSI ZIYADAH / MURAJA'AH CERDAS
-    // ----------------------------------------
-    let jenisSetoran = 'Ziyadah'; // Default
-    const data = sheet.getDataRange().getValues();
-    
-    let timestampIdToEdit = e.parameter.timestampId;
-    let editRowIndex = -1;
-
-    for (let i = 1; i < data.length; i++) {
-      let rawDate = data[i][0];
-      let isoDate = (rawDate instanceof Date) ? rawDate.toISOString() : String(rawDate);
-      
-      // Jika mode edit, kita abaikan baris yang sedang diedit agar tidak membandingkan dengan dirinya sendiri
-      if (action === 'edit' && isoDate === timestampIdToEdit && data[i][2] === namaLengkap) {
-        editRowIndex = i + 1;
-        continue; 
-      }
-
-      // Jika murid dan surat sama
-      if (data[i][2] === namaLengkap && data[i][4] === surat) {
-        // Jika ayat mulai dan ayat sampai persis sama, maka ini Muraja'ah
-        if (data[i][5] == aMulai && data[i][6] == aSampai) {
-          jenisSetoran = 'Muraja\'ah';
-        }
-      }
-    }
-
-    // ----------------------------------------
-    // FITUR: EDIT DATA
-    // ----------------------------------------
-    if (action === 'edit') {
-      if (editRowIndex !== -1) {
-        // Pertahankan timestamp asli agar ID unik tidak berubah
-        let tglAsli = sheet.getRange(editRowIndex, 1).getValue();
-        
-        const dataRow = [
-          tglAsli, 
-          e.parameter.kelas || '',
-          namaLengkap,
-          jenisSetoran, // Dihitung otomatis
-          surat,
-          e.parameter.ayatMulai || '',
-          e.parameter.ayatSampai || '',
-          e.parameter.nilai || '',
-          e.parameter.catatan || '',
-          totalAyat
-        ];
-        
-        sheet.getRange(editRowIndex, 1, 1, dataRow.length).setValues([dataRow]);
-        return ContentService.createTextOutput(JSON.stringify({ 'result': 'success', 'row': editRowIndex })).setMimeType(ContentService.MimeType.JSON);
-      } else {
-        return ContentService.createTextOutput(JSON.stringify({ 'result': 'error', 'message': 'Data edit tidak ditemukan' })).setMimeType(ContentService.MimeType.JSON);
-      }
-    }
-    
-    // ----------------------------------------
-    // FITUR: TAMBAH DATA (SUBMIT BARU)
-    // ----------------------------------------
+    // Tambahkan baris baru di posisi 2 (di bawah header)
     sheet.insertRowBefore(2);
+    
+    // Ambil tanggal dari form (atau gunakan waktu saat ini jika kosong)
     const inputTanggal = e.parameter.tanggal;
     const tanggalSetoran = inputTanggal ? new Date(inputTanggal) : new Date();
     
     const dataRow = [
-      tanggalSetoran,
+      tanggalSetoran, // Timestamp (Tanggal)
       e.parameter.kelas || '',
-      namaLengkap,
-      jenisSetoran, // Dihitung otomatis
-      surat,
+      e.parameter.namaLengkap || '',
+      e.parameter.jenisSetoran || '',
+      e.parameter.surat || '',
       e.parameter.ayatMulai || '',
       e.parameter.ayatSampai || '',
       e.parameter.nilai || '',
       e.parameter.catatan || '',
-      totalAyat
+      totalAyat // Total Ayat murni data numerik
     ];
     
+    // Masukkan data ke baris 2 (Hanya data murni, tanpa rumus K dan L!)
     sheet.getRange(2, 1, 1, dataRow.length).setValues([dataRow]);
     
     return ContentService
@@ -165,7 +62,7 @@ function doPost (e) {
 
   catch (e) {
     return ContentService
-      .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e.toString() }))
+      .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -176,15 +73,14 @@ function doPost (e) {
 
 function doGet(e) {
   try {
-    const inst = e.parameter.inst || 'mtsn6demak';
-
     // ROUTING 1: Permintaan Data History (Dipanggil oleh Form)
     if (e.parameter.action === 'getHistory') {
-      return getHistoryData(e.parameter.nama, inst);
+      return getHistoryData(e.parameter.nama);
     }
     
     // ROUTING 2: Permintaan Semua Data Database (Dipanggil oleh Dashboard HTML)
-    return getAllDataJSON(inst);
+    // Walaupun tanpa parameter, kita bisa jadikan ini default response agar API mudah diakses
+    return getAllDataJSON();
 
   } catch (error) {
     return ContentService
@@ -198,8 +94,7 @@ function doGet(e) {
 // ==========================================
 
 // Fungsi untuk Form: Mengambil 3 riwayat terakhir
-function getHistoryData(namaLengkap, inst) {
-  const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
+function getHistoryData(namaLengkap) {
   const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
   const sheet = doc.getSheetByName(sheetName);
   const data = sheet.getDataRange().getValues();
@@ -209,47 +104,31 @@ function getHistoryData(namaLengkap, inst) {
     if (data[i][2] === namaLengkap) {
       let tgl = data[i][0];
       let formattedDate = "";
-      let isoDate = "";
-      let sortableDate = 0;
       if(tgl instanceof Date) {
-        isoDate = tgl.toISOString();
         formattedDate = tgl.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
-        sortableDate = tgl.getTime();
       } else {
-        isoDate = String(tgl);
         formattedDate = String(tgl).split('T')[0];
-        sortableDate = new Date(tgl).getTime() || 0;
       }
 
       history.push({
-        id: isoDate, // Digunakan untuk unik ID hapus/edit
         tanggal: formattedDate,
-        sortableDate: sortableDate,
-        kelas: data[i][1],
         jenisSetoran: data[i][3],
         surat: data[i][4],
         ayatMulai: data[i][5],
         ayatSampai: data[i][6],
-        nilai: data[i][7],
-        catatan: data[i][8]
+        nilai: data[i][7]
       });
+      if (history.length === 3) break;
     }
   }
   
-  // Urutkan berdasarkan tanggal (terbaru di atas)
-  history.sort((a, b) => b.sortableDate - a.sortableDate);
-  
-  // Ambil maksimal 3 riwayat terakhir
-  let topHistory = history.slice(0, 3);
-  
   return ContentService
-    .createTextOutput(JSON.stringify({ result: 'success', data: topHistory }))
+    .createTextOutput(JSON.stringify({ result: 'success', data: history }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 // Fungsi untuk Dashboard: Mengambil SELURUH data baris-berbaris
-function getAllDataJSON(inst) {
-  const sheetName = inst === 'smaalislam' ? 'Database_SMAALISLAM' : 'Database_MTsN6Demak';
+function getAllDataJSON() {
   const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
   const sheet = doc.getSheetByName(sheetName);
   const data = sheet.getDataRange().getValues();
@@ -293,7 +172,6 @@ function getAllDataJSON(inst) {
 ```
 
 4. Klik tombol **Save (Simpan)**.
-5. Sekarang, Anda dapat **Menghapus Sheet `Dashboard` dan `Rekap Absensi` lama secara permanen** dari Google Spreadsheet Anda.
-6. **PENTING UNTUK KEDUA INSTITUSI**: Ubah nama sheet Anda (di bagian bawah layar Spreadsheet) menjadi persis **Database_MTsN6Demak** (untuk MTsN). Kemudian buat sheet/tab baru dengan nama persis **Database_SMAALISLAM** (untuk SMA). Copy (salin) bagian *header* (baris 1) dari sheet MTsN ke sheet SMA. Data siswa SMA Al-Islam akan disimpan dan diambil dari *sheet* ini secara terpisah.
+5. Sekarang, Anda dapat **Menghapus Sheet `Dashboard` dan `Rekap Absensi` lama secara permanen** dari Google Spreadsheet Anda. Biarkan hanya tersisa sheet `Database` agar Spreadsheet super ringan. Anda juga boleh menghapus kolom J, K, dan L jika ada sisa tulisan `#ERROR!` di sana, karena sekarang kita hanya butuh Kolom A sampai J (Total Ayat) saja!
 
 *(Langkah pembuatan halaman Dashboard HTML ada di file terpisah).*
